@@ -113,6 +113,18 @@ describe('carving', () => {
     expect(roughness(skin(6).points)).toBeLessThan(roughness(skin(0).points)); // a carved ball keeps faint ridges, which are its true shape
   });
 
+  it('keeps a building square when told to, as two views leave the plan unknown', () => {
+    const shots = [photo(bus, 'side'), photo(bus, 'front')], corner = (b: ReturnType<typeof carve>) => b.cells.some((c) => c[0] === 0 && c[2] === 0);
+    expect(corner(carve(shots, { long: 40 }))).toBe(false);
+    expect(corner(carve(shots, { long: 40, square: true }))).toBe(true);
+  });
+
+  it('settles on a few main colours, however many tones a photo has', () => {
+    const shaded = (x: number, y: number, z: number) => (bus(x, y, z) ? [120 + Math.round((y + 1) * 60), 100, 90 + Math.round((z + 1) * 50)] : null);
+    const b = carve([photo(shaded, 'side'), photo(shaded, 'front'), photo(shaded, 'top')], { long: 40 });
+    expect(new Set(b.cells.map((c) => c[3])).size).toBeLessThanOrEqual(12);
+  });
+
   it('keeps only the surface, so a big model stays light', () => {
     const b = carve([photo(ball, 'side'), photo(ball, 'front'), photo(ball, 'top')], { long: 32 });
     expect(b.cells.length).toBeLessThan((b.nx * b.ny * b.nz) / 3);

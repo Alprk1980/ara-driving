@@ -2,6 +2,7 @@
 // document's tables have one home in code.
 import type { JobCar, QuestType, Twist } from '../../schemas/content.ts';
 
+export const RECOVERY_FEE = 30; // a truck home when you could have driven; free if you're out of fuel, as the tow always was
 export const KERB_KG = 1400; // a typical UK family car, 1200-1500 kg, from general knowledge: no published average turned up
 export const FUEL_PRICE = 1; // Points per litre
 export const REPAIR_RATE = 1; // Points per 1% of bodywork damage at the garage

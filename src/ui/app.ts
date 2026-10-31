@@ -16,7 +16,7 @@ import type { RoadMoment } from '../../schemas/services.ts';
 import roadLines from '../data/roadlines.json';
 
 const TREND_SHOWN = 0.5, ROAD_ROWS = 10;
-const ROAD_NAMES: Record<RoadMoment, string> = { red_stop: 'Waited at a red', zebra_wait: 'Stopped at a zebra', blue_pull: 'Pulled over for a blue light', stopped_after: 'Stopped after a knock', red_run: 'Ran a red light', zebra_run: 'Drove over a busy zebra', blue_block: 'Held up a blue light', drove_off: 'Drove off after a knock', pulled_over: 'Stopped by the police', got_away: 'Lost the police', course: 'Went on a course' };
+const ROAD_NAMES: Record<RoadMoment, string> = { red_stop: 'Waited at a red', zebra_wait: 'Stopped at a zebra', blue_pull: 'Pulled over for a blue light', stopped_after: 'Stopped after a knock', red_run: 'Ran a red light', zebra_run: 'Drove over a busy zebra', blue_block: 'Held up a blue light', drove_off: 'Drove off after a knock', pulled_over: 'Stopped by the police', got_away: 'Lost the police', course: 'Went on a course', phone_use: 'Used a phone at the wheel', hoax_call: 'Called 999 with no emergency', recovery_called: 'Called for recovery' };
 import { CAMERA_NAMES, type View } from '../view/scene.ts';
 import { DISTRICTS, DISTRICT_IDS, type DistrictId } from '../sim/districts.ts';
 import { drawMini, drawWorld, townImage } from './map.ts';
@@ -199,6 +199,7 @@ export class App {
     $('btn-pause').onclick = () => this.openPause();
     $('btn-controls').onclick = () => this.openControls();
     $('roadchip').onclick = () => this.openRoad();
+    $('btn-phone').onclick = () => this.openPhone();
     addEventListener('keydown', (e) => {
       if (e.repeat) return;
       if (e.key.toLowerCase() === 'c') $('btn-cam').click();
@@ -442,6 +443,27 @@ export class App {
   }
 
   // ---- panels ----
+  /** A basic phone: 999, which asks which service as the real one does, and recovery. */
+  private openPhone() {
+    const g = this.game, moving = Math.abs(g.player.speed) > 2, warn = moving ? '<p class="warn">You\'re moving. Pull over first: a phone at the wheel is 6 licence points. Only a genuine 999 call is allowed.</p>' : '';
+    const call = (who: 'police' | 'fire' | 'ambulance' | 'recovery', said: string) => {
+      const ok = g.phone(who);
+      this.close('dialog');
+      this.toast(ok ? said : 'Everyone\'s out on a job. Try again soon');
+      this.store();
+    };
+    const c = this.sheet('dialog', `<h2>Phone</h2>${warn}<p>Who do you want to call?</p><div class="row end"><button class="ghost" id="x">Hang up</button><button class="ghost" id="tow">Recovery</button><button class="primary" id="n999">999</button></div>`);
+    c.querySelector<HTMLElement>('#x')!.onclick = () => this.close('dialog');
+    c.querySelector<HTMLElement>('#tow')!.onclick = () => call('recovery', 'A recovery truck is on its way');
+    c.querySelector<HTMLElement>('#n999')!.onclick = () => {
+      const d = this.sheet('dialog', `<h2>999</h2>${warn}<p>Emergency. Which service?</p><div class="row end"><button class="ghost" id="x">Hang up</button><button class="ghost" id="police">Police</button><button class="ghost" id="fire">Fire</button><button class="primary" id="ambulance">Ambulance</button></div>`);
+      d.querySelector<HTMLElement>('#x')!.onclick = () => this.close('dialog');
+      d.querySelector<HTMLElement>('#police')!.onclick = () => call('police', 'The police are on their way');
+      d.querySelector<HTMLElement>('#fire')!.onclick = () => call('fire', 'The fire service is on its way');
+      d.querySelector<HTMLElement>('#ambulance')!.onclick = () => call('ambulance', 'An ambulance is on its way');
+    };
+  }
+
   private openRoad() {
     const s = this.game.road, r = s.rec, ago = (at: number) => { const m = Math.floor((r.clock - at) / 60); return m < 1 ? 'just now' : `${m} min ago`; };
     const rows = (r.log ?? []).slice(0, ROAD_ROWS).map((e) => `<div class="goal roadrow ${e.by > 0 ? 'good' : e.by < 0 ? 'bad' : ''}"><span>${e.by > 0 ? '▲' : e.by < 0 ? '▼' : '•'} ${esc(ROAD_NAMES[e.moment])}</span><span>${e.by > 0 ? `+${e.by}` : e.by < 0 ? e.by : ''} · ${ago(e.at)}</span></div>`).join('');

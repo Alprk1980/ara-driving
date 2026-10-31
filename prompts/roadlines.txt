@@ -14,3 +14,6 @@ The moments:
 - pulled_over: the police stopped the player for a chat, and they stopped
 - got_away: the police gave up following the player
 - course: the player has too many licence points and goes on a course
+- phone_use: the player used their phone while driving, instead of pulling over first
+- hoax_call: the player called 999 when there was no emergency
+- recovery_called: the player phoned for a recovery truck, which is on its way

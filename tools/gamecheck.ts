@@ -152,6 +152,20 @@ await page.screenshot({ path: `out/${tag}-record.png` });
 const opened = await ara<string>(`document.querySelector('#dialog h2').textContent`);
 check(opened.startsWith('Road sense'), `the record opens: ${opened}`);
 await page.click('#dialog #x');
+console.log('\n-- the phone and the recovery truck --');
+await page.click('#btn-phone');
+await wait(400);
+await page.click('#dialog #n999');
+await wait(300);
+await page.screenshot({ path: `out/${tag}-phone.png` });
+const asked = await ara<string>(`document.querySelector('#dialog .card').textContent`);
+check(asked.includes('Which service?'), '999 asks which service');
+await page.click('#dialog #x');
+const truck = await ara<{ sent: boolean; id: string }>(`(() => { const sent = g.phone('recovery'), c = g.traffic.cars.find((q) => q.role === 'recovery'); c.x = p.x + Math.sin(p.heading) * 14 - Math.cos(p.heading) * 3; c.z = p.z + Math.cos(p.heading) * 14 + Math.sin(p.heading) * 3; c.heading = p.heading + 0.5; return { sent, id: c.fleet }; })()`);
+check(truck.sent, `a ${truck.id} is on its way, amber beacons on`);
+await wait(900);
+await page.screenshot({ path: `out/${tag}-truck.png` });
+
 const lit = await ara<{ blue: boolean; to: string }>(`(() => { const c = g.traffic.call('fire', p, { x: p.x + 40, z: p.z + 40 }); return { blue: !!c?.blue, to: c?.fleet ?? 'none' }; })()`);
 check(lit.blue, `a ${lit.to} answers a call with its blue lights on`);
 

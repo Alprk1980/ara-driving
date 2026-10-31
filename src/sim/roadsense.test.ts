@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { freshProgress } from './quests.ts';
 import { Game, STEP, type GameEvent } from './game.ts';
+import { RECOVERY_FEE } from './economy.ts';
 import { freshRoad, LICENCE_LIMIT, MERITS, OFFENCES, scoreBonus, START_SCORE } from './roadsense.ts';
 import { aspectAt, CLEAR_S, CYCLE_S, signalFor, STOP_LINE_M, WALK_S, walkAt, walkFor } from './signals.ts';
 import { dist, makeRng, Town } from './town.ts';
@@ -223,6 +224,56 @@ describe('the record', () => {
     const { road: _gone, ...old } = freshProgress();
     const g = new Game(content, wallet(), { seed: 3, town, progress: old });
     expect(g.road.rec.score).toBe(START_SCORE);
+  });
+});
+
+describe('the phone', () => {
+  it('brings a crew, and a real emergency is no offence, moving or not', () => {
+    const { g, seen } = game();
+    g.player.setDamage(0.5);
+    g.player.speed = 10;
+    expect(g.phone('ambulance')).toBe(true);
+    expect(g.traffic.cars.find((c) => c.fleet === 'ambulance')?.blue).toBe(true);
+    expect(seen.map((e) => e.moment)).toEqual([]);
+  });
+
+  it('marks a hoax 999 call, without a pursuit', () => {
+    const { g, seen } = game();
+    g.player.speed = 0;
+    g.phone('fire');
+    expect(seen.map((e) => e.moment)).toContain('hoax_call');
+    expect(g.road.points).toBe(0);
+    expect(g.road.chaser).toBeNull();
+  });
+
+  it('marks calling recovery on the move, at the real 6 points', () => {
+    const { g, seen } = game();
+    g.player.speed = 12;
+    g.phone('recovery');
+    expect(seen.map((e) => e.moment)).toContain('phone_use');
+    expect(g.road.points).toBe(OFFENCES.phone_use.points);
+    expect(OFFENCES.phone_use.points).toBe(6);
+  });
+
+  it('brings a truck that takes you home, charged unless you ran dry', () => {
+    const { g, w } = game();
+    g.traffic.cars.splice(0, 16);
+    g.player.speed = 0;
+    g.player.state = 'Parked';
+    const before = w.value;
+    expect(g.phone('recovery')).toBe(true);
+    expect(w.value).toBe(before - RECOVERY_FEE);
+    const from = { x: g.player.x, z: g.player.z };
+    for (let i = 0; i < 60 * 200 && dist(from, g.player) < 5; i++) { g.step(); g.player.speed = 0; }
+    expect(dist(g.player, town.home.road)).toBeLessThan(15);
+  });
+
+  it('is free when stranded', () => {
+    const { g, w } = game();
+    g.player.state = 'Stranded';
+    const before = w.value;
+    g.phone('recovery');
+    expect(w.value).toBe(before);
   });
 });
 

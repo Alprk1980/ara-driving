@@ -1,24 +1,22 @@
-// Makes one image with Gemini, billed to the key in .env.llm.
-//   node --env-file=.env.llm tools/geminiimage.ts "<prompt>" out.png [--model gemini-3.1-flash-image] [--from reference.png]
+// Makes one image on Vertex AI, billed to the key in .env.llm. Imagen models take a prompt only; Gemini image models can also
+// work from a reference picture.
+//   node --env-file=.env.llm tools/geminiimage.ts "<prompt>" out.png [--model gemini-3.1-flash-image] [--aspect 16:9] [--from a.png,b.png]
 import { readFileSync, writeFileSync } from 'node:fs';
 
 const args = process.argv.slice(2), flag = (name: string) => { const i = args.indexOf(name); return i >= 0 ? args[i + 1] : undefined; };
-const [prompt, file] = args, model = flag('--model') ?? 'gemini-3.1-flash-image', from = flag('--from'), key = process.env.IMAGEN_API_KEY;
+const [prompt, file] = args, model = flag('--model') ?? 'gemini-3.1-flash-image', from = flag('--from'), aspect = flag('--aspect') ?? '16:9', key = process.env.IMAGEN_API_KEY;
 if (!prompt || !file || !key) throw new Error('needs a prompt, an output file, and IMAGEN_API_KEY');
 
-const parts: unknown[] = [{ text: prompt }];
-if (from) parts.push({ inlineData: { mimeType: from.endsWith('.png') ? 'image/png' : 'image/jpeg', data: readFileSync(from).toString('base64') } });
-const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+const imagen = model.startsWith('imagen'), parts: unknown[] = [{ text: prompt }];
+for (const f of from?.split(',') ?? []) parts.push({ inlineData: { mimeType: f.endsWith('.png') ? 'image/png' : 'image/jpeg', data: readFileSync(f).toString('base64') } });
+const res = await fetch(`https://aiplatform.googleapis.com/v1/publishers/google/models/${model}:${imagen ? 'predict' : 'generateContent'}?key=${encodeURIComponent(key)}`, {
   method: 'POST',
-  headers: { 'content-type': 'application/json', 'x-goog-api-key': key },
-  body: JSON.stringify({ contents: [{ parts }], generationConfig: { responseModalities: ['TEXT', 'IMAGE'] } }),
+  headers: { 'content-type': 'application/json' },
+  body: JSON.stringify(imagen ? { instances: [{ prompt }], parameters: { sampleCount: 1, aspectRatio: aspect } } : { contents: [{ role: 'user', parts }], generationConfig: { responseModalities: ['TEXT', 'IMAGE'] } }),
 });
-if (!res.ok) throw new Error(`${res.status}: ${(await res.text()).slice(0, 300)}`);
-const body = await res.json() as { candidates?: { content?: { parts?: { text?: string; inlineData?: { data: string } }[] } }[]; usageMetadata?: unknown };
-let saved = false;
-for (const part of body.candidates?.[0]?.content?.parts ?? []) {
-  if (part.inlineData) { writeFileSync(file, Buffer.from(part.inlineData.data, 'base64')); console.log(`saved ${file}`); saved = true; }
-  else if (part.text) console.log(`model note: ${part.text}`);
-}
-if (!saved) throw new Error('no image came back');
-console.log('usage:', JSON.stringify(body.usageMetadata));
+if (!res.ok) throw new Error(`${res.status}: ${(await res.text()).slice(0, 400)}`);
+const body = await res.json() as { predictions?: { bytesBase64Encoded?: string }[]; candidates?: { content?: { parts?: { text?: string; inlineData?: { data: string } }[] } }[] };
+const data = body.predictions?.[0]?.bytesBase64Encoded ?? body.candidates?.[0]?.content?.parts?.find((p) => p.inlineData)?.inlineData?.data;
+if (!data) throw new Error(`no image came back: ${JSON.stringify(body).slice(0, 300)}`);
+writeFileSync(file, Buffer.from(data, 'base64'));
+console.log(`saved ${file}`);

@@ -12,13 +12,13 @@ import { dist, ROAD_W, type Vec, type Zebra } from './town.ts';
 import type { TrafficCar } from './traffic.ts';
 import type { RoadMoment } from '../../schemas/services.ts';
 
-export type Offence = 'red_run' | 'zebra_run' | 'blue_block' | 'drove_off';
+export type Offence = 'red_run' | 'zebra_run' | 'blue_block' | 'drove_off' | 'phone_use' | 'hoax_call';
 export type Merit = 'red_stop' | 'zebra_wait' | 'blue_pull' | 'stopped_after';
 export type RoadEntry = { moment: RoadMoment; at: number; by: number }; // what happened, when on the record's clock, and how far it moved the score
 export type RoadRecord = { score: number; marks: { kind: Offence; at: number }[]; clock: number; good: number; bad: number; log?: RoadEntry[] }; // log: missing from older saves
 
 export const START_SCORE = 50, LICENCE_LIMIT = 12, MARK_DAYS = 3, COURSE_COST = 150, POLICE_FINE = 50;
-export const OFFENCES: Record<Offence, { points: number; drop: number }> = { red_run: { points: 3, drop: 12 }, zebra_run: { points: 3, drop: 12 }, blue_block: { points: 0, drop: 6 }, drove_off: { points: 6, drop: 20 } };
+export const OFFENCES: Record<Offence, { points: number; drop: number }> = { red_run: { points: 3, drop: 12 }, zebra_run: { points: 3, drop: 12 }, blue_block: { points: 0, drop: 6 }, drove_off: { points: 6, drop: 20 }, phone_use: { points: 6, drop: 15 }, hoax_call: { points: 0, drop: 10 } }; // a hand-held phone at the wheel is 6 points since 2017, and a hoax call costs score: the offence exists, but the search couldn't confirm its terms
 export const MERITS: Record<Merit, { pay: number; rise: number }> = { red_stop: { pay: 5, rise: 1 }, zebra_wait: { pay: 8, rise: 2 }, blue_pull: { pay: 15, rise: 3 }, stopped_after: { pay: 0, rise: 0 } }; // only thanks, so a bump is never worth having
 const LOG_KEEP = 30, TREND_EVERY_S = 30, TREND_SAMPLES = 5; // the arrow compares now with about two minutes ago
 const SMOOTH_PER_KM = 0.6, HARD_STOP_DROP = 1, BUMP_DROP = 2, COOLDOWN_S = 15, BLOCK_S = 4, MOVING_MPS = 1.5, STILL_MPS = 1;
@@ -85,7 +85,7 @@ export class RoadSense {
     if (o.points) this.rec.marks.push({ kind, at: this.rec.clock });
     this.g.roadEvent({ moment: kind, pay: 0, points: o.points });
     const police = this.g.traffic.cars.some((c) => c.role === 'police' && !c.dormant && dist(c, this.g.player) < SEEN_M);
-    if (kind === 'drove_off' || police) this.pursue();
+    if (kind === 'drove_off' || (police && kind !== 'hoax_call')) this.pursue();
     if (this.points >= LICENCE_LIMIT) {
       this.rec.marks = [];
       this.rec.score = Math.max(this.rec.score, START_SCORE);
@@ -119,6 +119,8 @@ export class RoadSense {
     this.nudge(-BUMP_DROP);
   }
 
+  phoneAtWheel() { this.offence('phone_use'); }
+  hoaxCall() { this.offence('hoax_call'); }
   hardStop() { this.nudge(-HARD_STOP_DROP); }
   smooth(km: number) { this.nudge(km * SMOOTH_PER_KM); }
 

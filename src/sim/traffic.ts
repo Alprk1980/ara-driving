@@ -9,7 +9,7 @@ import fleet from '../data/fleet.json' with { type: 'json' };
 import { FLEET_RULES, type FleetId, type Role } from '../../schemas/fleet.ts';
 import { carsOverlap, type CarBox } from './collide.ts';
 import { KERB_KG } from './economy.ts';
-import type { ParkedCars } from './parked.ts';
+import type { KerbCar, ParkedCars } from './parked.ts';
 import { signalFor, STOP_LINE_M } from './signals.ts';
 import { dist, type BusRoute, type BusStop, type Leg, type Rng, type Town, type Vec, type Zebra } from './town.ts';
 
@@ -26,11 +26,15 @@ const JUNCTION_M = 16, CLEAR_M = 14, TURN_MPS = 6.5, GIVE_UP_S = 4, PASS_AFTER_S
 export const TRAFFIC_LENGTH = 4.1;
 const CALM_MPS2 = 3, ZEBRA_STOP_M = 2.5, SIGNAL_LOOK_M = 45; // a driver's calm stop is about 3 m/s²
 const DOORS_S = 7, PER_PERSON_S = 3.5, STOP_LANE = 4.4, STOP_LOOK_M = 34, AT_STOP_M = 1.5; // doors and pulling away, plus 3-5 s for each contactless tap: TfL's average dwell is 10.5-14.5 s. The lane puts a bus's flank at the kerb
-const BLUE_MPS = 16, BLUE_LANE = 0, BLUE_DODGE = 1.8, BLUE_GAP = 2.15, PULL_IN_MPS = 3, YIELD_LANE = 3.6, GIVE_WAY_M = 70, GIVE_WAY_SIDE_M = 9, RED_CROSS_MPS = 5, BLUE_PASS_S = 1, ON_SCENE_M = 11; // UK blue-light drivers may treat a red as a give way, so they slow and cross; about 58 km/h in town, judged
+const CREEP_MPS = 2.5, BLUE_MPS = 16, BLUE_LANE = 0, BLUE_DODGE = 1.8, BLUE_GAP = 2.15, PULL_IN_MPS = 3, YIELD_LANE = 3.6, GIVE_WAY_M = 70, GIVE_WAY_SIDE_M = 9, RED_CROSS_MPS = 5, BLUE_PASS_S = 1, ON_SCENE_M = 11; // UK blue-light drivers may treat a red as a give way, so they slow and cross; about 58 km/h in town, judged
 const BLOCK_MPS = 2, STATION_RANGE_M = 800, HOME_M = 18, CHASE_MPS = 24, REPLAN_S = 3, TAIL_M = 14; // a crew comes from its own station if that's near enough; a pursuit runs at about 55 mph in town, judged
 const SCENE_S = 25, CALLOUT_S: [number, number] = [100, 220], HEAVY_WRECK = 0.7, HEAVY_KG = 3000; // real attendance is 8-9 minutes (NHS and Home Office figures): this town has seconds, on purpose, so you see them come
 const CAR_KG = KERB_KG, CROSS_M = 450; // a callout's run, past the player
-const BUSES: FleetId[] = ['bus_double', 'bus_single', 'bus_double', 'bus_single'], CREWS: FleetId[] = ['police_car', 'police_van', 'ambulance', 'fire_engine'];
+const BUSES: FleetId[] = ['bus_double', 'bus_single', 'bus_double', 'bus_single'], CREWS: FleetId[] = ['police_car', 'police_van', 'ambulance', 'fire_engine', 'recovery_truck'];
+const GONE_M = 150, LOAD_S = 12, BED_M = 1.15, RECOVERY_MPS = 12, COLLECT_EVERY_S = 8, WINCH_RATE = 1.5; // a car comes up the bed in a dozen seconds, judged, as no figure turned up; a real recovery takes 40-60 minutes to arrive, and here a minute or two, on purpose
+
+type Rider = { x: number; z: number; heading: number; lift: number; riding: boolean };
+type Job = { at: Vec; wreck: TrafficCar | null; kerb?: KerbCar; player?: boolean };
 
 export type TrafficCar = {
   x: number; z: number; heading: number; speed: number; cruise: number; want: number; colour: number;
@@ -43,8 +47,10 @@ export type TrafficCar = {
   role: Role | 'car'; fleet: FleetId | null; kg: number;
   plan: Leg[] | null; leg: number; route: number; // a bus's route, or a crew's way to a job
   dwell: number; served: number; // seconds left at a stop, and the last stop's index on the route
-  blue: boolean; scene: number; job: { at: Vec; wreck: TrafficCar | null } | null; dormant: boolean; // dormant: an off-duty crew, off the map until called
+  blue: boolean; scene: number; job: Job | null; dormant: boolean; // dormant: an off-duty crew, off the map until called
   chase: boolean; replan: number; returning: boolean; // following the player; heading back to the station
+  amber: boolean; load: Rider | null; loading: number; // a recovery truck's beacons, what's on its bed, and the seconds left winching it up
+  riding: boolean; lift: number; // on a recovery truck's bed, and how high off the road
 };
 
 /** One town car model per traffic car, in turn, so the sim collides with what's drawn. */
@@ -72,6 +78,9 @@ export class Traffic {
   walkers: { busy(z: Zebra): boolean; board(s: BusStop, player: Vec): number } | null = null;
   kerb: ParkedCars | null = null;
   private nextCall: number;
+  private nextCollect = COLLECT_EVERY_S;
+  private seen: Vec = { x: 0, z: 0 }; // where the player was, for putting a car back in play
+  onRecovered: (() => void) | null = null; // the truck has the player's car
   private held = new Map<number, TrafficCar>(); // junction -> the car crossing it
 
   constructor(town: Town, rng: Rng, near: Vec) {
@@ -97,7 +106,7 @@ export class Traffic {
   }
 
   private blank(colour: number, size: { halfL: number; halfW: number }, id: FleetId | null = null): TrafficCar {
-    return { x: -1000, z: -1000, heading: 0, speed: 0, cruise: 0, want: 0, colour, edge: 0, to: 0, along: 0, nextEdge: 0, nextTo: 0, lane: LANE, laneGoal: LANE, waiting: 0, passing: 0, holding: -1, cool: 0, braking: false, vx: 0, vz: 0, spin: 0, dents: { front: 0, back: 0, left: 0, right: 0 }, damage: 0, wreck: 0, ...size, signal: 0, role: id ? FLEET_RULES[id].role : 'car', fleet: id, kg: id ? FLEET_RULES[id].kg : CAR_KG, plan: null, leg: 0, route: 0, dwell: 0, served: -1, blue: false, scene: 0, job: null, dormant: false, chase: false, replan: 0, returning: false };
+    return { x: -1000, z: -1000, heading: 0, speed: 0, cruise: 0, want: 0, colour, edge: 0, to: 0, along: 0, nextEdge: 0, nextTo: 0, lane: LANE, laneGoal: LANE, waiting: 0, passing: 0, holding: -1, cool: 0, braking: false, vx: 0, vz: 0, spin: 0, dents: { front: 0, back: 0, left: 0, right: 0 }, damage: 0, wreck: 0, ...size, signal: 0, role: id ? FLEET_RULES[id].role : 'car', fleet: id, kg: id ? FLEET_RULES[id].kg : CAR_KG, plan: null, leg: 0, route: 0, dwell: 0, served: -1, blue: false, scene: 0, job: null, dormant: false, chase: false, replan: 0, returning: false, amber: false, load: null, loading: 0, riding: false, lift: 0 };
   }
 
   /** Puts a bus on its route somewhere in the ring round the player, or at the nearest point of the route if none is. */
@@ -211,11 +220,20 @@ export class Traffic {
       const behind = dist(c, player);
       want = behind < TAIL_M * 3 ? Math.min(CHASE_MPS, Math.abs(player.speed) + Math.max(0, behind - TAIL_M) * 0.6) : CHASE_MPS; // it follows, and never rams
     } else {
-      if (c.job?.wreck && c.job.wreck.wreck <= 0) this.finish(c); // recovered before they got there
+      if (c.job?.wreck && (c.job.wreck.wreck <= 0 || c.job.wreck.riding) && c.role !== 'recovery') this.finish(c); // recovered before they got there
       if (c.job && !c.plan && left < ON_SCENE_M && dist(c, c.job.at) > ON_SCENE_M * 2) this.finish(c); // the end of the road and nothing here: the shout was elsewhere
     }
     if (c.returning && dist(c, this.home(c)!.road) < HOME_M) this.standDown(c);
-    if (c.job && !c.chase && dist(c, c.job.at) < ON_SCENE_M + c.halfL) {
+    if (c.role === 'recovery' && c.job) {
+      const here = dist(c, c.job.at) < ON_SCENE_M + c.halfL || c.loading > 0;
+      if (here) want = 0;
+      if (here && c.loading <= 0 && !this.cars.some((o) => o !== c && o.scene > 0 && o.job?.wreck === c.job!.wreck && c.job!.wreck)) { // a crew at work goes first, then the car goes on
+        c.loading = LOAD_S;
+        c.load = c.job.wreck ?? c.job.kerb ?? null;
+        if (c.load) c.load.riding = true;
+      }
+      if (c.loading > 0 && (c.loading -= dt) <= 0) { c.loading = 0; this.finish(c); }
+    } else if (c.job && !c.chase && dist(c, c.job.at) < ON_SCENE_M + c.halfL) {
       if (c.job.wreck && c.scene <= 0) c.scene = SCENE_S;
       else if (!c.job.wreck) this.finish(c);
     }
@@ -238,11 +256,11 @@ export class Traffic {
     };
     let yielding = false, inWay = 0; // which side of the car what's stopping it lies, driver's left positive
     for (const o of this.cars) {
-      if (o === c || o.dormant) continue;
+      if (o === c || o.dormant || o.riding) continue;
       const at = ahead(o);
       if (at >= 0) want = Math.min(want, at - c.halfL - o.halfL < QUEUE_GAP_M ? 0 : o.speed);
       if (at >= 0 && (o.wreck > 0 || o.dwell > 0 || o.scene > 0 || (c.blue && o.speed < 1))) { blocked = true; inWay = (o.x - c.x) * fz - (o.z - c.z) * fx; } // a wreck in the lane, a bus at its stop or a crew at work is passed like anything else left in the way
-      if (!c.blue && o.blue && o.scene <= 0 && dist(o, c) < GIVE_WAY_M) { // pull in and stop until it's gone by
+      if (!c.blue && o.blue && o.scene <= 0 && o.speed > 2 && dist(o, c) < GIVE_WAY_M) { // pull in and stop until it's gone by, unless it's stuck behind you, when moving on is what clears the way
         const dx = c.x - o.x, dz = c.z - o.z, fwd = dx * Math.sin(o.heading) + dz * Math.cos(o.heading), side = Math.abs(dx * Math.cos(o.heading) - dz * Math.sin(o.heading));
         if (fwd > -2 && side < GIVE_WAY_SIDE_M) yielding = true;
       }
@@ -268,11 +286,13 @@ export class Traffic {
     const rest = c.blue ? BLUE_LANE : LANE;
     if ((c.passing -= dt) <= 0 && c.laneGoal !== rest && !(c.role === 'bus' && c.laneGoal === STOP_LANE) && c.scene <= 0) c.laneGoal = rest;
     if ((c.laneGoal === PASS_LANE || (c.blue && c.laneGoal !== BLUE_LANE)) && !blocked && c.scene <= 0) want = Math.max(want, 6);
+    if (c.blue && c.laneGoal !== BLUE_LANE && blocked && c.scene <= 0) want = Math.max(want, CREEP_MPS); // a car at a standstill can't change lane, so a crew edges forward as it leans round
     if (yielding) { want = c.lane < YIELD_LANE - 0.3 ? Math.min(want, PULL_IN_MPS) : 0; c.laneGoal = YIELD_LANE; } // still rolling while they move over: a stopped car can't
 
     c.want = want;
     c.braking = want < c.speed - 0.5;
-    if (dist(c, player) > DESPAWN && !c.job && !c.returning) { // a crew on a job carries on to it
+    if (c.role === 'recovery' && !c.job && dist(c, player) > GONE_M) this.standDown(c); // job done and out of sight, it's back at the yard
+    else if (dist(c, player) > DESPAWN && !c.job && !c.returning) { // a crew on a job carries on to it
       if (c.role === 'bus') this.placeBus(c, player);
       else if (c.fleet && c.fleet !== 'police_car') this.standDown(c);
       else this.place(c, player);
@@ -299,14 +319,15 @@ export class Traffic {
 
   /** A crew finishing: the wreck goes when the last of them leaves, and they drive off as ordinary traffic, lights out. */
   private finish(c: TrafficCar) {
-    const wreck = c.job?.wreck;
+    const wreck = c.job?.wreck, forPlayer = c.job?.player;
     c.job = null;
+    if (forPlayer) this.onRecovered?.();
     c.blue = c.chase = false;
     c.scene = 0;
     c.plan = null;
     c.laneGoal = LANE;
     c.cruise = 11;
-    if (wreck && wreck.wreck > 0 && !this.cars.some((o) => o.job?.wreck === wreck)) wreck.wreck = 0.01;
+    if (wreck && wreck.wreck > 0 && !wreck.riding && !this.cars.some((o) => o.job?.wreck === wreck)) wreck.wreck = 0.01;
     const home = this.home(c);
     if (home && c.fleet !== 'police_car') { // back to the station, lights out
       c.plan = this.town.route(c.to, home.edge);
@@ -332,23 +353,54 @@ export class Traffic {
     c.heading = Math.atan2(q.x - p.x, q.z - p.z);
   }
 
+  /** Out of sight, whatever's on the bed is gone for good: a wreck's slot returns to the traffic, and a parked car to where it stood. */
+  private unload(c: TrafficCar) {
+    const r = c.load;
+    c.load = null;
+    if (!r) return;
+    const car = this.cars.find((o) => o === r);
+    if (car) {
+      car.riding = false;
+      car.lift = 0;
+      car.wreck = 0;
+      this.place(car, this.seen);
+    } else this.kerb?.collected(r as KerbCar);
+  }
+
+  /** The car on the bed follows the truck: while winching it creeps up the bed, and after that it's tied down. */
+  private ride(c: TrafficCar, dt: number) {
+    const r = c.load!, back = c.halfL * 0.3, winching = c.loading > 0, pull = winching ? Math.min(1, dt * WINCH_RATE) : 1;
+    r.x += (c.x - Math.sin(c.heading) * back - r.x) * pull;
+    r.z += (c.z - Math.cos(c.heading) * back - r.z) * pull;
+    let turn = c.heading - r.heading;
+    while (turn > Math.PI) turn -= 2 * Math.PI;
+    while (turn < -Math.PI) turn += 2 * Math.PI;
+    r.heading += turn * pull;
+    r.lift = BED_M * (winching ? 1 - c.loading / LOAD_S : 1);
+  }
+
   private standDown(c: TrafficCar) {
     this.release(c);
+    this.unload(c);
     c.dormant = true;
     c.returning = false;
+    c.amber = false;
     c.plan = null;
     c.x = c.z = -1000;
     c.speed = c.want = c.vx = c.vz = 0;
   }
 
   /** Sends a crew of this service to a place, starting a street or two away on the far side, if one is free. */
-  call(role: Exclude<Role, 'bus'>, at: Vec, near: Vec, wreck: TrafficCar | null = null): TrafficCar | null {
-    const free = this.cars.filter((c) => c.role === role && !c.job && c.wreck <= 0).sort((a, b) => Number(b.dormant) - Number(a.dormant))[0];
-    return free ? this.send(free, at, near, wreck) : null;
+  call(role: Exclude<Role, 'bus'>, at: Vec, near: Vec, wreck: TrafficCar | null = null, extra: Partial<Job> = {}): TrafficCar | null {
+    const free = this.cars.filter((c) => c.role === role && !c.job && !c.load && c.wreck <= 0).sort((a, b) => Number(b.dormant) - Number(a.dormant))[0];
+    return free ? this.send(free, at, near, wreck, extra) : null;
   }
 
+  /** A recovery truck for the player's own car. */
+  recover(player: PlayerCar) { return this.call('recovery', player, { x: player.x + 120, z: player.z + 90 }, null, { player: true }); }
+
   /** Out of the station if it's close enough to matter, or from a street or two away if it isn't. */
-  private send(free: TrafficCar, at: Vec, near: Vec, wreck: TrafficCar | null) {
+  private send(free: TrafficCar, at: Vec, near: Vec, wreck: TrafficCar | null, extra: Partial<Job> = {}) {
     if (free.dormant) {
       const home = this.home(free);
       free.dormant = false;
@@ -367,10 +419,15 @@ export class Traffic {
     const way = this.town.route(free.to, this.town.snap(at).edge);
     free.plan = way;
     free.leg = -2; // the plan starts at the road after this one
-    free.job = { at, wreck };
-    free.blue = true;
-    free.cruise = BLUE_MPS;
-    free.laneGoal = free.lane = BLUE_LANE;
+    free.job = { at, wreck, ...extra };
+    if (free.role === 'recovery') { // amber, not blue: it keeps to the lights and the lane like anyone else
+      free.amber = true;
+      free.cruise = RECOVERY_MPS;
+    } else {
+      free.blue = true;
+      free.cruise = BLUE_MPS;
+      free.laneGoal = free.lane = BLUE_LANE;
+    }
     this.pickNext(free);
     return free;
   }
@@ -393,6 +450,7 @@ export class Traffic {
     this.call('police', w, w, w);
     this.call('ambulance', w, w, w);
     if (w.damage >= HEAVY_WRECK) this.call('fire', w, w, w);
+    this.call('recovery', w, w, w);
   }
 
   /** Which way the car turns at the end of its road: -1 left, 1 right, 0 straight on. */
@@ -408,17 +466,24 @@ export class Traffic {
     let impact = 0;
     this.lastCrash = null;
     this.clock += dt;
+    this.seen = { x: player.x, z: player.z };
+    if ((this.nextCollect -= dt) <= 0) { // anything left bent at the kerb gets picked up
+      this.nextCollect = COLLECT_EVERY_S;
+      const left = this.kerb?.wrecked();
+      if (left) this.call('recovery', left, left, null, { kerb: left });
+    }
     if ((this.nextCall -= dt) <= 0) { // somewhere else in town there's a shout on: a crew goes through, past the player
       this.nextCall = CALLOUT_S[0] + this.rng() * (CALLOUT_S[1] - CALLOUT_S[0]);
       const a = this.rng() * Math.PI * 2, roles = ['police', 'ambulance', 'fire'] as const;
       this.call(roles[Math.floor(this.rng() * 3)], this.town.snap({ x: player.x + Math.sin(a) * CROSS_M, z: player.z + Math.cos(a) * CROSS_M }).point, { x: player.x - Math.sin(a) * 300, z: player.z - Math.cos(a) * 300 });
     }
     for (const c of this.cars) {
-      if (c.dormant) continue;
+      if (c.dormant || c.riding) continue;
       c.cool -= dt;
       if (c.wreck > 0 && (c.wreck -= dt) <= 0) this.place(c, player);
       if (Math.abs(c.vx) + Math.abs(c.vz) > 0.25 || Math.abs(c.spin) > 0.1) this.roll(c, dt);
       else this.drive(c, dt, thinking, player);
+      if (c.load) this.ride(c, dt);
 
       const touch = carsOverlap(c, asBox(player));
       if (touch) {
@@ -545,7 +610,7 @@ export class Traffic {
     for (let i = 0; i < this.cars.length; i++) {
       for (let j = i + 1; j < this.cars.length; j++) {
         const a = this.cars[i], b = this.cars[j];
-        if (a.dormant || b.dormant) continue;
+        if (a.dormant || b.dormant || a.riding || b.riding) continue;
         const hit = carsOverlap(a, b);
         if (!hit) continue;
         const { nx, nz } = hit, half = hit.depth / 2;

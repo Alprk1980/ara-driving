@@ -13,11 +13,13 @@ import { dist, type ParkedCar, type Town } from './town.ts';
 
 export const ALARM_S = 30, ALARM_HZ = 2;
 const ALARM_MPS = 0.8, DRAG_MPS2 = 4, SCRUB_MPS2 = 7, ALARM_FITTED = 0.8; // the shake that trips a shock sensor, and the share that have one, are judged
+const COLLECT_AFTER_S = 15, COLLECT_DAMAGE = 0.35, COLLECT_MOVED_M = 1.5; // judged: bent or shoved enough that it's going nowhere by itself
 const NEAR_M = 40, RECHECK = 12, SETTLE_MPS = 0.05, MOVED_M = 0.25, TIDY_AFTER_S = 90, TIDY_FAR_M = 300, CLOSING_MPS = 0.3, COOL_S = 0.25, SPIN_MAX = 1.6, MOMENT_K = 12; // tidy: its owner comes back and moves it once you've gone
 
 export type KerbCar = ParkedCar & {
   homeX: number; homeZ: number; homeHeading: number; vx: number; vz: number; spin: number;
   dents: Record<Side, number>; damage: number; alarm: number; cool: number; idle: number; moved: boolean; halfL: number; halfW: number; touched: boolean;
+  riding: boolean; lift: number; // on a recovery truck's bed
 };
 
 export class ParkedCars {
@@ -30,7 +32,7 @@ export class ParkedCars {
 
   constructor(town: Town) {
     this.town = town;
-    this.cars = town.parked.map((p) => ({ ...p, homeX: p.x, homeZ: p.z, homeHeading: p.heading, vx: 0, vz: 0, spin: 0, dents: { front: 0, back: 0, left: 0, right: 0 }, damage: 0, alarm: 0, cool: 0, idle: 0, moved: false, touched: false, ...modelFor(Math.floor(p.colour * 977)) }));
+    this.cars = town.parked.map((p) => ({ ...p, homeX: p.x, homeZ: p.z, homeHeading: p.heading, vx: 0, vz: 0, spin: 0, dents: { front: 0, back: 0, left: 0, right: 0 }, damage: 0, alarm: 0, cool: 0, idle: 0, moved: false, touched: false, riding: false, lift: 0, ...modelFor(Math.floor(p.colour * 977)) }));
   }
 
   /** The player's car as a box, its weight, and where it's heading. */
@@ -50,6 +52,7 @@ export class ParkedCars {
     const box: CarBox = { x: player.x, z: player.z, heading: player.heading, halfL: player.car.size[0] / 2, halfW: player.car.size[2] / 2 }, pm = player.car.kg;
     let impact = 0;
     for (const c of this.near) {
+      if (c.riding) continue;
       c.cool -= dt;
       const touch = carsOverlap(c, box);
       if (touch) {
@@ -85,7 +88,7 @@ export class ParkedCars {
     }
     this.shoved.length = 0;
     for (const c of this.near) {
-      if (!c.touched) continue;
+      if (!c.touched || c.riding) continue;
       if (Math.abs(c.vx) + Math.abs(c.vz) > SETTLE_MPS || Math.abs(c.spin) > SETTLE_MPS) this.roll(c, dt);
       if (c.alarm > 0) c.alarm = Math.max(0, c.alarm - dt);
       c.moved = dist(c, { x: c.homeX, z: c.homeZ }) > MOVED_M;
@@ -110,7 +113,7 @@ export class ParkedCars {
     c.spin *= Math.max(0, 1 - 4 * dt);
     if (Math.abs(c.spin) < SETTLE_MPS) c.spin = 0;
     for (const o of this.near) { // the next car along takes its share, equal weights swapping half the difference
-      if (o === c || Math.abs(o.x - c.x) + Math.abs(o.z - c.z) > 10) continue;
+      if (o === c || o.riding || Math.abs(o.x - c.x) + Math.abs(o.z - c.z) > 10) continue;
       const hit = carsOverlap(c, o);
       if (!hit) continue;
       const { nx: hx, nz: hz, depth } = hit;
@@ -128,6 +131,18 @@ export class ParkedCars {
       if (o.cool <= 0) this.bang(o, -hx, -hz, closing, closing / 2);
       if (c.cool <= 0) this.bang(c, hx, hz, closing, closing / 2);
     }
+  }
+
+  /** A badly bent car near the player, left long enough that it wants collecting. */
+  wrecked(): KerbCar | null {
+    return this.near.find((c) => c.touched && !c.riding && c.alarm <= 0 && c.idle > COLLECT_AFTER_S && (c.damage >= COLLECT_DAMAGE || dist(c, { x: c.homeX, z: c.homeZ }) > COLLECT_MOVED_M)) ?? null;
+  }
+
+  /** The truck's gone with it: its owner has it mended, and it's back where it was. */
+  collected(c: KerbCar) {
+    c.riding = false;
+    c.lift = 0;
+    this.tidy(c);
   }
 
   private tidy(c: KerbCar) {

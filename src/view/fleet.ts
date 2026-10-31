@@ -63,7 +63,7 @@ export function fleetGeometry(v: FleetVehicle): THREE.BufferGeometry {
   if (crew) {
     const a = new THREE.Color(crew.a), b = new THREE.Color(crew.b), under = Math.min(...v.windows.map((w) => w.y0));
     const hi = Math.max(under - 0.04, floor + 0.85), row = Math.min(BLOCK_M, (hi - floor) / 2), lo = hi - row * 2; // from the sills down, with big blocks that read from across a junction
-    for (const s of [1, -1]) for (let k = 0, z = tail + 0.06; z + row <= nose - 0.1; k++, z += row * 1.5) {
+    if (!crew.plain) for (const s of [1, -1]) for (let k = 0, z = tail + 0.06; z + row <= nose - 0.1; k++, z += row * 1.5) {
       if (heightAt(z) < hi || heightAt(z + row * 1.5) < hi) continue;
       for (const r of [0, 1]) face([s * (half + 0.008), lo + r * row, z], [s * (half + 0.008), lo + r * row, z + row * 1.5], [s * (half + 0.008), lo + (r + 1) * row, z + row * 1.5], [s * (half + 0.008), lo + (r + 1) * row, z], (k + r) % 2 ? b : a);
     }

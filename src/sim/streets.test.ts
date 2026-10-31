@@ -269,6 +269,58 @@ describe('emergency services', () => {
   });
 });
 
+describe('recovery trucks', () => {
+  const near = (t: Traffic, x: number, z: number) => { const p = new PlayerCar('hatchback'); p.place(x, z, 0); void t; return p; };
+
+  it('wait for the crews, winch a wreck on, and take it away', () => {
+    const t = new Traffic(town, makeRng(5), { x: 1500, z: 1500 }), w = t.cars[0], p = near(t, 1500, 1500);
+    w.wreck = 150; w.damage = 0.8; w.speed = w.want = 0;
+    const police = t.call('police', w, w, w)!, truck = t.call('recovery', w, w, w)!;
+    expect(truck.amber).toBe(true);
+    expect(truck.blue).toBe(false);
+    let onBed = false, crewHere = false, early = false;
+    for (let i = 0; i < 60 * 170 && !truck.dormant; i++) {
+      t.step(1 / 60, p);
+      if (police.job) crewHere = true;
+      if (w.riding && police.scene > 0) early = true;
+      if (w.riding && w.lift > 1) { onBed = true; expect(Math.hypot(w.x - truck.x, w.z - truck.z)).toBeLessThan(6); }
+    }
+    expect(crewHere).toBe(true);
+    expect(early).toBe(false);
+    expect(onBed).toBe(true);
+    expect(w.riding).toBe(false);
+    expect(w.wreck).toBe(0);
+  });
+
+  it('keep to the lights, and nobody pulls over for amber', () => {
+    const t = new Traffic(town, makeRng(5), { x: 1500, z: 1500 }), a = t.cars[0], p = near(t, a.x + 300, a.z + 300);
+    t.cars.splice(1, 15);
+    const truck = t.cars.find((c) => c.fleet === 'recovery_truck')!;
+    t.call('recovery', { x: a.x, z: a.z }, { x: a.x, z: a.z });
+    truck.edge = a.edge; truck.to = a.to; truck.along = Math.max(0, a.along - 40);
+    a.speed = a.want = a.cruise = 8;
+    for (let i = 0; i < 90; i++) t.step(1 / 60, p);
+    expect(a.laneGoal).toBeLessThan(3.5);
+    expect(t.sirenFrom(p)).toBeNull();
+  });
+
+  it('collect a parked car left wrecked, which then goes back good as new', () => {
+    const t = new Town(), parked = new ParkedCars(t), p = new PlayerCar('hatchback'), traffic = new Traffic(t, makeRng(5), { x: 1500, z: 1500 }), c = parked.cars.find((k) => !k.drive)!;
+    traffic.kerb = parked;
+    p.place(c.x + 20, c.z + 20, 0);
+    c.touched = true; c.damage = 0.6; c.dents.front = 0.6; c.idle = 60; c.x += 2;
+    parked.step(1 / 60, p, traffic.cars);
+    expect(parked.wrecked()).toBe(c);
+    const truck = traffic.call('recovery', c, c, null, { kerb: c })!;
+    let rode = false;
+    for (let i = 0; i < 60 * 240 && !truck.dormant; i++) { traffic.step(1 / 60, p); parked.step(1 / 60, p, traffic.cars); if (c.riding) rode = true; }
+    expect(rode).toBe(true);
+    expect(c.riding).toBe(false);
+    expect(c.damage).toBe(0);
+    expect([c.x, c.z]).toEqual([c.homeX, c.homeZ]);
+  });
+});
+
 describe('driveways', () => {
   it('go on Garden Suburb houses, at a real size', () => {
     expect(town.drives.length).toBeGreaterThan(40);

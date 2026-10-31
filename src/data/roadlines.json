@@ -163,5 +163,50 @@
     "id": "red_run_3",
     "moment": "red_run",
     "text": "Let red lights stay red"
+  },
+  {
+    "id": "recovery_called_truck",
+    "moment": "recovery_called",
+    "text": "You called a recovery truck."
+  },
+  {
+    "id": "recovery_called_way",
+    "moment": "recovery_called",
+    "text": "Recovery truck is on its way."
+  },
+  {
+    "id": "recovery_called_phone",
+    "moment": "recovery_called",
+    "text": "You phoned for recovery help."
+  },
+  {
+    "id": "phone_use_park_first",
+    "moment": "phone_use",
+    "text": "Please park before using your phone."
+  },
+  {
+    "id": "phone_use_pulled_over",
+    "moment": "phone_use",
+    "text": "Use your phone after pulling over."
+  },
+  {
+    "id": "phone_use_safely_stopped",
+    "moment": "phone_use",
+    "text": "Use your phone when safely stopped."
+  },
+  {
+    "id": "hoax_call_1",
+    "moment": "hoax_call",
+    "text": "Call the police only for emergencies."
+  },
+  {
+    "id": "hoax_call_2",
+    "moment": "hoax_call",
+    "text": "A hoax call is not an emergency."
+  },
+  {
+    "id": "hoax_call_3",
+    "moment": "hoax_call",
+    "text": "Try the non-emergency number instead."
   }
 ]

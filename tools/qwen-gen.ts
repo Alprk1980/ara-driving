@@ -220,7 +220,7 @@ const KINDS: Record<string, Kind> = {
   fleet: {
     file: 'src/data/fleet.json', prompt: 'prompts/fleet.txt', errors: fleetErrors as Kind['errors'], key: 'id',
     checker: 'These are side elevations of British buses and emergency vehicles, as JSON, in metres. Picture each one. Flag a vehicle that would not read as what it is, whose windows fall outside its outline or overlap each other, whose wheels look wrong, or whose proportions look wrong for the real thing.',
-    batches: () => ([['bus_single', 'a single-deck town bus'], ['bus_double', 'a double-deck town bus'], ['police_car', 'a police estate car'], ['police_van', 'a police van'], ['ambulance', 'a box-bodied emergency ambulance'], ['fire_engine', 'a fire engine (rescue pump)']] as const).map(([id, kind]) => ({
+    batches: () => ([['bus_single', 'a single-deck town bus'], ['bus_double', 'a double-deck town bus'], ['police_car', 'a police estate car'], ['police_van', 'a police van'], ['ambulance', 'a box-bodied emergency ambulance'], ['fire_engine', 'a fire engine (rescue pump)'], ['recovery_truck', 'a 7.5 tonne slide-bed recovery truck: a day cab, then a long low flat bed']] as const).filter(([id]) => replace.has(id) || !existing('src/data/fleet.json').has(id)).map(([id, kind]) => ({
       ask: `Slots:\nid ${id}: ${kind}. It must be ${FLEET_RULES[id].length.join('-')} m long, half-width ${FLEET_RULES[id].half.join('-')} m, top ${FLEET_RULES[id].top.join('-')} m.\nWrite one entry.${carNotes[id] ? `\n\nA reviewer looked at the last one rendered and said:\n${carNotes[id]}\nFix what's fair, within the limits.` : ''}`,
       fits: (e: Entry) => (e.id !== id ? [`the entry must have id ${id}`] : []),
     })),
@@ -236,7 +236,7 @@ const KINDS: Record<string, Kind> = {
   roadlines: {
     file: 'src/data/roadlines.json', prompt: 'prompts/roadlines.txt', errors: roadLineErrors as Kind['errors'], key: 'id',
     checker: 'These are short on-screen lines for a friendly family driving game. Flag any that sound harsh, scary, mention injury, sound American, or do not fit their moment.',
-    batches: () => ROAD_MOMENTS.map((moment) => ({
+    batches: () => ROAD_MOMENTS.filter((moment) => !(existsSync('src/data/roadlines.json') && (JSON.parse(readFileSync('src/data/roadlines.json', 'utf8')) as RoadLine[]).some((l) => l.moment === moment))).map((moment) => ({
       ask: `Write 3 different lines for the moment ${moment}. Start each id with ${moment}_.`,
       fits: (e: Entry) => ((e as unknown as RoadLine).moment !== moment ? [`every entry must have moment ${moment}`] : []),
     })),

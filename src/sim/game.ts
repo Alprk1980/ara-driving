@@ -2,7 +2,7 @@
 // screens or sound, so tests and headless reviews run the same rules the player gets.
 import { contactAt, crushLevel, NEUTRAL, PlayerCar, sideOf, type DriveIntent, type DriveState } from './car.ts';
 import type { Find, Goal, GoalKind, TownEventCard } from '../../schemas/content.ts';
-import { carById, FIND_ALL_REWARD, FIND_REWARD, FUEL_PRICE, GOAL_REWARD, HOME_TOPUP_PCT, rankOf, rankPay, REGULAR_FINALE, REP_FINALE, REP_GOAL, REP_JOB, REP_SPOTLESS, streakBonus } from './economy.ts';
+import { carById, RECOVERY_FEE, FIND_ALL_REWARD, FIND_REWARD, FUEL_PRICE, GOAL_REWARD, HOME_TOPUP_PCT, rankOf, rankPay, REGULAR_FINALE, REP_FINALE, REP_GOAL, REP_JOB, REP_SPOTLESS, streakBonus } from './economy.ts';
 import { FuelManager } from './fuel.ts';
 import { advance, freshDaily, goalsFor } from './goals.ts';
 import { ActiveQuest, freshProgress, GHOST_KEEP, QuestGenerator, type Ghost, type Offer, type Progress, type QuestContent } from './quests.ts';
@@ -23,6 +23,7 @@ export const isNight = (frac: number) => frac > 0.8 || frac < 0.2;
 const STOP_ZONE = 16, GATE_ZONE = 20, STATION_ZONE = 16, HOME_ZONE = 18, STOP_MPS = 3;
 const OFF_ROUTE_M = 25, OFF_ROUTE_S = 2, REROUTE_COOLDOWN_S = 10;
 const HARD_STOP_MPS2 = 11, BUMP_MPS = 4, REPAIR_S = 6; // a stop at the pump mends a dented car in about this long
+const PHONE_STILL_MPS = 2, EMERGENCY_M = 200, HURT = 0.3; // parked up enough to use a phone, and how close or bad things must be for 999 to be genuine
 const ROAD_STEPS = 6; // the driving record looks ten times a second, enough to catch a car crossing a line
 const FIRE_CALL_MPS = 18; // a hit on a building this hard brings the fire service: about 40 mph, where a car stops being repairable, judged
 
@@ -105,6 +106,7 @@ export class Game {
     this.traffic.kerb = this.parked;
     this.progress.road ??= freshRoad(); // saves from before the driving record have none
     this.road = new RoadSense(this, this.progress.road);
+    this.traffic.onRecovered = () => this.towHome();
     this.refreshOffers();
   }
 
@@ -225,7 +227,29 @@ export class Game {
   }
 
   acceptTow() {
-    if (this.player.state !== 'Stranded') return;
+    if (this.player.state === 'Stranded') this.towHome();
+  }
+
+  /** Whether there's a real emergency to report: a wreck nearby, a bad knock, or the player's own car badly hurt. */
+  get emergency() {
+    const p = this.player;
+    return p.damage >= HURT || this.road.incident !== null || this.traffic.cars.some((c) => c.wreck > 0 && dist(c, p) < EMERGENCY_M);
+  }
+
+  /** The phone. A hand-held call while moving is an offence, except a genuine 999. Calling 999 with nothing wrong is a hoax. */
+  phone(who: 'police' | 'fire' | 'ambulance' | 'recovery') {
+    const p = this.player, moving = Math.abs(p.speed) > PHONE_STILL_MPS, genuine = this.emergency;
+    if (moving && !(who !== 'recovery' && genuine)) this.road.phoneAtWheel();
+    if (who === 'recovery') {
+      if (this.traffic.recover(p) === null) return false;
+      this.roadEvent({ moment: 'recovery_called', pay: p.state === 'Stranded' ? 0 : -RECOVERY_FEE, points: 0 });
+      return true;
+    }
+    if (!genuine) this.road.hoaxCall();
+    return this.traffic.call(who, p, p) !== null;
+  }
+
+  private towHome() {
     this.failQuest('The tow ended the job');
     this.streak = 0;
     this.road.reset();

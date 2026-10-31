@@ -9,7 +9,7 @@ export type Shot = { view: View; pic: Picture };
 export type Mask = { width: number; height: number; on: Uint8Array };
 export type VoxelBlock = { voxel: number; nx: number; ny: number; nz: number; palette: string[]; cells: [number, number, number, number][]; solid?: Uint8Array }; // surface cells: x, y, z, palette index; solid: every cell, for wrapping a skin round, left out of a saved model
 
-const BACKGROUND_TOLERANCE = 40, ROUND_POWER = 3.5, COLOUR_STEP = 24, COLOUR_PASSES = 2, OUTVOTED = 1.6;
+const BACKGROUND_TOLERANCE = 40, ROUND_POWER = 3.5, COLOUR_STEP = 24, COLOUR_PASSES = 2, OUTVOTED = 1.6, MAX_COLOURS = 12;
 
 const at = (p: Picture, x: number, y: number, k: number) => p.rgba[(y * p.width + x) * 4 + k];
 
@@ -77,11 +77,25 @@ const hexOf = (f: Fitted, u: number, v: number) => {
   return `#${q(0)}${q(1)}${q(2)}`;
 };
 
+/** Folds the rarest colours into their nearest neighbours: shading and texture in a photo otherwise split one wall into dozens of tones. */
+function fewerColours(palette: string[], cells: VoxelBlock['cells']) {
+  const rgb = palette.map((p) => [1, 3, 5].map((i) => parseInt(p.slice(i, i + 2), 16))), count = palette.map(() => 0), into = palette.map((_, i) => i);
+  for (const c of cells) count[c[3]]++;
+  const root = (i: number): number => (into[i] === i ? i : (into[i] = root(into[i])));
+  for (let left = palette.length; left > MAX_COLOURS; left--) {
+    const live = palette.map((_, i) => i).filter((i) => root(i) === i), rare = live.reduce((a, b) => (count[b] < count[a] ? b : a));
+    const near = live.filter((i) => i !== rare).reduce((a, b) => (Math.hypot(...rgb[b].map((v, k) => v - rgb[rare][k])) < Math.hypot(...rgb[a].map((v, k) => v - rgb[rare][k])) ? b : a));
+    into[rare] = near;
+    count[near] += count[rare];
+  }
+  for (const c of cells) c[3] = root(c[3]);
+}
+
 /** Where a cell sits in a block's solid array. */
 export const cellAt = (nx: number, nz: number, x: number, y: number, z: number) => (y * nz + z) * nx + x;
 
 /** Carves the block. `long` is the voxels along the longest side. Side photos have the front to the left. */
-export function carve(shots: Shot[], { long = 48, tolerance = BACKGROUND_TOLERANCE, height = 1 }: { long?: number; tolerance?: number; height?: number } = {}): VoxelBlock {
+export function carve(shots: Shot[], { long = 48, tolerance = BACKGROUND_TOLERANCE, height = 1, square = false }: { long?: number; tolerance?: number; height?: number; square?: boolean } = {}): VoxelBlock { // square: without a top view, keep the plan's corners, for buildings
   const views = shots.map((s) => fit(s, tolerance)), find = (v: View) => views.find((f) => f.view === v);
   const side = find('side'), front = find('front') ?? find('back'), top = find('top');
   if (views.length < 2 || (!side && !front) || (!side && !top) || (!front && !top)) throw new Error('needs two different views: a side and a front, or either with a top');
@@ -98,7 +112,7 @@ export function carve(shots: Shot[], { long = 48, tolerance = BACKGROUND_TOLERAN
     for (let z = 0; z < nz; z++) for (let x = 0; x < nx; x++) {
       const zf = (z + 0.5) / nz, xf = (x + 0.5) / nx;
       if ((side && !inside(side, 1 - zf, v)) || (front && !inside(front, xf, v)) || (top && !inside(top, 1 - xf, 1 - zf))) continue; // front is +z: to the left of a side photo, the top of a top one, and a top photo sees the car's left on its left, where a front photo sees it on its right
-      if (!top && typeof wide === 'object' && wide && typeof deep === 'object' && deep && Math.abs((x + 0.5 - wide.mid) / wide.half) ** ROUND_POWER + Math.abs((z + 0.5 - deep.mid) / deep.half) ** ROUND_POWER > 1) continue;
+      if (!top && !square && typeof wide === 'object' && wide && typeof deep === 'object' && deep && Math.abs((x + 0.5 - wide.mid) / wide.half) ** ROUND_POWER + Math.abs((z + 0.5 - deep.mid) / deep.half) ** ROUND_POWER > 1) continue;
       solid[idx(x, y, z)] = 1;
     }
   }
@@ -118,6 +132,7 @@ export function carve(shots: Shot[], { long = 48, tolerance = BACKGROUND_TOLERAN
     const hex = open.nose && sees.nose ? hexOf(facing!, xf, v) : open.tail && sees.tail ? hexOf(back!, 1 - xf, v) : open.up && sees.up ? hexOf(top!, 1 - xf, 1 - zf) : sees.side ? hexOf(side!, 1 - zf, v) : sees.nose ? hexOf(facing!, xf, v) : sees.up ? hexOf(top!, 1 - xf, 1 - zf) : sees.tail ? hexOf(back!, 1 - xf, v) : hexOf(side ?? views[0], side ? 1 - zf : xf, v);
     cells.push([x, y, z, colour(hex)]);
   }
+  fewerColours(palette, cells);
   // A voxel outvoted by its neighbours takes their colour: photos sample onto a grid with stray specks and sawtooth edges.
   const hueAt = new Map(cells.map((c) => [idx(c[0], c[1], c[2]), c[3]]));
   for (let pass = 0; pass < COLOUR_PASSES; pass++) for (const c of cells) {

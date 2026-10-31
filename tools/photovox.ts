@@ -12,8 +12,8 @@ import { chat, MODEL, parseJson } from './llm.ts';
 const VIEWS = ['side', 'front', 'back', 'top'] as const, TOLERANCES = [15, 25, 40, 60, 85], TRIES = 3, ROUNDS = 4, TARGET = 8, MORE_DETAIL = 1.4, MAX_LONG = 128;
 type View = (typeof VIEWS)[number];
 const args = process.argv.slice(2), flag = (name: string) => { const i = args.indexOf(name); return i >= 0 ? args[i + 1] : undefined; };
-const demo = flag('--demo'), name = flag('--name') ?? demo ?? 'model', long = Number(flag('--long') ?? 72), budget = Number(flag('--game') ?? 0); // --game 3000: also make the light version for the game, at most this many triangles
-const files = args.filter((a, i) => !a.startsWith('--') && !['--name', '--long', '--demo', '--game', '--views'].includes(args[i - 1]));
+const demo = flag('--demo'), name = flag('--name') ?? demo ?? 'model', long = Number(flag('--long') ?? 72), budget = Number(flag('--game') ?? 0), square = args.includes('--square'), smooth = flag('--smooth'); // --game 3000: also make the light version for the game, at most this many triangles
+const files = args.filter((a, i) => !a.startsWith('--') && !['--name', '--long', '--demo', '--game', '--views', '--smooth'].includes(args[i - 1]));
 const dataUrl = (file: string) => `data:image/${file.endsWith('.png') ? 'png' : 'jpeg'};base64,${readFileSync(file).toString('base64')}`;
 
 /** Which way each photo looks, checked and asked again if it can't be right. */
@@ -51,7 +51,8 @@ else {
 type Built = { match: Record<string, number>; agreement: number | null; cells: number; size: number[]; colours: number };
 type Verdict = { score: number; cutouts: 'good' | 'bites' | 'background'; action: 'done' | 'more_detail' | 'another_photo'; photo?: string; problems: string[] };
 
-const build = (tolerance: number, voxels: number) => page.evaluate(([l, n, t]) => (window as any).photovox.run(l, n, t).catch((e: Error) => ({ error: e.message })), [list, voxels, tolerance] as const) as Promise<Built & { error?: string }>;
+if (smooth) await page.evaluate((n) => (window as any).photovox.smooth(n), Number(smooth));
+const build = (tolerance: number, voxels: number) => page.evaluate(([l, n, t, s]) => (window as any).photovox.run(l, n, t, s).catch((e: Error) => ({ error: e.message })), [list, voxels, tolerance, square] as const) as Promise<Built & { error?: string }>;
 
 /** The setting where the views agree best, and among equals the lowest, which takes least from the object. */
 async function firstSetting() {

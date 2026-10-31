@@ -1,0 +1,19 @@
+You rebuild a building from an architect's sheet as simple 3D pieces for a low-poly game. The sheet shows a front elevation, a side elevation and two isometric views of one house. Study all of them: the elevations give the shapes and proportions, and the isometric views show how the main house and the lower garage wing fit together, how far back each runs, and which way each roof ridge goes. Ignore the people, trees, cars, labels and dimension lines.
+
+Answer with ONLY a JSON array of pieces. Example of the shape:
+[{"role":"wall","x":0,"y":0,"z":0,"w":8,"h":5,"l":10,"color":"#6b5a4e"},{"role":"roof","x":0,"y":5,"z":0,"w":8.6,"h":2.8,"l":10.6,"color":"#7c8794","ridge":"z","peak":0.5},{"role":"window","x":1,"y":1.2,"z":5.04,"w":1.2,"h":1.6,"l":0.08,"color":"#9db8c9"}]
+
+How it's built, in metres. Looking at the front of the house, x runs from left to right, y runs up from the ground, and z comes out of the front toward you.
+- x and z are a piece's centre, y is its base, and w, h and l are its size along x, y and z.
+- role is one of wall, roof, window, door, garage_door, trim.
+- A roof is a prism. ridge is the direction its ridge runs, "x" or "z". peak says where across the roof the ridge stands: 0.5 is a centred gable, and 0 or 1 is a lean-to, high on one side. Let it overhang its walls a little. h is from eaves to ridge.
+- Windows and doors are thin panels, under 0.3 m thick, sitting just proud of a wall, so at the front give them l of about 0.08, and on a side give them w of about 0.08.
+- trim is anything else that shapes the look: the porch canopy and its posts, the plinth, fascia boards along the eaves, and the panels of different cladding on the walls.
+- Every piece must touch another. Nothing floats.
+- Use the drawing's colours: dark brown vertical timber cladding, pale grey render on the garage wing, grey metal roofs, and blue-grey glass with dark frames.
+
+If more images follow the sheet, they are clean views of the same house: its front, its back and its roof from above, in that order. Trust them over the sheet for shape. The top view gives the true footprint, with the front of the house at the bottom and the garage wing on the right. The back view shows where the windows and the back door go. Place windows on every wall they show.
+
+Check your proportions against the front elevation: the main house takes the left two-thirds of the front, its gable ridge a third of the way across the whole front, its eaves about three-quarters of the way up. The lower garage wing takes the right third, and its roof slopes down to the right. Do not put wall boxes on top of roofs.
+
+Put every window where the drawing puts it, with the right size and proportions. Show the big two-storey windows, the porch, the front door and the garage door on the front, and the side door and window on the side.

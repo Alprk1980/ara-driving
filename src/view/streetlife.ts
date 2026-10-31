@@ -11,6 +11,7 @@ import { TAIL_BRAKE, TAIL_DIM } from './carmesh.ts';
 import type { Part } from '../../schemas/content.ts';
 import type { TownCar } from '../../schemas/towncars.ts';
 import townCars from '../data/towncars.json';
+import { LIVERY } from '../../schemas/fleet.ts';
 import { beaconAt, fleetGeometry, FLEET_SHAPES } from './fleet.ts';
 import { paintedMaterial, partsGeometry } from './parts.ts';
 
@@ -247,8 +248,9 @@ export class StreetLife {
     }
     this.crews = traffic.cars.filter((car) => car.role !== 'bus' && car.fleet);
     const lamp2 = new THREE.BoxGeometry(0.42, 0.14, 0.26);
-    const blue = () => new THREE.InstancedMesh(lamp2, new THREE.MeshBasicMaterial({ color: '#4d8bff' }), this.crews.length);
+    const blue = () => new THREE.InstancedMesh(lamp2, new THREE.MeshBasicMaterial({ color: '#ffffff' }), this.crews.length);
     this.blues = [blue(), blue()];
+    for (const b of this.blues) this.crews.forEach((car, i) => b.setColorAt(i, c.set(LIVERY[car.role as keyof typeof LIVERY].beacon))); // blue for the emergency services, amber for recovery
     for (const b of this.blues) { b.frustumCulled = false; group.add(b); }
     const corners4 = mergeGeometries([[1, 1], [1, -1], [-1, 1], [-1, -1]].map(([x, z]) => new THREE.BoxGeometry(0.2, 0.12, 0.08).translate(x, 0, z)))!;
     this.alarms = new THREE.InstancedMesh(corners4, new THREE.MeshBasicMaterial({ color: '#ffa21f' }), ALARMS_DRAWN);
@@ -308,7 +310,7 @@ export class StreetLife {
       this.parkedSlots[k].forEach((p, i) => {
         if (!p.touched) return;
         moved = true;
-        mesh.setMatrixAt(i, m.makeRotationY(p.heading).setPosition(p.x, 0, p.z));
+        mesh.setMatrixAt(i, m.makeRotationY(p.heading).setPosition(p.x, p.lift, p.z));
         this.parkedDents[k].setXYZW(i, p.dents.front, p.dents.back, p.dents.left, p.dents.right);
         if (p.alarm > 0 && flash && alarms < ALARMS_DRAWN) this.alarms.setMatrixAt(alarms++, m.makeRotationY(p.heading).multiply(scale.makeScale(p.halfW - 0.05, 1, p.halfL)).setPosition(p.x, 0.72, p.z));
       });
@@ -331,7 +333,7 @@ export class StreetLife {
     this.crews.forEach((car, i) => {
       const b = beaconAt(FLEET_SHAPES.find((v) => v.id === car.fleet)!), fx = Math.sin(car.heading), fz = Math.cos(car.heading);
       for (const k of [0, 1]) {
-        const lit = car.blue && !car.dormant && left === (k === 0), side = (k ? -1 : 1) * b.wide * 0.6;
+        const lit = (car.blue || car.amber) && !car.dormant && left === (k === 0), side = (k ? -1 : 1) * b.wide * 0.6;
         s.set(car.x + fx * b.z + fz * side, b.y + 0.04, car.z + fz * b.z - fx * side);
         this.blues[k].setMatrixAt(i, lit ? m.makeRotationY(car.heading).setPosition(s) : zero);
       }
@@ -351,15 +353,15 @@ export class StreetLife {
       if (!car.fleet) {
         const k = plain % kinds, at = Math.floor(plain / kinds);
         plain++;
-        this.cars[k].setMatrixAt(at, m.makeRotationY(car.heading).setPosition(car.x, 0, car.z));
+        this.cars[k].setMatrixAt(at, m.makeRotationY(car.heading).setPosition(car.x, car.lift, car.z));
         this.dents[k].setXYZW(at, car.dents.front, car.dents.back, car.dents.left, car.dents.right);
       }
       const half = car.halfL;
       const fx = Math.sin(car.heading), fz = Math.cos(car.heading), d = car.dents;
       const hazard = car.wreck > 0, rear = half + 0.03 - d.back * 0.4, nose = half + 0.03 - d.front * 0.46;
-      this.tails.setMatrixAt(i, m.makeRotationY(car.heading).setPosition(car.x - fx * rear, 0.78, car.z - fz * rear));
+      this.tails.setMatrixAt(i, m.makeRotationY(car.heading).setPosition(car.x - fx * rear, 0.78 + car.lift, car.z - fz * rear));
       this.tails.setColorAt(i, c.set(hazard ? (blink ? '#ff9a1f' : TAIL_DIM) : car.braking ? TAIL_BRAKE : TAIL_DIM));
-      this.heads.setMatrixAt(i, m.makeRotationY(car.heading).setPosition(car.x + fx * nose, d.front > 0.6 ? -5 : 0.62, car.z + fz * nose)); // a smashed nose has no lamps
+      this.heads.setMatrixAt(i, m.makeRotationY(car.heading).setPosition(car.x + fx * nose, d.front > 0.6 ? -5 : 0.62 + car.lift, car.z + fz * nose)); // a smashed nose has no lamps
       this.heads.setColorAt(i, c.set(hazard ? (blink ? '#ff9a1f' : '#54504a') : '#fff3c0'));
       // +x is the driver's left, so a right turn mirrors the lamps across: x scales by the car's width with a sign.
       const on = car.signal && !car.dormant && this.clock % (2 / 3) < 1 / 3;
