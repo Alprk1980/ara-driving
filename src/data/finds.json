@@ -1,0 +1,282 @@
+[
+  {
+    "id": "gnome_glimmer",
+    "name": "Glimmer Gnome",
+    "prop": "gnome",
+    "spot": 0,
+    "clue": "Glimmer Gnome naps just east of Sunday Market, where doughnuts dream quietly."
+  },
+  {
+    "id": "tin_duck",
+    "name": "Tin Quacker",
+    "prop": "duck",
+    "spot": 1,
+    "clue": "A rubber duck quacks west of Tin Toybox, hiding among shiny trinkets."
+  },
+  {
+    "id": "harbor_statue",
+    "name": "Stone Pigeon",
+    "prop": "statue",
+    "spot": 2,
+    "clue": "The stone pigeon perches west of Harbor Stalls, judging every fresh catch."
+  },
+  {
+    "id": "town_crate",
+    "name": "Busy Box",
+    "prop": "crate",
+    "spot": 3,
+    "clue": "A wooden crate sits east of Town Office, waiting for a very good excuse."
+  },
+  {
+    "id": "delivery_signpost",
+    "name": "Pointing Puddle",
+    "prop": "signpost",
+    "spot": 4,
+    "clue": "A signpost leans south of Delivery Bay, pointing toward a puddle party."
+  },
+  {
+    "id": "linden_mushroom",
+    "name": "Toadstool Tip",
+    "prop": "mushroom",
+    "spot": 5,
+    "clue": "A mushroom tiptoes south of Linden Rise, hoping to join the garden party."
+  },
+  {
+    "id": "berry_gnome",
+    "name": "Berry Bree",
+    "prop": "gnome",
+    "spot": 6,
+    "clue": "A tiny gnome tiptoes south of Berry Lane Cafe, stealing sugar for its tea."
+  },
+  {
+    "id": "book_duck",
+    "name": "Page Feather",
+    "prop": "duck",
+    "spot": 7,
+    "clue": "A duck waddles north of Book & Brim, quoting poetry to the pond."
+  },
+  {
+    "id": "statue_book_brim_west",
+    "name": "Silent Sir Stone",
+    "prop": "statue",
+    "spot": 8,
+    "clue": "west of Book & Brim, a quiet figure waits for plot twists."
+  },
+  {
+    "id": "crate_juniper_way_north",
+    "name": "Cranky Wooden Cube",
+    "prop": "crate",
+    "spot": 9,
+    "clue": "north of Juniper Way, a crate is pretending it always lived there."
+  },
+  {
+    "id": "signpost_post_parcel_east",
+    "name": "Pointy Road Pal",
+    "prop": "signpost",
+    "spot": 10,
+    "clue": "east of Post & Parcel, a signpost is very confident about direction."
+  },
+  {
+    "id": "mushroom_fern_hollow_west",
+    "name": "Plump Cap Fellow",
+    "prop": "mushroom",
+    "spot": 11,
+    "clue": "west of Fern Hollow, a mushroom is trying to be very grounded."
+  },
+  {
+    "id": "gnome_mug_muffin_east",
+    "name": "Tiny Hat Tinker",
+    "prop": "gnome",
+    "spot": 12,
+    "clue": "east of Mug & Muffin, a gnome has been baking crumbs by the path."
+  },
+  {
+    "id": "duck_little_sprout_south",
+    "name": "Waddleberry Duff",
+    "prop": "duck",
+    "spot": 13,
+    "clue": "south of Little Sprout, a duck is practicing its puddle manners."
+  },
+  {
+    "id": "statue_page_nook_east",
+    "name": "Stone Storykeeper",
+    "prop": "statue",
+    "spot": 14,
+    "clue": "east of Page Nook, a statue is reading without eyes, quite dramatic."
+  },
+  {
+    "id": "crate_plant_shed_east",
+    "name": "Leafy Lumber Box",
+    "prop": "crate",
+    "spot": 15,
+    "clue": "east of Plant Shed, a crate is napping under a very leafy lid."
+  },
+  {
+    "id": "lost_signpost_kite",
+    "name": "Whispering Waypost",
+    "prop": "signpost",
+    "spot": 16,
+    "clue": "A signpost south of Kite Meadow is pointing at clouds instead of cars!"
+  },
+  {
+    "id": "lost_mushroom_thistle",
+    "name": "Bouncy Buttoncap",
+    "prop": "mushroom",
+    "spot": 17,
+    "clue": "A mushroom west of Thistle Row is playing hide-and-seek with a hedgehog!"
+  },
+  {
+    "id": "lost_gnome_maps",
+    "name": "Garden Gerald",
+    "prop": "gnome",
+    "spot": 18,
+    "clue": "Garden gnome north of Maps & Co thinks every map is a treasure hunt!"
+  },
+  {
+    "id": "lost_duck_sprout",
+    "name": "Puddlefeather",
+    "prop": "duck",
+    "spot": 19,
+    "clue": "A duck south of Little Sprout says quack is its favorite greeting!"
+  },
+  {
+    "id": "lost_statue_shelf",
+    "name": "Silent Sir",
+    "prop": "statue",
+    "spot": 20,
+    "clue": "A statue west of Quiet Shelf is posing for a very polite photo!"
+  },
+  {
+    "id": "lost_crate_pond",
+    "name": "Tumblewood Box",
+    "prop": "crate",
+    "spot": 21,
+    "clue": "A crate east of Duck Pond Park is packed with very curious echoes!"
+  },
+  {
+    "id": "lost_signpost_shelf",
+    "name": "Sunny Sign",
+    "prop": "signpost",
+    "spot": 22,
+    "clue": "A signpost south of Quiet Shelf is waving at the quietest books!"
+  },
+  {
+    "id": "lost_mushroom_sprout",
+    "name": "Mossy Marshmallow",
+    "prop": "mushroom",
+    "spot": 23,
+    "clue": "A mushroom south of Little Sprout is wearing a tiny leafy hat!"
+  },
+  {
+    "id": "spruce_hollow_gnome",
+    "name": "Gnomy the Gnome",
+    "prop": "gnome",
+    "spot": 24,
+    "clue": "east of Spruce Hollow, a gnome is rooting for a little more privacy."
+  },
+  {
+    "id": "candle_loft_duck",
+    "name": "Ducky the Duck",
+    "prop": "duck",
+    "spot": 25,
+    "clue": "east of Candle Loft, a quack sounds suspiciously like breakfast."
+  },
+  {
+    "id": "book_brim_statue",
+    "name": "Bramble the Statue",
+    "prop": "statue",
+    "spot": 26,
+    "clue": "south of Book & Brim, a statue has been posing since the last chapter."
+  },
+  {
+    "id": "candle_loft_crate",
+    "name": "Cratey the Crate",
+    "prop": "crate",
+    "spot": 27,
+    "clue": "east of Candle Loft, a crate is thinking outside the box."
+  },
+  {
+    "id": "thistle_row_signpost",
+    "name": "Posty the Signpost",
+    "prop": "signpost",
+    "spot": 28,
+    "clue": "west of Thistle Row, a signpost is still trying to find its sign."
+  },
+  {
+    "id": "page_nook_mushroom",
+    "name": "Fungi the Mushroom",
+    "prop": "mushroom",
+    "spot": 29,
+    "clue": "south of Page Nook, a mushroom is branching out socially."
+  },
+  {
+    "id": "fernside_gnome",
+    "name": "Gnomey the Gnome",
+    "prop": "gnome",
+    "spot": 30,
+    "clue": "north of Fernside, a gnome has grown tired of being the root of the problem."
+  },
+  {
+    "id": "post_and_parcel_duck",
+    "name": "Quacky the Duck",
+    "prop": "duck",
+    "spot": 31,
+    "clue": "east of Post & Parcel, a duck has mailed a quack and is awaiting a reply."
+  },
+  {
+    "id": "statue_east_toast",
+    "name": "Sir Stonewall",
+    "prop": "statue",
+    "spot": 32,
+    "clue": "A stone friend east of Tea & Toast never burns toast."
+  },
+  {
+    "id": "crate_south_market",
+    "name": "Cratebert",
+    "prop": "crate",
+    "spot": 33,
+    "clue": "A crate south of Sunday Market snoozes past closing."
+  },
+  {
+    "id": "signpost_north_vine",
+    "name": "Signpost Sam",
+    "prop": "signpost",
+    "spot": 34,
+    "clue": "A signpost north of Root & Vine forgot its own directions."
+  },
+  {
+    "id": "mushroom_south_maps",
+    "name": "Toadstool Tim",
+    "prop": "mushroom",
+    "spot": 35,
+    "clue": "A mushroom south of Maps & Co misreads its own cap."
+  },
+  {
+    "id": "gnome_south_sparrow",
+    "name": "Gnomey McGee",
+    "prop": "gnome",
+    "spot": 36,
+    "clue": "A gnome south of Sparrow Supplies hoards a tiny hat."
+  },
+  {
+    "id": "duck_south_lace",
+    "name": "Duchess Quack",
+    "prop": "duck",
+    "spot": 37,
+    "clue": "A duck south of Lace & Lanterns irons its feathered suit."
+  },
+  {
+    "id": "statue_south_alder",
+    "name": "Marble Mary",
+    "prop": "statue",
+    "spot": 38,
+    "clue": "A statue south of Alder Close poses for no one."
+  },
+  {
+    "id": "crate_west_fresh",
+    "name": "Cratley",
+    "prop": "crate",
+    "spot": 39,
+    "clue": "A crate west of Fresh Cart shops for imaginary fruit."
+  }
+]

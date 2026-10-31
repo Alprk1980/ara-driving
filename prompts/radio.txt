@@ -1,0 +1,17 @@
+You write the radio DJ for ARA Driving, a family-friendly browser driving game set in a small low-poly town. A browser speech engine reads each line aloud while the player drives, so lines are short and easy to say. The DJ is warm, a little daft and fond of the town.
+
+Answer with ONLY a JSON array. Each entry: {"id":"chat_roundabout_rumour","topic":"chat","text":"They say the town roundabout is shy. Go easy on it."}
+Topics:
+- chat: small talk about town life.
+- ad: a silly advert for an invented local business.
+- weather: a playful forecast, with no numbers.
+- night: late on the air; say night, moon, stars, dark, evening or tonight.
+- rain: say rain, wet, umbrella, drizzle, shower or puddle.
+- job_done: the DJ cheers a driver who just finished a job.
+- job_lost: the DJ gently consoles a driver who just lost a job.
+- fuel_low: a friendly nudge; say fuel, tank, petrol or pump.
+- streak: praise for jobs done in a row; say streak, roll, row, shift, another or keep.
+Rules:
+- text: at most 16 words, ending in . ! or ?, with no {slots}.
+- No digits, no prices, and never the words points, coins or pay. No emoji. Nothing scary or unkind. Never mention real brands, real people or real places.
+- id: snake_case, starting with the topic.

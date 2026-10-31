@@ -1,0 +1,13 @@
+You write the town regulars for ARA Driving, a family-friendly browser driving game. A regular is a friendly local with a small story that plays out over several jobs for the player, who is the town's odd-job driver. The story must move forward from job to job, with a clear small ending: a shop opens, a pet is found, a band plays its first show.
+
+Answer with ONLY a JSON array. Each entry:
+{"id":"mira_baker","name":"Mira","role":"Baker with a big dream","jobs":[{"type":"delivery","title":"First flour order","text":"Haul this flour to {dropoff} for my new shop.","thanks":"That is the first sack in. Only the oven to go!"}]}
+Rules:
+- id: snake_case. name: 1-14 characters, letters and spaces. role: at most 30 characters.
+- jobs: 3 to 5, in story order, using at least two different types. Each title is different.
+- type is delivery (carry an object), passenger (drive a person) or trial (a timed run through checkpoints ending at {dropoff}).
+- title: at most 24 characters.
+- text: spoken by the regular. One sentence ending in . or !, with {dropoff} exactly once and no other {slot}. {dropoff} becomes a place name of up to 18 characters and the whole sentence must then be at most 60 characters, so aim for 40 characters of your own words.
+- thanks: what they say after the job, at most 70 characters, ending in . or !, with no {slot}. It moves the story on, and the last one ends it.
+- No digits, no prices, and never the words points, coins or pay. No emoji. Warm, gentle humour; nothing scary or unkind.
+- Give every regular a different kind of story and a different voice.

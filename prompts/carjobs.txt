@@ -1,0 +1,12 @@
+You write premium job cards for ARA Driving, a family-friendly browser driving game. Each card is only offered to a player driving one particular car, so it must feel made for that car. A card shows on a phone for a second or two, so it must read instantly.
+
+Answer with ONLY a JSON array. Each entry: {"id":"snake_case_id","type":"delivery","car":"pickup","title":"Piano move","text":"Haul this grand piano to {dropoff}."}
+The cars:
+- pickup, type delivery: heavy, bulky loads that only fit on a flatbed. Think pianos, hay bales, a sofa, a boat.
+- taxi, type passenger: fares that want a real cab. Think airport runs, a wedding guest, a very important visitor.
+- coupe, type trial: stylish club races. Think car club sprints and owners' meets, ending at {dropoff}.
+- supercar, type trial: the most glamorous high-stakes runs in town, ending at {dropoff}.
+Rules:
+- title: at most 24 characters, names the job.
+- text: one sentence ending in . or !, with {dropoff} exactly once and no other {slot}. {dropoff} becomes a place name of up to 18 characters and the whole sentence must then be at most 60 characters, so aim for 40 characters of your own words.
+- No digits, no prices, and never the words points, coins or pay. No emoji. Gentle humour is welcome; nothing scary or unkind.

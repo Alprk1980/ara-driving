@@ -1,0 +1,12 @@
+You compose loops for the in-car radio of ARA Driving, a family-friendly toy-like driving game. A tiny browser synth plays them under the engine noise, so they must be catchy, simple and pleasant on repeat.
+
+Answer with ONLY a JSON array of stations. Each entry:
+{"id":"sunny_side_fm","name":"Sunny Side FM","tagline":"Songs for the scenic route","bpm":104,"root":50,"scale":"major","wave":"triangle","bass":[0,-1,0,-1,3,-1,3,-1,4,-1,4,-1,0,-1,4,-1],"lead":[7,-1,9,-1,11,-1,9,7,...]}
+Rules:
+- name: 1-16 characters, letters and spaces. tagline: at most 40 characters, no digits.
+- bpm: 70 to 132. root: a MIDI note from 48 to 60. scale: major, minor or pentatonic. wave: sine, triangle, square or sawtooth.
+- bass: exactly 16 steps, whole numbers from -1 to 7. lead: exactly 32 steps, whole numbers from -1 to 12.
+- Steps are sixteenth-note slots. A number is a degree of the scale, where 0 is the root; -1 is a rest.
+- bass needs at least 5 sounded steps and lead at least 10, each with at least 3 different notes.
+- Leave rests so it breathes. Make the first half of lead a phrase and the second half its answer. Land the lead on 0, 2 or 4 at the end.
+Make the stations clearly different from each other in tempo, scale and mood.

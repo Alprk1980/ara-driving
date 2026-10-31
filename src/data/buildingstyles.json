@@ -1,0 +1,547 @@
+[
+  {
+    "id": "market_row",
+    "name": "Market Row",
+    "district": "oldtown",
+    "finish": "render",
+    "walls": [
+      "#e7d0b9",
+      "#cbb59f",
+      "#f4eadb"
+    ],
+    "trim": "#6c5244",
+    "glass": "#314755",
+    "bay": 3.2,
+    "storey": 3,
+    "window": {
+      "form": "shuttered",
+      "w": 0.46,
+      "h": 0.68
+    },
+    "ground": {
+      "kind": "shopfront",
+      "height": 3.2,
+      "main": "#f3e8d8",
+      "accent": "#b5442f"
+    },
+    "roof": {
+      "kind": "pitched",
+      "color": "#5b514a"
+    },
+    "storeys": [
+      2,
+      4
+    ]
+  },
+  {
+    "id": "corner_arcade",
+    "name": "Corner Arcade",
+    "district": "oldtown",
+    "finish": "stone",
+    "walls": [
+      "#5e4137",
+      "#8d6451",
+      "#bd8f71"
+    ],
+    "trim": "#f0e4d8",
+    "glass": "#1c2c36",
+    "bay": 3.6,
+    "storey": 3.2,
+    "window": {
+      "form": "arched",
+      "w": 0.38,
+      "h": 0.82
+    },
+    "ground": {
+      "kind": "arcade",
+      "height": 4.2,
+      "main": "#c8beb4",
+      "accent": "#5d6a73"
+    },
+    "roof": {
+      "kind": "parapet",
+      "color": "#b5afa8"
+    },
+    "storeys": [
+      3,
+      5
+    ]
+  },
+  {
+    "id": "old_bank",
+    "name": "Old Bank",
+    "district": "oldtown",
+    "finish": "stone",
+    "walls": [
+      "#877f74",
+      "#b2a79c",
+      "#d9cfc5"
+    ],
+    "trim": "#4f4a45",
+    "glass": "#283c49",
+    "bay": 3.8,
+    "storey": 3.3,
+    "window": {
+      "form": "tall",
+      "w": 0.32,
+      "h": 0.74
+    },
+    "ground": {
+      "kind": "lobby",
+      "height": 4,
+      "main": "#b2a79c",
+      "accent": "#3f6d83"
+    },
+    "roof": {
+      "kind": "flat",
+      "color": "#b9b4ae"
+    },
+    "storeys": [
+      4,
+      5
+    ]
+  },
+  {
+    "id": "glass_tower",
+    "name": "Glass Tower",
+    "district": "business",
+    "finish": "cladding",
+    "walls": [
+      "#98cfe8",
+      "#c7e7f4",
+      "#e6f3f9"
+    ],
+    "trim": "#3f6c86",
+    "glass": "#175d8a",
+    "bay": 4.2,
+    "storey": 3.6,
+    "window": {
+      "form": "curtain",
+      "w": 0.88,
+      "h": 0.78
+    },
+    "ground": {
+      "kind": "lobby",
+      "height": 4.5,
+      "main": "#eef5f8",
+      "accent": "#1b6ea3"
+    },
+    "roof": {
+      "kind": "setback",
+      "color": "#c9ced4"
+    },
+    "storeys": [
+      8,
+      12
+    ]
+  },
+  {
+    "id": "ribbon_office",
+    "name": "Ribbon Office",
+    "district": "business",
+    "finish": "panel",
+    "walls": [
+      "#9fb2bd",
+      "#c8d7de",
+      "#e9eef2"
+    ],
+    "trim": "#4f606b",
+    "glass": "#2b5f80",
+    "bay": 4,
+    "storey": 3.4,
+    "window": {
+      "form": "ribbon",
+      "w": 0.9,
+      "h": 0.48
+    },
+    "ground": {
+      "kind": "arcade",
+      "height": 3.8,
+      "main": "#d9dfe3",
+      "accent": "#2e6f8f"
+    },
+    "roof": {
+      "kind": "plant",
+      "color": "#c5ccd2"
+    },
+    "storeys": [
+      7,
+      10
+    ]
+  },
+  {
+    "id": "stone_chambers",
+    "name": "Stone Chambers",
+    "district": "business",
+    "finish": "stone",
+    "walls": [
+      "#9dc8bf",
+      "#cbe8dd",
+      "#e8f3ef"
+    ],
+    "trim": "#3f6c68",
+    "glass": "#205f76",
+    "bay": 4.4,
+    "storey": 3.7,
+    "window": {
+      "form": "tall",
+      "w": 0.34,
+      "h": 0.7
+    },
+    "ground": {
+      "kind": "lobby",
+      "height": 4.6,
+      "main": "#e7f0ea",
+      "accent": "#4f7f7a"
+    },
+    "roof": {
+      "kind": "setback",
+      "color": "#c1c8cc"
+    },
+    "storeys": [
+      6,
+      9
+    ]
+  },
+  {
+    "id": "tower_flats",
+    "name": "Tower Flats",
+    "district": "business",
+    "finish": "panel",
+    "walls": [
+      "#a6b5d9",
+      "#cad3eb",
+      "#e7ecf7"
+    ],
+    "trim": "#4e5877",
+    "glass": "#274470",
+    "bay": 3.6,
+    "storey": 3.4,
+    "window": {
+      "form": "punched",
+      "w": 0.36,
+      "h": 0.52
+    },
+    "ground": {
+      "kind": "lobby",
+      "height": 4.2,
+      "main": "#e2e4ee",
+      "accent": "#5a6294"
+    },
+    "roof": {
+      "kind": "plant",
+      "color": "#c8cdd6"
+    },
+    "storeys": [
+      6,
+      10
+    ]
+  },
+  {
+    "id": "painted_terrace",
+    "name": "Painted Terrace",
+    "district": "garden",
+    "finish": "render",
+    "walls": [
+      "#f0e0c8",
+      "#d7a98f",
+      "#9ec7e4"
+    ],
+    "trim": "#7d929f",
+    "glass": "#1f2b36",
+    "bay": 3.4,
+    "storey": 3,
+    "window": {
+      "form": "punched",
+      "w": 0.54,
+      "h": 0.6
+    },
+    "ground": {
+      "kind": "same",
+      "height": 3,
+      "main": "#f0e0c8",
+      "accent": "#4f7e87"
+    },
+    "roof": {
+      "kind": "pitched",
+      "color": "#686f76"
+    },
+    "storeys": [
+      2,
+      2
+    ]
+  },
+  {
+    "id": "brick_semis",
+    "name": "Brick Semis",
+    "district": "garden",
+    "finish": "brick",
+    "walls": [
+      "#e4c9b1",
+      "#cf9e83",
+      "#b07f63"
+    ],
+    "trim": "#5d6f7c",
+    "glass": "#1c2731",
+    "bay": 3.8,
+    "storey": 3.1,
+    "window": {
+      "form": "tall",
+      "w": 0.3,
+      "h": 0.72
+    },
+    "ground": {
+      "kind": "same",
+      "height": 3.1,
+      "main": "#cf9e83",
+      "accent": "#7994a2"
+    },
+    "roof": {
+      "kind": "pitched",
+      "color": "#5d646b"
+    },
+    "storeys": [
+      2,
+      2
+    ]
+  },
+  {
+    "id": "pebble_cottages",
+    "name": "Pebble Cottages",
+    "district": "garden",
+    "finish": "render",
+    "walls": [
+      "#f6d6c7",
+      "#d7a89f",
+      "#b17d76"
+    ],
+    "trim": "#5f7079",
+    "glass": "#22313c",
+    "bay": 3,
+    "storey": 2.9,
+    "window": {
+      "form": "shuttered",
+      "w": 0.45,
+      "h": 0.55
+    },
+    "ground": {
+      "kind": "same",
+      "height": 2.9,
+      "main": "#f2ddd1",
+      "accent": "#5f7079"
+    },
+    "roof": {
+      "kind": "pitched",
+      "color": "#546067"
+    },
+    "storeys": [
+      2,
+      2
+    ]
+  },
+  {
+    "id": "garden_flats",
+    "name": "Garden Flats",
+    "district": "garden",
+    "finish": "brick",
+    "walls": [
+      "#e3d1b6",
+      "#a8c4d8",
+      "#e8b79f",
+      "#b96b4f"
+    ],
+    "trim": "#47697a",
+    "glass": "#233844",
+    "bay": 3.6,
+    "storey": 3,
+    "window": {
+      "form": "ribbon",
+      "w": 0.84,
+      "h": 0.44
+    },
+    "ground": {
+      "kind": "lobby",
+      "height": 3.4,
+      "main": "#f0e1cc",
+      "accent": "#8f5641"
+    },
+    "roof": {
+      "kind": "flat",
+      "color": "#a7b0b2"
+    },
+    "storeys": [
+      2,
+      2
+    ]
+  },
+  {
+    "id": "tin_shed",
+    "name": "Tin Shed",
+    "district": "works",
+    "finish": "cladding",
+    "walls": [
+      "#316b8e",
+      "#7db2ca",
+      "#c6d8de"
+    ],
+    "trim": "#e8f0f5",
+    "glass": "#1b3040",
+    "bay": 4.2,
+    "storey": 3.8,
+    "window": {
+      "form": "ribbon",
+      "w": 0.88,
+      "h": 0.45
+    },
+    "ground": {
+      "kind": "loading",
+      "height": 4.2,
+      "main": "#5d7887",
+      "accent": "#dbe3ea"
+    },
+    "roof": {
+      "kind": "pitched",
+      "color": "#565f66"
+    },
+    "storeys": [
+      2,
+      3
+    ]
+  },
+  {
+    "id": "concrete_depot",
+    "name": "Concrete Depot",
+    "district": "works",
+    "finish": "panel",
+    "walls": [
+      "#89939a",
+      "#b4bdc2",
+      "#e0e5e7"
+    ],
+    "trim": "#4d5760",
+    "glass": "#2a3740",
+    "bay": 4.8,
+    "storey": 3.9,
+    "window": {
+      "form": "punched",
+      "w": 0.32,
+      "h": 0.46
+    },
+    "ground": {
+      "kind": "loading",
+      "height": 4.4,
+      "main": "#98a1a7",
+      "accent": "#6d4b3c"
+    },
+    "roof": {
+      "kind": "flat",
+      "color": "#d8dde0"
+    },
+    "storeys": [
+      2,
+      3
+    ]
+  },
+  {
+    "id": "cold_store",
+    "name": "Cold Store",
+    "district": "works",
+    "finish": "cladding",
+    "walls": [
+      "#5c7a59",
+      "#87a67f",
+      "#b4c9a1"
+    ],
+    "trim": "#e3ebe1",
+    "glass": "#1d362f",
+    "bay": 4.6,
+    "storey": 4,
+    "window": {
+      "form": "ribbon",
+      "w": 0.92,
+      "h": 0.4
+    },
+    "ground": {
+      "kind": "loading",
+      "height": 4,
+      "main": "#a6afa8",
+      "accent": "#3f6574"
+    },
+    "roof": {
+      "kind": "plant",
+      "color": "#c9cec9"
+    },
+    "storeys": [
+      2,
+      3
+    ]
+  },
+  {
+    "id": "high_street_brick",
+    "name": "High Street Brick Row",
+    "district": "oldtown",
+    "finish": "brick",
+    "walls": [
+      "#9e4f3d",
+      "#c87a56",
+      "#e7a87c"
+    ],
+    "trim": "#f2e7d5",
+    "glass": "#2f4554",
+    "bay": 3.4,
+    "storey": 3.1,
+    "window": {
+      "form": "tall",
+      "w": 0.3,
+      "h": 0.72
+    },
+    "ground": {
+      "kind": "shopfront",
+      "height": 3.6,
+      "main": "#efe3d2",
+      "accent": "#1f6e8b"
+    },
+    "roof": {
+      "kind": "parapet",
+      "color": "#b6b2ac"
+    },
+    "storeys": [
+      3,
+      5
+    ]
+  },
+  {
+    "id": "old_mill",
+    "name": "Old Mill",
+    "district": "works",
+    "finish": "brick",
+    "walls": [
+      "#634535",
+      "#a56c4c",
+      "#d29a6e"
+    ],
+    "trim": "#f2dab5",
+    "glass": "#101a24",
+    "bay": 3.6,
+    "storey": 4,
+    "window": {
+      "form": "arched",
+      "w": 0.38,
+      "h": 0.72
+    },
+    "ground": {
+      "kind": "loading",
+      "height": 4.6,
+      "main": "#8f867e",
+      "accent": "#c66b4c"
+    },
+    "roof": {
+      "kind": "parapet",
+      "color": "#b2b0ad"
+    },
+    "storeys": [
+      2,
+      3
+    ]
+  }
+]

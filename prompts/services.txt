@@ -1,0 +1,12 @@
+You design the three emergency service stations in ARA Driving's British town: a low-poly fire station, ambulance station and police station, each seen from the street. Think of a modern UK station: pale brick or render, a flat or low-pitched roof, big bay doors onto a forecourt.
+
+Answer with ONLY a JSON array, one entry per slot in the request, in slot order, each with exactly the slot's id. Example of the shape (not one of your slots):
+{"id":"example","name":"Example Station","parts":[{"shape":"box","x":0,"y":0,"z":-1,"w":16,"h":5,"l":10,"color":"#c9b8a2"},{"shape":"box","x":0,"y":5,"z":-1,"w":16.4,"h":0.4,"l":10.4,"color":"#4a4f58"}],"doors":[{"x":-3,"w":4,"h":3.6},{"x":3,"w":4,"h":3.6}]}
+
+How it's built, in metres. x is along the street, z is depth with the front facing +z, y is up from the ground.
+- parts: 6-24 parts. Each has shape ("box", "cylinder" or "cone"), x, y, z, w, h, l and color (#rrggbb). x and z are the part's centre, y is its base, w is its size along x, h its height, l its size along z.
+- Every part stays inside the footprint and under the height limit given in the request.
+- One main building stands on the ground. Add a roof, a band or two of windows as dark blue panels sitting just proud of the front, an entrance, a sign panel, and so on.
+- doors: the vehicle bay doors on the front, each with x (its centre), w (its width) and h (its height). Leave a pier of wall between doors. The doors are drawn for you, so do not add parts for them.
+
+A fire station has three tall bays, red doors, an office block to one side and a tall square drill tower behind. An ambulance station is low, with two or three wide bays. A police station is a taller office block with rows of windows, a blue lamp by the entrance, and perhaps one van bay.

@@ -1,0 +1,167 @@
+[
+  {
+    "id": "stopped_after_1",
+    "moment": "stopped_after",
+    "text": "Well done stopping after the bump."
+  },
+  {
+    "id": "stopped_after_2",
+    "moment": "stopped_after",
+    "text": "Thank you for stopping after the bump."
+  },
+  {
+    "id": "stopped_after_3",
+    "moment": "stopped_after",
+    "text": "Proud that you stopped after the bump."
+  },
+  {
+    "id": "red_stop_1",
+    "moment": "red_stop",
+    "text": "Well done for waiting at the red light"
+  },
+  {
+    "id": "red_stop_2",
+    "moment": "red_stop",
+    "text": "Good job stopping for the red light"
+  },
+  {
+    "id": "red_stop_3",
+    "moment": "red_stop",
+    "text": "Nice work waiting at the red light"
+  },
+  {
+    "id": "zebra_run_a",
+    "moment": "zebra_run",
+    "text": "Wait for people at the zebra."
+  },
+  {
+    "id": "zebra_run_b",
+    "moment": "zebra_run",
+    "text": "Let people cross at the zebra."
+  },
+  {
+    "id": "zebra_run_c",
+    "moment": "zebra_run",
+    "text": "Stop for people at zebra."
+  },
+  {
+    "id": "pulled_over_polite",
+    "moment": "pulled_over",
+    "text": "You pulled over politely."
+  },
+  {
+    "id": "pulled_over_chat",
+    "moment": "pulled_over",
+    "text": "You stopped for the chat."
+  },
+  {
+    "id": "pulled_over_calm",
+    "moment": "pulled_over",
+    "text": "You pulled over calmly."
+  },
+  {
+    "id": "zebra_wait_1",
+    "moment": "zebra_wait",
+    "text": "Thank you for stopping at the zebra crossing."
+  },
+  {
+    "id": "zebra_wait_2",
+    "moment": "zebra_wait",
+    "text": "Good wait at the zebra crossing."
+  },
+  {
+    "id": "zebra_wait_3",
+    "moment": "zebra_wait",
+    "text": "You waited kindly at the zebra crossing."
+  },
+  {
+    "id": "blue_pull_a",
+    "moment": "blue_pull",
+    "text": "You pulled over for the blue-light crew. Well done."
+  },
+  {
+    "id": "blue_pull_b",
+    "moment": "blue_pull",
+    "text": "Thank you for pulling over for the blue-light crew."
+  },
+  {
+    "id": "blue_pull_c",
+    "moment": "blue_pull",
+    "text": "Pulled over for the blue-light crew. Lovely."
+  },
+  {
+    "id": "blue_block_move",
+    "moment": "blue_block",
+    "text": "Try moving out of the blue-light crew's way."
+  },
+  {
+    "id": "blue_block_room",
+    "moment": "blue_block",
+    "text": "Please leave room for the blue-light crew."
+  },
+  {
+    "id": "blue_block_blocking",
+    "moment": "blue_block",
+    "text": "Try not blocking the blue-light crew."
+  },
+  {
+    "id": "got_away_1",
+    "moment": "got_away",
+    "text": "The police stopped following you."
+  },
+  {
+    "id": "got_away_2",
+    "moment": "got_away",
+    "text": "They gave up following your car."
+  },
+  {
+    "id": "got_away_3",
+    "moment": "got_away",
+    "text": "The chase ended quietly."
+  },
+  {
+    "id": "course_ready",
+    "moment": "course",
+    "text": "Your course is ready"
+  },
+  {
+    "id": "course_start",
+    "moment": "course",
+    "text": "Start your course"
+  },
+  {
+    "id": "course_helps",
+    "moment": "course",
+    "text": "The course helps you"
+  },
+  {
+    "id": "drove_off_1",
+    "moment": "drove_off",
+    "text": "You drove off too soon."
+  },
+  {
+    "id": "drove_off_2",
+    "moment": "drove_off",
+    "text": "Drove off? Stop after bumps next time."
+  },
+  {
+    "id": "drove_off_3",
+    "moment": "drove_off",
+    "text": "Next time, stop before driving off."
+  },
+  {
+    "id": "red_run_1",
+    "moment": "red_run",
+    "text": "Please wait for red lights"
+  },
+  {
+    "id": "red_run_2",
+    "moment": "red_run",
+    "text": "Red lights mean stop"
+  },
+  {
+    "id": "red_run_3",
+    "moment": "red_run",
+    "text": "Let red lights stay red"
+  }
+]

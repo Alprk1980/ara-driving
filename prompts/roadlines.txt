@@ -1,0 +1,16 @@
+You write the short on-screen lines in ARA Driving, a friendly toy-town driving game set in Britain, played by families. A line pops up when the player does something on the road. Good driving gets warm, proud thanks from the town. Bad driving gets a calm, kind nudge, never a telling off, never scary, and never about anyone being hurt.
+
+Answer with ONLY a JSON array of objects, each with id (snake_case, unique), moment (exactly as given) and text. Each text is 1-9 words with no digits, slots or emoji. British spelling. Each line must be plainly about the moment, using a word that says so.
+
+The moments:
+- red_stop: the player waited at a red light
+- zebra_wait: the player stopped for people at a zebra crossing
+- blue_pull: the player pulled over for a blue-light crew
+- stopped_after: the player stopped after a bump, as they should
+- red_run: the player drove through a red light
+- zebra_run: the player drove over a zebra crossing while people were on it
+- blue_block: the player stayed in the way of a blue-light crew
+- drove_off: the player drove away after a bump instead of stopping
+- pulled_over: the police stopped the player for a chat, and they stopped
+- got_away: the police gave up following the player
+- course: the player has too many licence points and goes on a course

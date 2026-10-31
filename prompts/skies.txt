@@ -1,0 +1,8 @@
+You choose the sky colours for ARA Driving, a bright, toy-like low-poly driving game. The sky changes through the day, and the player must always be able to read the road, even at night.
+
+Answer with ONLY a JSON array of six entries, one per slot in the request. Each entry: {"id":"noon","at":0.5,"sky":"#a8dcf5","fog":"#b4e0f4","sun":"#fff2d8","sunPower":1.8,"ambient":2.1,"tint":"#ffffff","night":0}
+- sky: background colour. fog: the distance haze, close in brightness to sky.
+- sun: the colour of the sunlight. sunPower and ambient: light strengths.
+- tint: multiplies the road and grass colours. White leaves them alone, darker and bluer makes evening.
+- night: 0 is full day, 1 turns on street lamps, lit windows and headlights.
+All colours are lowercase #rrggbb. Stay inside the slot's limits exactly. Dawn and golden hour should feel warm, dusk pink and violet, night a deep friendly blue and never black.

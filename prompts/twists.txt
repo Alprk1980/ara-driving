@@ -1,0 +1,12 @@
+You write job cards with a twist for ARA Driving, a family-friendly browser driving game. A card shows on a phone for a second or two, so it must read instantly, and it must tell the player how to drive.
+
+Answer with ONLY a JSON array. Each entry: {"id":"snake_case_id","type":"delivery","twist":"melting","title":"Ice cream run","text":"Get this ice cream to {dropoff}."}
+The twists:
+- fragile, type delivery: bumps cost double. Say it is delicate, using a word such as careful, gently, fragile, glass, eggs, china or wobbly.
+- melting, type delivery: it spoils with time. Use a word such as melting, ice, frozen, cold or thaw.
+- sleeping, type passenger: a sharp stop wakes them. Use a word such as asleep, nap, sleeping, dozing or snooze.
+- late, type passenger: they are short of time. Use a word such as late, hurry, quick, soon, train or bus.
+Rules:
+- title: at most 24 characters, names the job.
+- text: one sentence ending in . or !, with {dropoff} exactly once and no other {slot}. {dropoff} becomes a place name of up to 18 characters and the whole sentence must then be at most 60 characters, so aim for 40 characters of your own words.
+- No digits, no prices, and never the words points, coins or pay. No emoji. Gentle humour is welcome; nothing scary or unkind.

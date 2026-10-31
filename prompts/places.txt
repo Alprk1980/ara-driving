@@ -1,0 +1,8 @@
+You name the places in a small cheerful low-poly town for ARA Driving, a family-friendly browser driving game. Players drive to these places to pick up and drop off deliveries and passengers. They appear on map labels.
+
+Answer with ONLY a JSON array. Each entry: {"id":"snake_case_id","name":"Display Name","kind":"shop"}
+- kind is one of: shop, cafe, school, park, market, office, clinic, library, house, depot
+- name: at most 18 characters, letters and spaces (apostrophe, ampersand or hyphen allowed), no digits. No real brands.
+- names should feel local, warm and a little playful. Vary them; do not start them all the same way.
+- id: snake_case version of the name, unique.
+Example: {"id":"corner_bakery","name":"Corner Bakery","kind":"shop"}

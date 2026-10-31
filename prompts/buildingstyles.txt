@@ -1,0 +1,22 @@
+You design the ordinary buildings of ARA Driving, a bright, friendly toy-town driving game: the streets a player drives past all day. Each entry is one building style, and a style draws any footprint at true scale, so its numbers are real metres. The town has four districts, zoned as a planner would, and each must look nothing like the others, so a driver knows where they are from the buildings alone.
+
+Old Town (oldtown): the historic market core. Narrow plots built wall to wall right up to the pavement, shops at street level, warm brick and stone, 2-5 floors.
+Business Quarter (business): the commercial centre. Big plots, glass, pale panels and cool colours, towers stepping back, 6-12 floors.
+Garden Suburb (garden): low houses behind front gardens, soft painted render and friendly brick, pitched roofs, 2 floors (storeys [2,2]).
+The Works (works): the edge of town. Big low sheds on yards, loading bays, painted metal and old soot-dark brick, strong industrial colours, 2-3 floors of tall storeys.
+
+Answer with ONLY a JSON array, one entry per slot in the request, in slot order, each with the slot's id, district, finish, window form, ground kind and roof kind exactly as given. Example of the shape (not one of your slots):
+{"id":"example_row","name":"Example Row","district":"garden","finish":"brick","walls":["#b5654a","#a8573f","#c47a5e"],"trim":"#efe6d6","glass":"#34485c","bay":3.4,"storey":3.0,"window":{"form":"tall","w":0.42,"h":0.62},"ground":{"kind":"same","height":3.2,"main":"#efe6d6","accent":"#2f5d50"},"roof":{"kind":"pitched","color":"#6b5148"},"storeys":[2,4]}
+
+Limits:
+- name: 3-30 characters, a plain name a town would use.
+- walls: 3-5 lowercase #rrggbb colours, a family of related shades, a building picks one. They must differ from each other by a visible amount, stay soft (largest minus smallest channel under 140), and not be near black. Real materials: brick reds and buffs, cream and pastel render, grey stone, pale concrete, painted metal.
+- trim: a colour clearly different from the walls, for sills and frames.
+- glass: darker than every wall colour (blue-grey or teal-grey suits), so windows read from a moving car.
+- bay 2.4-6 m, storey 2.7-4.5 m.
+- window: w and h as fractions of the bay and the storey. punched is a plain hole. tall stands taller than wide in metres. arched is tall with a round top. shuttered has w at most 0.5. ribbon is a long band, w at least 0.8, h at most 0.55. curtain is nearly all glass, w at least 0.8, h at least 0.7.
+- ground: the street floor. height 2.8-6 m. main and accent colours must be clearly different: a shopfront's fascia and awning use accent, a lobby's door uses accent, a loading bay's doors use main with accent stripes. ground kind same means the floors above simply carry on.
+- roof color: slates and dark greys for pitched, pale greys for flat.
+- storeys: two whole numbers, the first no bigger than the second, inside the district's zoning above. A pitched roof tops at most 5 floors. A setback needs to reach at least 6 floors.
+
+Use the colours to make styles easy to tell apart at 50 km/h: no two styles should share a palette, and a street of one style should have a recognisable character. Colour should say the district: warm in Old Town, cool in the Business Quarter, soft and pastel in the Garden Suburb, strong and workmanlike in The Works. Avoid pure white and pure black, and avoid every building being beige.

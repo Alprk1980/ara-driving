@@ -1,0 +1,272 @@
+[
+  {
+    "id": "corner_bakery",
+    "name": "Corner Bakery",
+    "kind": "shop"
+  },
+  {
+    "id": "toy_nook",
+    "name": "Toy Nook",
+    "kind": "shop"
+  },
+  {
+    "id": "plant_shed",
+    "name": "Plant Shed",
+    "kind": "shop"
+  },
+  {
+    "id": "sewing_basket",
+    "name": "Sewing Basket",
+    "kind": "shop"
+  },
+  {
+    "id": "book_and_brim",
+    "name": "Book & Brim",
+    "kind": "shop"
+  },
+  {
+    "id": "candle_loft",
+    "name": "Candle Loft",
+    "kind": "shop"
+  },
+  {
+    "id": "tea_and_toast",
+    "name": "Tea & Toast",
+    "kind": "cafe"
+  },
+  {
+    "id": "sun_cup_cafe",
+    "name": "Sun Cup Cafe",
+    "kind": "cafe"
+  },
+  {
+    "id": "maple_mug",
+    "name": "Maple Mug",
+    "kind": "cafe"
+  },
+  {
+    "id": "berry_lane_cafe",
+    "name": "Berry Lane Cafe",
+    "kind": "cafe"
+  },
+  {
+    "id": "little_sprout",
+    "name": "Little Sprout",
+    "kind": "school"
+  },
+  {
+    "id": "pine_hill_school",
+    "name": "Pine Hill School",
+    "kind": "school"
+  },
+  {
+    "id": "bright_owl_school",
+    "name": "Bright Owl School",
+    "kind": "school"
+  },
+  {
+    "id": "duck_pond_park",
+    "name": "Duck Pond Park",
+    "kind": "park"
+  },
+  {
+    "id": "fern_hollow",
+    "name": "Fern Hollow",
+    "kind": "park"
+  },
+  {
+    "id": "kite_meadow",
+    "name": "Kite Meadow",
+    "kind": "park"
+  },
+  {
+    "id": "fresh_cart",
+    "name": "Fresh Cart",
+    "kind": "market"
+  },
+  {
+    "id": "sunday_market",
+    "name": "Sunday Market",
+    "kind": "market"
+  },
+  {
+    "id": "green_basket",
+    "name": "Green Basket",
+    "kind": "market"
+  },
+  {
+    "id": "town_office",
+    "name": "Town Office",
+    "kind": "office"
+  },
+  {
+    "id": "post_and_parcel",
+    "name": "Post & Parcel",
+    "kind": "office"
+  },
+  {
+    "id": "maps_and_co",
+    "name": "Maps & Co",
+    "kind": "office"
+  },
+  {
+    "id": "wellness_nook",
+    "name": "Wellness Nook",
+    "kind": "clinic"
+  },
+  {
+    "id": "care_corner",
+    "name": "Care Corner",
+    "kind": "clinic"
+  },
+  {
+    "id": "page_nook",
+    "name": "Page Nook",
+    "kind": "library"
+  },
+  {
+    "id": "quiet_shelf",
+    "name": "Quiet Shelf",
+    "kind": "library"
+  },
+  {
+    "id": "delivery_bay",
+    "name": "Delivery Bay",
+    "kind": "depot"
+  },
+  {
+    "id": "parcel_depot",
+    "name": "Parcel Depot",
+    "kind": "depot"
+  },
+  {
+    "id": "freight_yard",
+    "name": "Freight Yard",
+    "kind": "depot"
+  },
+  {
+    "id": "transit_shed",
+    "name": "Transit Shed",
+    "kind": "depot"
+  },
+  {
+    "id": "maple_row",
+    "name": "Maple Row",
+    "kind": "house"
+  },
+  {
+    "id": "cedar_cottages",
+    "name": "Cedar Cottages",
+    "kind": "house"
+  },
+  {
+    "id": "birchwood_lane",
+    "name": "Birchwood Lane",
+    "kind": "house"
+  },
+  {
+    "id": "poplar_court",
+    "name": "Poplar Court",
+    "kind": "house"
+  },
+  {
+    "id": "hazel_nook",
+    "name": "Hazel Nook",
+    "kind": "house"
+  },
+  {
+    "id": "willow_bend",
+    "name": "Willow Bend",
+    "kind": "house"
+  },
+  {
+    "id": "linden_rise",
+    "name": "Linden Rise",
+    "kind": "house"
+  },
+  {
+    "id": "spruce_hollow",
+    "name": "Spruce Hollow",
+    "kind": "house"
+  },
+  {
+    "id": "juniper_way",
+    "name": "Juniper Way",
+    "kind": "house"
+  },
+  {
+    "id": "alder_close",
+    "name": "Alder Close",
+    "kind": "house"
+  },
+  {
+    "id": "thistle_row",
+    "name": "Thistle Row",
+    "kind": "house"
+  },
+  {
+    "id": "fernside",
+    "name": "Fernside",
+    "kind": "house"
+  },
+  {
+    "id": "sparrow_supplies",
+    "name": "Sparrow Supplies",
+    "kind": "shop"
+  },
+  {
+    "id": "lace_lanterns",
+    "name": "Lace & Lanterns",
+    "kind": "shop"
+  },
+  {
+    "id": "tin_toybox",
+    "name": "Tin Toybox",
+    "kind": "shop"
+  },
+  {
+    "id": "whistle_wrench",
+    "name": "Whistle & Wrench",
+    "kind": "shop"
+  },
+  {
+    "id": "bean_bramble",
+    "name": "Bean & Bramble",
+    "kind": "cafe"
+  },
+  {
+    "id": "mug_muffin",
+    "name": "Mug & Muffin",
+    "kind": "cafe"
+  },
+  {
+    "id": "sip_saffron",
+    "name": "Sip & Saffron",
+    "kind": "cafe"
+  },
+  {
+    "id": "cocoa_cove",
+    "name": "Cocoa Cove",
+    "kind": "cafe"
+  },
+  {
+    "id": "foxglove_green",
+    "name": "Foxglove Green",
+    "kind": "park"
+  },
+  {
+    "id": "duck_pond",
+    "name": "Duck Pond",
+    "kind": "park"
+  },
+  {
+    "id": "root_vine",
+    "name": "Root & Vine",
+    "kind": "market"
+  },
+  {
+    "id": "harbor_stalls",
+    "name": "Harbor Stalls",
+    "kind": "market"
+  }
+]

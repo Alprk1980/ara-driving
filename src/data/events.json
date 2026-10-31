@@ -1,0 +1,112 @@
+[
+  {
+    "id": "roadworks_cones_detour",
+    "kind": "roadworks",
+    "title": "Road digging",
+    "text": "The roadworks are here, so cones guide you to a clever detour."
+  },
+  {
+    "id": "roadworks_digger_day",
+    "kind": "roadworks",
+    "title": "Digger day",
+    "text": "A friendly digger is digging, so please take the detour."
+  },
+  {
+    "id": "roadworks_cone_works",
+    "kind": "roadworks",
+    "title": "Cones on road",
+    "text": "Cone cones on road, the works are slow and silly."
+  },
+  {
+    "id": "roadworks_busy_works",
+    "kind": "roadworks",
+    "title": "Works nearby",
+    "text": "The road works are busy, so find a detour with cheerful cones."
+  },
+  {
+    "id": "roadworks_easy_detour",
+    "kind": "roadworks",
+    "title": "Digging slow",
+    "text": "This road is digging slowly, but the detour is easy peasy."
+  },
+  {
+    "id": "parade_float_band",
+    "kind": "parade",
+    "title": "Float parade",
+    "text": "A parade with a float is marching, and the band plays!"
+  },
+  {
+    "id": "parade_band_march",
+    "kind": "parade",
+    "title": "Band march",
+    "text": "The parade band is marching, so wave at the float."
+  },
+  {
+    "id": "parade_float_fun",
+    "kind": "parade",
+    "title": "Float fun",
+    "text": "A slow parade is on this road, with a float and band."
+  },
+  {
+    "id": "parade_march_band",
+    "kind": "parade",
+    "title": "March day",
+    "text": "The march parade is cheerful, and the band plays softly."
+  },
+  {
+    "id": "market_shop_sale",
+    "kind": "market",
+    "boost": "shop",
+    "title": "Shop sale",
+    "text": "The shop sale is on, and every shop wants a delivery!"
+  },
+  {
+    "id": "market_cake_fair",
+    "kind": "market",
+    "boost": "cafe",
+    "title": "Cake fair",
+    "text": "The cake fair is on, and every cafe wants a delivery!"
+  },
+  {
+    "id": "market_school_day",
+    "kind": "market",
+    "boost": "school",
+    "title": "School day",
+    "text": "The school fun day is on, and teachers love deliveries!"
+  },
+  {
+    "id": "market_park_festival",
+    "kind": "market",
+    "boost": "park",
+    "title": "Park festival",
+    "text": "The park festival is bright, and stalls need fresh treats!"
+  },
+  {
+    "id": "market_market_day",
+    "kind": "market",
+    "boost": "market",
+    "title": "Market day",
+    "text": "The market day is buzzing, and stalls cheer for you!"
+  },
+  {
+    "id": "market_office_sale",
+    "kind": "market",
+    "boost": "office",
+    "title": "Office sale",
+    "text": "The office sale is cheerful, and desks want little parcels!"
+  },
+  {
+    "id": "market_clinic_fair",
+    "kind": "market",
+    "boost": "clinic",
+    "title": "Clinic fair",
+    "text": "The clinic fair is calm, and baskets need soft deliveries!"
+  },
+  {
+    "id": "market_library_sale",
+    "kind": "market",
+    "boost": "library",
+    "title": "Library sale",
+    "text": "The library book sale is fun, and shelves need tidy boxes!"
+  }
+]

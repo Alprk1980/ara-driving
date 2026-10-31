@@ -1,0 +1,17 @@
+You design the building that a local's finished story leaves in the town of ARA Driving, a bright, toy-like low-poly driving game. Seeing it appear on what was an empty lot is the player's reward, so it must look special and tell the story at a glance.
+
+Answer with ONLY a JSON array with one entry per regular in the request. Each entry:
+{"id":"mira_baker","name":"Mira's Bakery","kind":"shop","parts":[{"shape":"box","x":0,"y":0,"z":-1,"w":10,"h":5,"l":8,"color":"#f2e3c6"}]}
+- id: copy the regular's id exactly. name: at most 22 characters, letters, spaces and apostrophes.
+- kind is one of shop, cafe, school, park, market, office, clinic, library, house, depot.
+Coordinates, in metres:
+- x is left and right, z is front and back, and the road is in front at +z. Put doors, signs and awnings on the +z face.
+- x and z give the centre of a part. y gives its BASE, so a part of height h on top of a part with y 0 and height 5 has y 5.
+- w is the size along x, h the height, l the size along z.
+- shape is box, cone or cylinder. Cones and cylinders use w and l as their width.
+Rules the checker enforces:
+- 6 to 16 parts. Everything fits inside the footprint: abs(x) + w/2 and abs(z) + l/2 must each be at most 7.
+- Everything fits between y 0 and y 20. Every size is at least 0.2.
+- One main body has y exactly 0, with w and l of at least 3.
+- Nothing floats: every part touches a part that leads down to the ground.
+- color is lowercase #rrggbb, with at least 3 different colours. Cheerful and slightly soft.

@@ -1,0 +1,188 @@
+[
+  {
+    "id": "mira_baker",
+    "name": "Mira",
+    "role": "Baker with a big dream",
+    "jobs": [
+      {
+        "type": "delivery",
+        "title": "First flour order",
+        "text": "Haul this flour to {dropoff} for my new shop.",
+        "thanks": "The first sack is in; only the oven to go!"
+      },
+      {
+        "type": "passenger",
+        "title": "First helper ride",
+        "text": "Please take my helper to {dropoff} and cheer her.",
+        "thanks": "She loves the smell of early bread."
+      },
+      {
+        "type": "trial",
+        "title": "Sign test run",
+        "text": "Race my new sign to {dropoff} before the sun sets.",
+        "thanks": "The sign glows sweetly over the street."
+      },
+      {
+        "type": "passenger",
+        "title": "Opening day ride",
+        "text": "Take my ribbon guests to {dropoff} for the shop.",
+        "thanks": "The bakery opens its doors with a happy bell!"
+      }
+    ]
+  },
+  {
+    "id": "sam_bus",
+    "name": "Sam",
+    "role": "Retired bus driver grandpa",
+    "jobs": [
+      {
+        "type": "passenger",
+        "title": "Quiet route ride",
+        "text": "Take my grandchild to {dropoff} to learn mirrors.",
+        "thanks": "My grandchild notices every quiet corner."
+      },
+      {
+        "type": "delivery",
+        "title": "Practice parcel",
+        "text": "Deliver this parcel to {dropoff} with steady care.",
+        "thanks": "They nod like a seasoned bus driver."
+      },
+      {
+        "type": "trial",
+        "title": "Timed route run",
+        "text": "Guide the timed route to {dropoff} with care.",
+        "thanks": "They smile when the last stop comes near."
+      },
+      {
+        "type": "passenger",
+        "title": "Driving test ride",
+        "text": "Drive my grandchild to {dropoff} for their test.",
+        "thanks": "They wave from the driver seat with pride!"
+      }
+    ]
+  },
+  {
+    "id": "nina_band",
+    "name": "Nina",
+    "role": "Shy band singer",
+    "jobs": [
+      {
+        "type": "delivery",
+        "title": "Guitar case run",
+        "text": "Carry my shy guitar to {dropoff} with care.",
+        "thanks": "The guitar hums a brave little note."
+      },
+      {
+        "type": "passenger",
+        "title": "Bandmate ride",
+        "text": "Bring my drummer to {dropoff} and encourage her.",
+        "thanks": "She taps a gentle rhythm on the seat."
+      },
+      {
+        "type": "trial",
+        "title": "Poster test run",
+        "text": "Hustle our posters to {dropoff} before dark.",
+        "thanks": "The little hall has room for a shy band."
+      },
+      {
+        "type": "passenger",
+        "title": "First gig ride",
+        "text": "Drive our band to {dropoff} and keep us calm.",
+        "thanks": "They strum their first song under warm lights!"
+      }
+    ]
+  },
+  {
+    "id": "vet_tortoise",
+    "name": "Vera",
+    "role": "Vet tracking a tortoise",
+    "jobs": [
+      {
+        "type": "passenger",
+        "title": "Pond stop for vet",
+        "text": "Please take me to {dropoff} to check the pond.",
+        "thanks": "She nibbled clover there, then wandered off again."
+      },
+      {
+        "type": "delivery",
+        "title": "Lure for the tortoise",
+        "text": "Haul this cozy hideaway to {dropoff} for a lure.",
+        "thanks": "The hideaway drew her scent, but not her slow legs."
+      },
+      {
+        "type": "trial",
+        "title": "Dusk dash",
+        "text": "Race the cart to {dropoff} before dusk settles.",
+        "thanks": "We spotted shell dust near the old mill gate."
+      },
+      {
+        "type": "passenger",
+        "title": "Scanning the lanes",
+        "text": "Drive me to {dropoff} and keep an eye out.",
+        "thanks": "She is home at last, slow, stubborn, and loved."
+      }
+    ]
+  },
+  {
+    "id": "school_play_teacher",
+    "name": "Ada",
+    "role": "Teacher staging school play",
+    "jobs": [
+      {
+        "type": "delivery",
+        "title": "Trees for the set",
+        "text": "Carry the painted trees to {dropoff} for the set.",
+        "thanks": "The forest looked lovely, though the bear was shy."
+      },
+      {
+        "type": "passenger",
+        "title": "Line practice ride",
+        "text": "Take young Bram to {dropoff} for line practice.",
+        "thanks": "He knows every word, but still hides behind trees."
+      },
+      {
+        "type": "trial",
+        "title": "Costume curtain dash",
+        "text": "Rush the costumes to {dropoff} before curtain.",
+        "thanks": "The crowns fit, and the bear finally bowed."
+      },
+      {
+        "type": "passenger",
+        "title": "Bram to the finale",
+        "text": "Drive young Bram to {dropoff} for the finale.",
+        "thanks": "The play opened, and shy Bram took a standing bow."
+      }
+    ]
+  },
+  {
+    "id": "marrow_gardener",
+    "name": "Gwen",
+    "role": "Gardener with a prize marrow",
+    "jobs": [
+      {
+        "type": "delivery",
+        "title": "Compost for the vine",
+        "text": "Haul this rich compost to {dropoff} for the vine.",
+        "thanks": "The leaves grew huge, and so did my hopes."
+      },
+      {
+        "type": "passenger",
+        "title": "Field check ride",
+        "text": "Drive me to {dropoff} and watch the marrow.",
+        "thanks": "It stretched like a cloud and glowed green."
+      },
+      {
+        "type": "trial",
+        "title": "Fair cart dash",
+        "text": "Guide the cart to {dropoff} before the fair.",
+        "thanks": "The judges leaned close and smiled at such a giant."
+      },
+      {
+        "type": "delivery",
+        "title": "Ribbon home delivery",
+        "text": "Carry the blue ribbon to {dropoff} for my shelf.",
+        "thanks": "The marrow fed the whole town, ribbon and all."
+      }
+    ]
+  }
+]

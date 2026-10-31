@@ -1,0 +1,298 @@
+// Content generator: ask the local model, validate, repair with the validator's errors, merge only what passes.
+//   node --env-file=.env.llm tools/qwen-gen.ts places quests catalogue voice
+//   ... quests --replace a,b   redoes shipped ids on purpose; nothing is silently overwritten.
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { chat, parseJson } from './llm.ts';
+import { CAR_JOB_TYPES, carJobErrors, catalogueErrors, chatterErrors, eventErrors, findErrors, GOAL_KINDS, goalErrors, GUIDE_KEYS, GUIDE_WORD, guideErrors, landmarkErrors, PLACE_KINDS, placeErrors, PROP_KINDS, questTextErrors, radioErrors, RANK_COUNT, rankErrors, regularErrors, skyErrors, SKY_SLOTS, stationErrors, storyPlaceErrors, STYLES, TIER_PRICE, TWISTS, VOICE_KEYS, voiceErrors, type CatalogueKind, type JobCar, type Place, type Regular } from '../schemas/content.ts';
+import { buildingSetErrors, buildingStyleErrors, type BuildingStyle } from '../schemas/buildings.ts';
+import { carProfileErrors, profileVsCar, type CarBodyProfile } from '../schemas/carprofiles.ts';
+import { FLEET_RULES, fleetErrors } from '../schemas/fleet.ts';
+import { ROAD_MOMENTS, roadLineErrors, SERVICE_RULES, serviceErrors, type RoadLine } from '../schemas/services.ts';
+import { townCarErrors, townCarKindErrors, type TownCar } from '../schemas/towncars.ts';
+import { CARS, type CarId } from '../src/sim/economy.ts';
+import { landmarkFor } from '../src/sim/quests.ts';
+import { Town } from '../src/sim/town.ts';
+
+const carNotes = (existsSync('.qwen-runs/car-notes.json') ? JSON.parse(readFileSync('.qwen-runs/car-notes.json', 'utf8')) : {}) as Record<string, string>; // left by tools/carreview.ts
+const replaceFlag = process.argv.indexOf('--replace'), replaceIds = new Set(replaceFlag >= 0 ? process.argv[replaceFlag + 1].split(',') : []);
+
+// One recipe per slot, so the set is varied by construction and the model's job is to make each one good.
+const BUILDING_SLOTS = [
+  ['high_street_brick', 'oldtown', 'brick', 'tall', 'shopfront', 'parapet'],
+  ['market_row', 'oldtown', 'render', 'shuttered', 'shopfront', 'pitched'],
+  ['corner_arcade', 'oldtown', 'stone', 'arched', 'arcade', 'parapet'],
+  ['old_bank', 'oldtown', 'stone', 'tall', 'lobby', 'flat'],
+  ['glass_tower', 'business', 'cladding', 'curtain', 'lobby', 'setback'],
+  ['ribbon_office', 'business', 'panel', 'ribbon', 'arcade', 'plant'],
+  ['stone_chambers', 'business', 'stone', 'tall', 'lobby', 'setback'],
+  ['tower_flats', 'business', 'panel', 'punched', 'lobby', 'plant'],
+  ['painted_terrace', 'garden', 'render', 'punched', 'same', 'pitched'],
+  ['brick_semis', 'garden', 'brick', 'tall', 'same', 'pitched'],
+  ['pebble_cottages', 'garden', 'render', 'shuttered', 'same', 'pitched'],
+  ['garden_flats', 'garden', 'brick', 'ribbon', 'lobby', 'flat'],
+  ['tin_shed', 'works', 'cladding', 'ribbon', 'loading', 'pitched'],
+  ['old_mill', 'works', 'brick', 'arched', 'loading', 'parapet'],
+  ['concrete_depot', 'works', 'panel', 'punched', 'loading', 'flat'],
+  ['cold_store', 'works', 'cladding', 'ribbon', 'loading', 'plant'],] as const;
+
+type Entry = Record<string, unknown>;
+type Batch = { ask: string; fits?: (e: Entry, i: number) => string[] };
+type Kind = { file: string; prompt: string; errors: (e: never) => string[]; key: string; batches: () => Batch[]; checker?: string }; // checker: what a second reader judges, on top of the validator
+
+const slot = (kind: CatalogueKind, style: string, count: number, shapes: string[] = []) =>
+  Array.from({ length: count }, (_, i) => ({
+    kind, style, tier: STYLES[kind][style].tier, price: TIER_PRICE[STYLES[kind][style].tier], colors: STYLES[kind][style].colors, shape: shapes[i] as string | undefined,
+  }));
+
+const slotBatch = (slots: ReturnType<typeof slot>): Batch => ({
+  ask: `Slots:\n${slots.map((s, i) => `${i + 1}. kind ${s.kind}, style ${s.style}, tier ${s.tier}, price ${s.price}, ${s.colors} colour(s)${s.shape ? `, shape ${s.shape}` : ''}`).join('\n')}`,
+  fits: (e, i) => {
+    const s = slots[i];
+    if (!s) return ['more entries than slots'];
+    return e.kind === s.kind && e.style === s.style && s.shape === e.shape ? [] : [`entry ${i + 1} must match slot ${i + 1}: kind ${s.kind}, style ${s.style}${s.shape ? `, shape ${s.shape}` : ''}`];
+  },
+});
+
+// Each hiding place, with the place and direction its clue has to give.
+function findBatches(perBatch: number): Batch[] {
+  const town = new Town(), places = JSON.parse(readFileSync('src/data/places.json', 'utf8')) as Place[];
+  const slots = town.spots.slice(0, 40).map((s, spot) => ({ spot, prop: PROP_KINDS[spot % PROP_KINDS.length], ...landmarkFor(town, places, s) }));
+  const out: Batch[] = [];
+  for (let i = 0; i < slots.length; i += perBatch) {
+    const part = slots.slice(i, i + perBatch);
+    out.push({
+      ask: `Slots:\n${part.map((s, n) => `${n + 1}. spot ${s.spot}, prop ${s.prop}, ${s.way} of ${s.name}`).join('\n')}`,
+      fits: (e, n) => {
+        const s = part[n];
+        if (!s) return ['more entries than slots'];
+        const clue = String(e.clue);
+        return [
+          ...(e.spot === s.spot && e.prop === s.prop ? [] : [`entry ${n + 1} must use spot ${s.spot} and prop ${s.prop}`]),
+          ...(clue.includes(s.name) ? [] : [`entry ${n + 1}: clue must contain "${s.name}" exactly`]),
+          ...(new RegExp(`\\b${s.way}\\b`, 'i').test(clue) ? [] : [`entry ${n + 1}: clue must say "${s.way}"`]),
+        ];
+      },
+    });
+  }
+  return out;
+}
+
+const CAR_FACTS: Record<string, string> = {
+  supermini: 'The real car: 4.06 m long, 1.43 m tall, 1.765 m wide, wheelbase 2.54, front overhang 0.83, rear overhang 0.69. Give axles as [rear z, front z] and wheel 0.31. Sill 0.2, waist about 0.93, with a raked hatch back.\n',
+};
+
+/** The ids already in a file, so a run only spends the model's time on what's new or being replaced. */
+const existing = (file: string) => new Set(existsSync(file) ? (JSON.parse(readFileSync(file, 'utf8')) as { id: string }[]).map((e) => e.id) : []);
+
+const KINDS: Record<string, Kind> = {
+  places: {
+    file: 'src/data/places.json', prompt: 'prompts/places.txt', errors: placeErrors as Kind['errors'], key: 'id',
+    batches: () => [
+      { ask: 'Write 30 places: 6 shop, 4 cafe, 3 school, 3 park, 3 market, 3 office, 2 clinic, 2 library, 4 depot.' },
+      { ask: 'Write 24 places: 12 house (named homes or streets of homes), 4 shop, 4 cafe, 2 park, 2 market. Avoid the most obvious names.' },
+    ],
+  },
+  quests: {
+    file: 'src/data/quests.json', prompt: 'prompts/quests.txt', errors: questTextErrors as Kind['errors'], key: 'id',
+    batches: () => [{ ask: 'Write 14 job cards with type delivery.' }, { ask: 'Write 14 job cards with type passenger.' }, { ask: 'Write 12 job cards with type trial.' }],
+  },
+  twists: {
+    file: 'src/data/quests.json', prompt: 'prompts/twists.txt', errors: questTextErrors as Kind['errors'], key: 'id',
+    batches: () => TWISTS.map((twist) => ({ ask: `Write 5 job cards with twist ${twist}.`, fits: (e: Entry, i: number) => (e.twist === twist ? [] : [`entry ${i + 1} must have twist ${twist}`]) })),
+  },
+  carjobs: {
+    file: 'src/data/quests.json', prompt: 'prompts/carjobs.txt', errors: carJobErrors as Kind['errors'], key: 'id',
+    batches: () => (Object.keys(CAR_JOB_TYPES) as JobCar[]).map((car) => ({ ask: `Write 5 job cards with car ${car} and type ${CAR_JOB_TYPES[car]}.`, fits: (e: Entry, i: number) => (e.car === car ? [] : [`entry ${i + 1} must have car ${car}`]) })),
+  },
+  chatter: {
+    file: 'src/data/chatter.json', prompt: 'prompts/chatter.txt', errors: chatterErrors as Kind['errors'], key: 'id',
+    batches: () => [
+      { ask: 'Write 8 lines with moment board, 8 with moment bump and 6 with moment hard_stop.' },
+      { ask: 'Write 8 lines with moment smooth, 8 with moment nervous, 6 with moment arrive_happy and 6 with moment arrive_cross.' },
+    ],
+  },
+  guide: {
+    file: 'src/data/guide.json', prompt: 'prompts/guide.txt', errors: guideErrors as Kind['errors'], key: 'key',
+    batches: () => [{ ask: `Write one line for each key. Required words:\n${GUIDE_KEYS.map((k) => `${k}: ${GUIDE_WORD[k].source}`).join('\n')}` }],
+  },
+  goals: {
+    file: 'src/data/goals.json', prompt: 'prompts/goals.txt', errors: goalErrors as Kind['errors'], key: 'id',
+    batches: () => [{ ask: `Write 3 goals for each kind: ${Object.keys(GOAL_KINDS).join(', ')}. Vary the target within its range.` }],
+  },
+  ranks: {
+    file: 'src/data/ranks.json', prompt: 'prompts/ranks.txt', errors: rankErrors as Kind['errors'], key: 'level',
+    batches: () => [{ ask: `Write ${RANK_COUNT} ranks.` }],
+  },
+  stories: {
+    file: 'src/data/stories.json', prompt: 'prompts/stories.txt', errors: storyPlaceErrors as Kind['errors'], key: 'id',
+    batches: () => {
+      const regs = JSON.parse(readFileSync('src/data/regulars.json', 'utf8')) as Regular[];
+      return [regs.slice(0, 3), regs.slice(3)].map((part) => ({
+        ask: `Regulars:\n${part.map((r) => `id ${r.id}: ${r.name}, ${r.role}. The story ends: ${r.jobs.at(-1)!.thanks}`).join('\n')}`,
+        fits: (e: Entry, i: number) => (e.id === part[i]?.id ? [] : [`entry ${i + 1} must have id ${part[i]?.id}`]),
+      }));
+    },
+  },
+  events: {
+    file: 'src/data/events.json', prompt: 'prompts/events.txt', errors: eventErrors as Kind['errors'], key: 'id',
+    batches: () => [{ ask: 'Write 5 roadworks events, 4 parade events and 8 market events, with a different boost on each market.' }],
+  },
+  regulars: {
+    file: 'src/data/regulars.json', prompt: 'prompts/regulars.txt', errors: regularErrors as Kind['errors'], key: 'id',
+    batches: () => [
+      { ask: 'Write 3 regulars: a baker opening a shop, a retired bus driver teaching a grandchild to drive, and a shy band looking for its first gig.' },
+      { ask: 'Write 3 regulars: a vet tracking a runaway tortoise, a teacher staging the school play, and a gardener growing a prize marrow.' },
+    ],
+  },
+  landmarks: {
+    file: 'src/data/landmarks.json', prompt: 'prompts/landmarks.txt', errors: landmarkErrors as Kind['errors'], key: 'id',
+    batches: () => Array.from({ length: Math.ceil(PLACE_KINDS.length / 2) }, (_, i) => {
+      const pair = PLACE_KINDS.slice(i * 2, i * 2 + 2);
+      return { ask: `Write 4 buildings: 2 with kind ${pair[0]} and 2 with kind ${pair[1]}. The two of each kind must look clearly different from each other.`, fits: (e: Entry, n: number) => (e.kind === pair[n < 2 ? 0 : 1] ? [] : [`entry ${n + 1} must have kind ${pair[n < 2 ? 0 : 1]}`]) };
+    }),
+  },
+  finds: { file: 'src/data/finds.json', prompt: 'prompts/finds.txt', errors: findErrors as Kind['errors'], key: 'id', batches: () => findBatches(8) },
+  skies: {
+    file: 'src/data/skies.json', prompt: 'prompts/skies.txt', errors: skyErrors as Kind['errors'], key: 'id',
+    batches: () => [{ ask: `Slots:\n${SKY_SLOTS.map((s) => `id ${s.id}, at ${s.at}, night ${s.night.join('-')}, sunPower ${s.sunPower.join('-')}, ambient ${s.ambient.join('-')}, tint brightness ${s.tint.join('-')} (0 black, 1 white), sky and fog brightness within 0.25 of each other`).join('\n')}` }],
+  },
+  radio: {
+    file: 'src/data/radio.json', prompt: 'prompts/radio.txt', errors: radioErrors as Kind['errors'], key: 'id',
+    batches: () => [
+      { ask: 'Write 10 lines with topic chat and 8 with topic ad.' },
+      { ask: 'Write 5 lines each with topics weather, night, rain and job_done.' },
+      { ask: 'Write 5 lines with topic job_lost, 6 with topic fuel_low and 5 with topic streak.' },
+    ],
+  },
+  stations: {
+    file: 'src/data/stations.json', prompt: 'prompts/stations.txt', errors: stationErrors as Kind['errors'], key: 'id',
+    batches: () => [{ ask: 'Write 3 stations: a sunny easy-going one, a cool minor late-night one, and a bouncy upbeat one.' }],
+  },
+  catalogue: {
+    file: 'src/data/catalogue.json', prompt: 'prompts/catalogue.txt', errors: catalogueErrors as Kind['errors'], key: 'id',
+    batches: () => [
+      slotBatch([...slot('paint', 'solid', 8), ...slot('paint', 'metallic', 3), ...slot('pattern', 'two_tone', 4)]),
+      slotBatch([...slot('pattern', 'stripes', 2), ...slot('pattern', 'flames', 2), ...slot('pattern', 'checker', 2), ...slot('pattern', 'waves', 2), ...slot('decal', 'small', 4, ['star', 'heart', 'paw', 'number']), ...slot('decal', 'large', 4, ['bolt', 'crown', 'star', 'paw'])]),
+      slotBatch([...slot('body', 'spoiler', 2), ...slot('body', 'sport_kit', 2), ...slot('body', 'signature', 2), ...slot('accessory', 'cap', 3), ...slot('accessory', 'gloves', 2), ...slot('accessory', 'sunglasses', 3), ...slot('outfit', 'jacket', 4), ...slot('outfit', 'themed', 3), ...slot('outfit', 'costume', 3)]),
+    ],
+  },
+  carprofiles: {
+    file: 'src/data/carprofiles.json', prompt: 'prompts/carprofiles.txt', errors: carProfileErrors as Kind['errors'], key: 'id',
+    batches: () => [{
+      ask: `Slots:\n${CARS.map((c) => `id ${c.id}: ${c.size[0]} m long, ${c.size[1]} m tall, ${c.size[2]} m wide`).join('\n')}\nWrite one profile per slot, in slot order.`,
+      fits: (e, i) => {
+        const slot = CARS[i];
+        if (!slot) return ['more entries than slots'];
+        if (e.id !== slot.id) return [`entry ${i + 1} must have id ${slot.id}`];
+        return carProfileErrors(e).length ? [] : profileVsCar(e as CarBodyProfile, slot.size);
+      },
+    }],
+  },
+  buildingstyles: {
+    file: 'src/data/buildingstyles.json', prompt: 'prompts/buildingstyles.txt', errors: buildingStyleErrors as Kind['errors'], key: 'id',
+    checker: "These are building styles for a town, as JSON. Old Town is warm brick and stone, the Business Quarter pale with blue glass, the Garden Suburb soft and low, The Works strong industrial colours. Flag a style whose colours don't fit its district, whose colours would look muddy or clash, or that reads too like another style in the list.",
+    batches: () => {
+      const notes = existsSync('.qwen-runs/building-notes.txt') ? `\n\nReview notes from the last render, to act on:\n${readFileSync('.qwen-runs/building-notes.txt', 'utf8')}` : '';
+      const have = new Set(existsSync('src/data/buildingstyles.json') ? (JSON.parse(readFileSync('src/data/buildingstyles.json', 'utf8')) as Entry[]).map((e) => e.id) : []);
+      const open = BUILDING_SLOTS.filter((s) => replaceIds.has(s[0]) || !have.has(s[0])); // only the gaps, and any named for a redo
+      return [open.slice(0, 8), open.slice(8)].filter((part) => part.length).map((part) => ({
+        ask: `Slots:\n${part.map(([id, district, finish, form, ground, roof]) => `id ${id}: district ${district}, finish ${finish}, window form ${form}, ground ${ground}, roof ${roof}`).join('\n')}\nWrite one style per slot, in slot order.${notes}`,
+        fits: (e, i) => {
+          const s = part[i];
+          if (!s) return ['more entries than slots'];
+          const [id, district, finish, form, ground, roof] = s, q = e as unknown as BuildingStyle;
+          const others = (existsSync('src/data/buildingstyles.json') ? JSON.parse(readFileSync('src/data/buildingstyles.json', 'utf8')) as BuildingStyle[] : []).filter((o) => o.id !== q.id && !replaceIds.has(o.id));
+          const clash = Array.isArray(q.walls) ? buildingSetErrors([...others, q]).filter((m) => m.includes(`${q.id} `)) : [];
+          if (clash.length) return clash;
+          return q.id === id && q.district === district && q.finish === finish && q.window?.form === form && q.ground?.kind === ground && q.roof?.kind === roof ? [] : [`entry ${i + 1} must keep slot ${id}: district ${district}, finish ${finish}, window form ${form}, ground ${ground}, roof ${roof}`];
+        },
+      }));
+    },
+  },
+  towncars: {
+    file: 'src/data/towncars.json', prompt: 'prompts/towncars.txt', errors: townCarErrors as Kind['errors'], key: 'id',
+    checker: 'These are side outlines of everyday town cars, as JSON, in metres. Picture each one. Flag a car that would not read as its kind (saloon, hatchback, estate, MPV, city car, SUV, panel van, supermini, crossover, coupe, pickup, black cab), whose proportions look wrong for a real car, or that looks too like another in the list.',
+    batches: () => [['saloon', 'family saloon'], ['hatchback', 'family hatchback'], ['estate', 'estate car'], ['mpv', 'people carrier'], ['city_car', 'small city car'], ['suv', 'compact SUV'], ['panel_van', 'small panel van'], ['supermini', 'supermini like a Vauxhall Corsa'], ['crossover', 'crossover like a Nissan Qashqai'], ['coupe', 'two-door coupe'], ['pickup_truck', 'double-cab pickup with an open load bed'], ['black_cab', 'British black cab taxi']].filter(([id]) => replace.has(id) || !existing('src/data/towncars.json').has(id)).map(([id, kind]) => ({
+      ask: `Slots:\nid ${id}: a ${kind}\n${CAR_FACTS[id] ?? ''}Write one entry.${carNotes[id] ? `\n\nA reviewer looked at the last one rendered and said:\n${carNotes[id]}\nFix what's fair, within the limits.` : ''}`,
+      fits: (e: Entry) => (e.id !== id ? [`the entry must have id ${id}`] : townCarErrors(e).length ? [] : townCarKindErrors(id, e as unknown as TownCar)),
+    })),
+  },
+  fleet: {
+    file: 'src/data/fleet.json', prompt: 'prompts/fleet.txt', errors: fleetErrors as Kind['errors'], key: 'id',
+    checker: 'These are side elevations of British buses and emergency vehicles, as JSON, in metres. Picture each one. Flag a vehicle that would not read as what it is, whose windows fall outside its outline or overlap each other, whose wheels look wrong, or whose proportions look wrong for the real thing.',
+    batches: () => ([['bus_single', 'a single-deck town bus'], ['bus_double', 'a double-deck town bus'], ['police_car', 'a police estate car'], ['police_van', 'a police van'], ['ambulance', 'a box-bodied emergency ambulance'], ['fire_engine', 'a fire engine (rescue pump)']] as const).map(([id, kind]) => ({
+      ask: `Slots:\nid ${id}: ${kind}. It must be ${FLEET_RULES[id].length.join('-')} m long, half-width ${FLEET_RULES[id].half.join('-')} m, top ${FLEET_RULES[id].top.join('-')} m.\nWrite one entry.${carNotes[id] ? `\n\nA reviewer looked at the last one rendered and said:\n${carNotes[id]}\nFix what's fair, within the limits.` : ''}`,
+      fits: (e: Entry) => (e.id !== id ? [`the entry must have id ${id}`] : []),
+    })),
+  },
+  services: {
+    file: 'src/data/services.json', prompt: 'prompts/services.txt', errors: serviceErrors as Kind['errors'], key: 'id',
+    checker: 'These are low-poly British emergency service stations, as JSON parts in metres. Picture each one from the street. Flag a building that would not read as its service, whose parts float or leave gaps, whose doors would be hidden behind a part, or whose colours clash.',
+    batches: () => (['fire', 'ambulance', 'police'] as const).map((id) => ({
+      ask: `Slots:\nid ${id}: the town's ${id} station. Footprint ${SERVICE_RULES[id].hx * 2} m along the street by ${SERVICE_RULES[id].hz * 2} m deep, so x within ${SERVICE_RULES[id].hx} and z within ${SERVICE_RULES[id].hz} of the centre, and at most ${SERVICE_RULES[id].top} m tall. It has ${SERVICE_RULES[id].doors.join(' to ')} doors, each ${SERVICE_RULES[id].bay.join('-')} m wide.\nWrite one entry.`,
+      fits: (e: Entry) => (e.id !== id ? [`the entry must have id ${id}`] : []),
+    })),
+  },
+  roadlines: {
+    file: 'src/data/roadlines.json', prompt: 'prompts/roadlines.txt', errors: roadLineErrors as Kind['errors'], key: 'id',
+    checker: 'These are short on-screen lines for a friendly family driving game. Flag any that sound harsh, scary, mention injury, sound American, or do not fit their moment.',
+    batches: () => ROAD_MOMENTS.map((moment) => ({
+      ask: `Write 3 different lines for the moment ${moment}. Start each id with ${moment}_.`,
+      fits: (e: Entry) => ((e as unknown as RoadLine).moment !== moment ? [`every entry must have moment ${moment}`] : []),
+    })),
+  },
+  voice: {
+    file: 'src/data/voice.json', prompt: 'prompts/voice.txt', errors: voiceErrors as Kind['errors'], key: 'key',
+    batches: () => [{ ask: `Write one line for each key: ${VOICE_KEYS.join(', ')}.` }],
+  },
+};
+
+const args = process.argv.slice(2);
+const rep = args.indexOf('--replace');
+const replace = new Set(rep >= 0 ? args[rep + 1].split(',') : []);
+const kinds = args.filter((a, i) => !a.startsWith('--') && (rep < 0 || i !== rep + 1));
+mkdirSync('.qwen-runs', { recursive: true });
+
+for (const name of kinds) {
+  const k = KINDS[name];
+  const shipped = (existsSync(k.file) ? JSON.parse(readFileSync(k.file, 'utf8')) : []) as Entry[];
+  const out = new Map(shipped.map((e) => [String(e[k.key]), e]));
+  const log: unknown[] = [];
+  await Promise.all(k.batches().map(async (batch) => { // every batch at once: llm.ts holds them to the server's slots
+    let msgs: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
+      { role: 'system', content: readFileSync(k.prompt, 'utf8') },
+      { role: 'user', content: batch.ask },
+    ];
+    for (let tryNo = 1; tryNo <= 4; tryNo++) { // three to satisfy the validator, and one more for the checker's notes
+      const raw = await chat(msgs, { temperature: 0.8 });
+      const list = (parseJson(raw) ?? []) as Entry[];
+      const taken = new Set<string>(), errs: string[] = [], good: Entry[] = [];
+      list.forEach((e, i) => {
+        const id = String(e?.[k.key]);
+        const es = [...k.errors(e as never), ...(batch.fits?.(e, i) ?? [])];
+        if (taken.has(id) || (out.has(id) && !replace.has(id))) es.push(`${id}: id already used, choose another`);
+        if (es.length) errs.push(...es); else { good.push(e); taken.add(id); }
+      });
+      if (!list.length) errs.push('no JSON array in the reply');
+      // The worker's draft passed the validator: now the checker reads it cold, for what rules can't catch, in a slot of
+      // its own. Its notes get repaired like any error, but it can't block the merge on the last try: the validator
+      // decides what's valid, the checker only pushes for better.
+      if (!errs.length && k.checker && tryNo < 4) {
+        const notes = parseJson(await chat([{ role: 'system', content: `You check another writer's work and did not write it. ${k.checker} Answer with ONLY a JSON array of short, specific problems, naming the id of each entry; an empty array if the work is good. Do not invent problems: most drafts have few or none.` }, { role: 'user', content: JSON.stringify(good) }], { temperature: 0.1 }));
+        const found = (Array.isArray(notes) ? notes : []).filter((n): n is string => typeof n === 'string').slice(0, 6);
+        if (found.length) { errs.push(...found); console.log(`${name} checker: ${found.join(' | ')}`); }
+      }
+      log.push({ batch: batch.ask, tryNo, raw, errs });
+      console.log(`${name} try ${tryNo}: ${good.length}/${list.length} pass${errs.length ? `; ${errs.slice(0, 3).join(' | ')}` : ''}`);
+      if (!errs.length || tryNo === 4) {
+        for (const e of good) out.set(String(e[k.key]), e);
+        if (errs.length) console.error(`${name}: merged only the ${good.length} that passed`);
+        break;
+      }
+      msgs = [...msgs, { role: 'assistant', content: raw }, { role: 'user', content: `Fix these and answer the whole JSON array again:\n${errs.join('\n')}` }];
+    }
+    writeFileSync(k.file, `${JSON.stringify([...out.values()], null, 2)}\n`);
+  }));
+  writeFileSync(`.qwen-runs/${name}-${new Date().toISOString().replace(/[:.]/g, '-')}.json`, JSON.stringify(log, null, 2));
+  console.log(`${name}: ${out.size} entries in ${k.file}`);
+}

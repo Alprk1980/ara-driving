@@ -1,0 +1,37 @@
+[
+  {
+    "level": 0,
+    "name": "New in Town",
+    "blurb": "Nobody knows your car yet."
+  },
+  {
+    "level": 1,
+    "name": "Getting Noticed",
+    "blurb": "Folks peek when you pull away."
+  },
+  {
+    "level": 2,
+    "name": "Local Helper",
+    "blurb": "Shops save you a parking spot."
+  },
+  {
+    "level": 3,
+    "name": "Trusted Wheels",
+    "blurb": "Kids wave from porches now."
+  },
+  {
+    "level": 4,
+    "name": "Busy Bee Driver",
+    "blurb": "The diner slips you extra coffee."
+  },
+  {
+    "level": 5,
+    "name": "Beloved Odd Jobber",
+    "blurb": "Neighbors race to your driveway."
+  },
+  {
+    "level": 6,
+    "name": "Small Town Legend",
+    "blurb": "The whole town cheers your horn."
+  }
+]

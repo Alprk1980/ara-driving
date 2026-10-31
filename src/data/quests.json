@@ -1,0 +1,522 @@
+[
+  {
+    "id": "fresh_bread",
+    "type": "delivery",
+    "title": "Fresh Bread",
+    "text": "Rush this warm loaf to {dropoff}."
+  },
+  {
+    "id": "library_books",
+    "type": "delivery",
+    "title": "Library Books",
+    "text": "Deliver these quiet books to {dropoff}."
+  },
+  {
+    "id": "garden_soil",
+    "type": "delivery",
+    "title": "Garden Soil",
+    "text": "Carry this rich soil to {dropoff}."
+  },
+  {
+    "id": "coffee_beans",
+    "type": "delivery",
+    "title": "Coffee Beans",
+    "text": "Haul this sack of beans to {dropoff}."
+  },
+  {
+    "id": "party_cake",
+    "type": "delivery",
+    "title": "Party Cake",
+    "text": "Deliver this cake to {dropoff}."
+  },
+  {
+    "id": "flower_bouquet",
+    "type": "delivery",
+    "title": "Flower Bouquet",
+    "text": "Take these fresh blooms to {dropoff}."
+  },
+  {
+    "id": "pizza_box",
+    "type": "delivery",
+    "title": "Pizza Box",
+    "text": "Slide this hot pizza to {dropoff}."
+  },
+  {
+    "id": "grocery_bags",
+    "type": "delivery",
+    "title": "Grocery Bags",
+    "text": "Bring these bags to {dropoff}."
+  },
+  {
+    "id": "music_vinyl",
+    "type": "delivery",
+    "title": "Music Vinyl",
+    "text": "Deliver this record to {dropoff}."
+  },
+  {
+    "id": "toy_train",
+    "type": "delivery",
+    "title": "Toy Train",
+    "text": "Chug this little train to {dropoff}."
+  },
+  {
+    "id": "ice_cream",
+    "type": "delivery",
+    "title": "Ice Cream",
+    "text": "Rush this ice cream to {dropoff}."
+  },
+  {
+    "id": "paint_bucket",
+    "type": "delivery",
+    "title": "Paint Bucket",
+    "text": "Bring this bright paint to {dropoff}."
+  },
+  {
+    "id": "seed_kit",
+    "type": "delivery",
+    "title": "Seed Kit",
+    "text": "Deliver this seed kit to {dropoff}."
+  },
+  {
+    "id": "lanterns",
+    "type": "delivery",
+    "title": "Lanterns",
+    "text": "Deliver these lanterns to {dropoff}."
+  },
+  {
+    "id": "nurse_ride",
+    "type": "passenger",
+    "title": "Nurse Ride",
+    "text": "Take the tired nurse to {dropoff}."
+  },
+  {
+    "id": "baker_trip",
+    "type": "passenger",
+    "title": "Baker Trip",
+    "text": "Carry the floury baker to {dropoff}."
+  },
+  {
+    "id": "fish_run",
+    "type": "passenger",
+    "title": "Fish Run",
+    "text": "Drive the cheerful fishmonger to {dropoff}."
+  },
+  {
+    "id": "flower_ride",
+    "type": "passenger",
+    "title": "Flower Ride",
+    "text": "Give the smiling florist a lift to {dropoff}."
+  },
+  {
+    "id": "music_teacher",
+    "type": "passenger",
+    "title": "Music Teacher",
+    "text": "Drive the humming teacher to {dropoff}."
+  },
+  {
+    "id": "student_shuttle",
+    "type": "passenger",
+    "title": "Student Shuttle",
+    "text": "Wake the sleepy student for {dropoff}."
+  },
+  {
+    "id": "mail_carrier",
+    "type": "passenger",
+    "title": "Mail Carrier",
+    "text": "Carry the speedy mail carrier to {dropoff}."
+  },
+  {
+    "id": "tourist_ride",
+    "type": "passenger",
+    "title": "Tourist Ride",
+    "text": "Drive the curious tourist to {dropoff}."
+  },
+  {
+    "id": "yoga_guru",
+    "type": "passenger",
+    "title": "Yoga Guru",
+    "text": "Drive the calm yoga guru to {dropoff}."
+  },
+  {
+    "id": "dog_walker",
+    "type": "passenger",
+    "title": "Dog Walker",
+    "text": "Bring the muddy dog walker to {dropoff}."
+  },
+  {
+    "id": "cake_baker",
+    "type": "passenger",
+    "title": "Cake Baker",
+    "text": "Hurry the happy cake baker to {dropoff}."
+  },
+  {
+    "id": "guard_lift",
+    "type": "passenger",
+    "title": "Guard Lift",
+    "text": "Lift the sleepy guard to {dropoff}."
+  },
+  {
+    "id": "choir_singer",
+    "type": "passenger",
+    "title": "Choir Singer",
+    "text": "Drive the happy choir singer to {dropoff}."
+  },
+  {
+    "id": "farmer_ride",
+    "type": "passenger",
+    "title": "Farmer Ride",
+    "text": "Give the sleepy farmer a lift to {dropoff}."
+  },
+  {
+    "id": "gate_run",
+    "type": "trial",
+    "title": "Gate Run",
+    "text": "Dart through the gates and finish at {dropoff}!"
+  },
+  {
+    "id": "cone_slalom",
+    "type": "trial",
+    "title": "Cone Slalom",
+    "text": "Zoom through the cones and roll into {dropoff}."
+  },
+  {
+    "id": "clock_gates",
+    "type": "trial",
+    "title": "Clock Gates",
+    "text": "Race the clock through gates to {dropoff}."
+  },
+  {
+    "id": "flag_slalom",
+    "type": "trial",
+    "title": "Flag Slalom",
+    "text": "Slalom through flags and stop at {dropoff}."
+  },
+  {
+    "id": "timed_hoops",
+    "type": "trial",
+    "title": "Timed Hoops",
+    "text": "Tap the gates before rolling into {dropoff}."
+  },
+  {
+    "id": "smooth_cones",
+    "type": "trial",
+    "title": "Smooth Cones",
+    "text": "Keep smooth through cones and end at {dropoff}."
+  },
+  {
+    "id": "hoop_dash",
+    "type": "trial",
+    "title": "Hoop Dash",
+    "text": "Dash through hoops and coast to {dropoff}."
+  },
+  {
+    "id": "park_gates",
+    "type": "trial",
+    "title": "Park Gates",
+    "text": "Breeze through gates and park at {dropoff}."
+  },
+  {
+    "id": "speed_gates",
+    "type": "trial",
+    "title": "Speed Gates",
+    "text": "Pick up speed through gates, then reach {dropoff}."
+  },
+  {
+    "id": "gentle_cones",
+    "type": "trial",
+    "title": "Gentle Cones",
+    "text": "Stay gentle through cones and reach {dropoff}."
+  },
+  {
+    "id": "line_gates",
+    "type": "trial",
+    "title": "Line Gates",
+    "text": "Line up the gates and finish at {dropoff}!"
+  },
+  {
+    "id": "style_gates",
+    "type": "trial",
+    "title": "Style Gates",
+    "text": "Tap the gates with style and stop at {dropoff}."
+  },
+  {
+    "id": "careful_cake_delivery",
+    "type": "delivery",
+    "twist": "fragile",
+    "title": "Wedding cake",
+    "text": "Carry this fragile cake to {dropoff}."
+  },
+  {
+    "id": "glass_vase_run",
+    "type": "delivery",
+    "twist": "fragile",
+    "title": "Glass vase run",
+    "text": "Gently take these glass vases to {dropoff}."
+  },
+  {
+    "id": "egg_carton_trip",
+    "type": "delivery",
+    "twist": "fragile",
+    "title": "Egg carton trip",
+    "text": "Keep these eggs safe on the way to {dropoff}."
+  },
+  {
+    "id": "china_set_errand",
+    "type": "delivery",
+    "twist": "fragile",
+    "title": "China set errand",
+    "text": "Deliver this china set to {dropoff} carefully."
+  },
+  {
+    "id": "wobbly_jelly_run",
+    "type": "delivery",
+    "twist": "fragile",
+    "title": "Wobbly jelly run",
+    "text": "Drive slowly, wobbly jelly to {dropoff}!"
+  },
+  {
+    "id": "ice_cream_run",
+    "type": "delivery",
+    "twist": "melting",
+    "title": "Ice cream run",
+    "text": "Drive fast to {dropoff} before the ice cream melts."
+  },
+  {
+    "id": "frozen_fish_run",
+    "type": "delivery",
+    "twist": "melting",
+    "title": "Frozen fish",
+    "text": "Steer the frozen fish quickly to {dropoff}."
+  },
+  {
+    "id": "snow_cone_run",
+    "type": "delivery",
+    "twist": "melting",
+    "title": "Snow cones",
+    "text": "Drive straight to {dropoff} before snow cones thaw."
+  },
+  {
+    "id": "cold_cake_run",
+    "type": "delivery",
+    "twist": "melting",
+    "title": "Cold cakes",
+    "text": "Drive gently to {dropoff} with cold cakes."
+  },
+  {
+    "id": "ice_cube_run",
+    "type": "delivery",
+    "twist": "melting",
+    "title": "Ice cubes",
+    "text": "Drive fast to {dropoff} before the ice cubes melt."
+  },
+  {
+    "id": "quiet_ride_home",
+    "type": "passenger",
+    "twist": "sleeping",
+    "title": "Nap Home",
+    "text": "Take your sleeping friend to {dropoff}."
+  },
+  {
+    "id": "snooze_to_station",
+    "type": "passenger",
+    "twist": "sleeping",
+    "title": "Snooze Shuttle",
+    "text": "Dozing passenger wants a ride to {dropoff}."
+  },
+  {
+    "id": "sleepy_school_run",
+    "type": "passenger",
+    "twist": "sleeping",
+    "title": "Sleepy School Run",
+    "text": "Carry a napping kid gently to {dropoff}."
+  },
+  {
+    "id": "snooze_ride",
+    "type": "passenger",
+    "twist": "sleeping",
+    "title": "Snooze Ride",
+    "text": "Your sleepy rider needs the door at {dropoff}."
+  },
+  {
+    "id": "gentle_snooze_trip",
+    "type": "passenger",
+    "twist": "sleeping",
+    "title": "Gentle Snooze Trip",
+    "text": "Keep them asleep all the way to {dropoff}."
+  },
+  {
+    "id": "late_bus_rush",
+    "type": "passenger",
+    "twist": "late",
+    "title": "Catch the bus",
+    "text": "Help this quick bus rider reach {dropoff}."
+  },
+  {
+    "id": "late_morning_bus",
+    "type": "passenger",
+    "twist": "late",
+    "title": "Morning bus dash",
+    "text": "They are late, so hurry to {dropoff}."
+  },
+  {
+    "id": "train_platform_dash",
+    "type": "passenger",
+    "twist": "late",
+    "title": "Train platform dash",
+    "text": "Quick, they need to catch the train at {dropoff}."
+  },
+  {
+    "id": "airport_hurry",
+    "type": "passenger",
+    "twist": "late",
+    "title": "Airport dash",
+    "text": "Hurry, their flight is soon at {dropoff}."
+  },
+  {
+    "id": "late_student_ride",
+    "type": "passenger",
+    "twist": "late",
+    "title": "Late student ride",
+    "text": "This student is late to {dropoff}!"
+  },
+  {
+    "id": "piano_move_delivery",
+    "type": "delivery",
+    "car": "pickup",
+    "title": "Piano Move",
+    "text": "Haul this piano to {dropoff}."
+  },
+  {
+    "id": "sofa_delivery",
+    "type": "delivery",
+    "car": "pickup",
+    "title": "Sofa Run",
+    "text": "Take this sofa to {dropoff}."
+  },
+  {
+    "id": "hay_bale_haul",
+    "type": "delivery",
+    "car": "pickup",
+    "title": "Hay Bale Haul",
+    "text": "Carry these hay bales to {dropoff}."
+  },
+  {
+    "id": "boat_delivery",
+    "type": "delivery",
+    "car": "pickup",
+    "title": "Boat Delivery",
+    "text": "Haul this little boat to {dropoff}."
+  },
+  {
+    "id": "garden_shed_move",
+    "type": "delivery",
+    "car": "pickup",
+    "title": "Garden Shed Move",
+    "text": "Place this garden shed at {dropoff}."
+  },
+  {
+    "id": "airport_run",
+    "type": "passenger",
+    "car": "taxi",
+    "title": "Airport Run",
+    "text": "Take this nervous flyer to {dropoff}."
+  },
+  {
+    "id": "wedding_guest",
+    "type": "passenger",
+    "car": "taxi",
+    "title": "Wedding Guest",
+    "text": "Deliver this dapper guest to {dropoff}."
+  },
+  {
+    "id": "vip_arrival",
+    "type": "passenger",
+    "car": "taxi",
+    "title": "VIP Arrival",
+    "text": "Escort the big name to {dropoff}."
+  },
+  {
+    "id": "hotel_hop",
+    "type": "passenger",
+    "car": "taxi",
+    "title": "Hotel Hop",
+    "text": "Whisk this tired tourist to {dropoff}."
+  },
+  {
+    "id": "late_night_fare",
+    "type": "passenger",
+    "car": "taxi",
+    "title": "Late Night Fare",
+    "text": "Drive this dreamer to {dropoff}."
+  },
+  {
+    "id": "stylish_sprint",
+    "type": "trial",
+    "car": "coupe",
+    "title": "Stylish Sprint",
+    "text": "Race the stylish sprint to {dropoff}."
+  },
+  {
+    "id": "owners_meet",
+    "type": "trial",
+    "car": "coupe",
+    "title": "Owners Meet",
+    "text": "Meet the owners at {dropoff}."
+  },
+  {
+    "id": "neon_loop",
+    "type": "trial",
+    "car": "coupe",
+    "title": "Neon Loop",
+    "text": "Glide the neon loop to {dropoff}."
+  },
+  {
+    "id": "twilight_run",
+    "type": "trial",
+    "car": "coupe",
+    "title": "Twilight Run",
+    "text": "Chase twilight to {dropoff}!"
+  },
+  {
+    "id": "coupe_show",
+    "type": "trial",
+    "car": "coupe",
+    "title": "Coupe Show",
+    "text": "Show off the coupe at {dropoff}."
+  },
+  {
+    "id": "supercar_glamour_run",
+    "type": "trial",
+    "car": "supercar",
+    "title": "Glamour Run",
+    "text": "Show off the supercar on a dash to {dropoff}."
+  },
+  {
+    "id": "supercar_sunset_sprint",
+    "type": "trial",
+    "car": "supercar",
+    "title": "Sunset Sprint",
+    "text": "Chase the sunset with style to {dropoff}."
+  },
+  {
+    "id": "supercar_neon_cruise",
+    "type": "trial",
+    "car": "supercar",
+    "title": "Neon Cruise",
+    "text": "Let the neon city guide your cruise to {dropoff}."
+  },
+  {
+    "id": "supercar_grand_boulevard",
+    "type": "trial",
+    "car": "supercar",
+    "title": "Grand Boulevard",
+    "text": "Take the grand boulevard to {dropoff}."
+  },
+  {
+    "id": "supercar_velvet_run",
+    "type": "trial",
+    "car": "supercar",
+    "title": "Velvet Run",
+    "text": "Make a smooth velvet run to {dropoff}."
+  }
+]

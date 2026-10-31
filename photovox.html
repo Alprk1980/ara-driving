@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Photo to Voxels</title>
+<style>
+  :root { --bg: #12151b; --panel: #1c212b; --line: #2f3644; --text: #e8ebf1; --dim: #9aa3b2; --accent: #5be0c8; }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; background: var(--bg); color: var(--text); font: 15px system-ui, sans-serif; }
+  #app { display: grid; grid-template-columns: 320px 1fr; height: 100%; }
+  #side { padding: 16px; background: var(--panel); overflow: auto; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  p { color: var(--dim); margin: 0 0 14px; line-height: 1.4; font-size: 13px; }
+  .drops { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+  .drop { position: relative; aspect-ratio: 4/3; border: 1px dashed var(--line); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--dim); background-size: contain; background-repeat: no-repeat; background-position: center; cursor: pointer; }
+  .drop input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .drop.on span { background: #000a; padding: 1px 6px; border-radius: 4px; color: #fff; }
+  label { display: block; color: var(--dim); font-size: 13px; margin: 10px 0 4px; }
+  input[type=range] { width: 100%; }
+  button { width: 100%; margin-top: 10px; padding: 10px; border: 0; border-radius: 8px; background: var(--accent); color: #06221d; font-weight: 700; cursor: pointer; }
+  button.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
+  button:disabled { opacity: 0.5; cursor: default; }
+  #stats { margin-top: 12px; font-size: 13px; color: var(--dim); white-space: pre-line; }
+  #view { width: 100%; height: 100%; display: block; }
+  @media (max-width: 760px) { #app { grid-template-columns: 1fr; grid-template-rows: auto 60vh; } }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="side">
+    <h1>Photo to Voxels</h1>
+    <p>Add at least two straight-on photos on a plain background. Side photos should have the front to the left.</p>
+    <div class="drops" id="drops"></div>
+    <label for="long">Detail: <b id="longText">72</b> voxels long</label>
+    <input type="range" id="long" min="16" max="128" step="4" value="72" />
+    <label for="smooth">Smoothing: <b id="smoothText">8</b></label>
+    <input type="range" id="smooth" min="0" max="20" step="1" value="8" />
+    <label for="tol">Background cut-out: <b id="tolText">40</b></label>
+    <input type="range" id="tol" min="10" max="120" step="5" value="40" />
+    <button id="build" disabled>Build model</button>
+    <button id="save" class="ghost" disabled>Save model</button>
+    <label for="budget">Game version: triangle budget</label>
+    <input type="number" id="budget" min="100" max="20000" step="100" value="3000" style="width: 100%" />
+    <button id="game" class="ghost" disabled>Make game version</button>
+    <div id="stats"></div>
+  </div>
+  <canvas id="view"></canvas>
+</div>
+<script type="module" src="/src/photovox/page.ts"></script>
+</body>
+</html>

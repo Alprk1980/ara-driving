@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+<meta name="theme-color" content="#3d6fd1" />
+<title>ARA Driving</title>
+<link rel="icon" href="icon.svg" />
+<style>
+  :root { --ink: #16202e; --panel: rgba(255,255,255,.93); --accent: #3d6fd1; --good: #1aa574; --warn: #f09a15; --bad: #e23d3d; --pad: max(10px, env(safe-area-inset-left)); }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; touch-action: none; user-select: none; -webkit-user-select: none; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #a8dcf5; color: var(--ink); font: 600 14px/1.25 ui-rounded, 'Segoe UI', system-ui, sans-serif; }
+  canvas#scene { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+  button { font: inherit; color: inherit; border: 0; background: var(--panel); border-radius: 12px; padding: 8px 12px; cursor: pointer; }
+  button:disabled { opacity: .45; cursor: default; }
+  button.primary { background: var(--accent); color: #fff; }
+  #hud { position: fixed; inset: 0; pointer-events: none; }
+  #hud button, #hud .touch { pointer-events: auto; }
+  .bar { position: absolute; top: max(8px, env(safe-area-inset-top)); left: var(--pad); right: var(--pad); display: flex; gap: 8px; align-items: flex-start; justify-content: space-between; }
+  .side { display: flex; gap: 6px; align-items: flex-start; }
+  body[data-hand="left"] .bar { flex-direction: row-reverse; }
+  body[data-hand="left"] .side { flex-direction: row-reverse; }
+  .chip { background: var(--panel); border-radius: 12px; padding: 7px 11px; white-space: nowrap; }
+  #mini { width: 112px; height: 112px; border-radius: 50%; border: 3px solid #fff; background: #b9dfae; display: block; }
+  .gauges { display: flex; flex-direction: column; gap: 5px; min-width: 118px; }
+  #fuelbar { height: 8px; border-radius: 4px; background: #d9dee8; overflow: hidden; margin-top: 4px; }
+  #fuelfill { height: 100%; width: 100%; background: var(--good); }
+  #fuelchip.low #fuelfill { background: var(--warn); }
+  #fuelchip.crit #fuelfill { background: var(--bad); }
+  #fuelchip.crit { animation: pulse .7s infinite alternate; }
+  @keyframes pulse { to { background: #ffd7d7; } }
+  #dmgchip { display: flex; align-items: center; gap: 8px; padding: 5px 11px; }
+  #dmgcar { width: 21px; height: 32px; display: block; }
+  #dmgcar .shell { fill: none; stroke: var(--ink); stroke-width: 2.5; }
+  #dmgcar .dent { fill: var(--bad); }
+  #dmgtext { font-size: 13px; }
+  #centre { position: absolute; top: max(8px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 6px; max-width: min(46vw, 420px); }
+  #banner { background: var(--ink); color: #fff; border-radius: 12px; padding: 8px 14px; font-size: 17px; text-align: center; display: none; }
+  #banner.urgent { background: var(--bad); }
+  #compass { width: 40px; height: 40px; display: none; }
+  #tracker { background: var(--panel); border-radius: 12px; padding: 6px 12px; text-align: center; display: none; }
+  #tracker small { display: block; font-weight: 500; opacity: .75; }
+  #ticker { color: #fff; background: rgba(16,24,40,.55); border-radius: 10px; padding: 4px 10px; font-size: 12px; font-weight: 500; text-align: center; display: none; }
+  #streak { background: #ffd23e; }
+  #roadchip { border: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+  #roadchip.rising { box-shadow: inset 3px 0 0 #1f9a54; }
+  #roadchip.falling { box-shadow: inset 3px 0 0 #d8352c; }
+  .roadrow.good span:first-child { color: #1f7a45; }
+  .roadrow.bad span:first-child { color: #c02a22; }
+  #coach { background: var(--accent); color: #fff; border-radius: 12px; padding: 6px 12px; font-size: 14px; font-weight: 600; text-align: center; display: none; }
+  .rankbar { height: 8px; border-radius: 4px; background: #e6eaf2; overflow: hidden; margin: 2px 0 8px; }
+  .rankbar i { display: block; height: 100%; background: var(--good); }
+  .goal { display: flex; justify-content: space-between; gap: 10px; padding: 5px 0; border-bottom: 1px solid #e6eaf2; font-weight: 500; }
+  .goal.done { color: var(--good); }
+  .offer .tag { color: var(--accent); font-weight: 700; }
+  .clues { margin: 0; padding: 0 0 0 16px; font-weight: 500; font-size: 13px; max-width: 220px; }
+  #actions { z-index: 2; position: absolute; left: 50%; transform: translateX(-50%); bottom: max(14px, env(safe-area-inset-bottom)); display: flex; gap: 8px; }
+  #toast { position: absolute; bottom: 70px; left: 50%; transform: translateX(-50%); background: var(--panel); border-radius: 14px; padding: 10px 18px; font-size: 18px; text-align: center; display: none; }
+  .touch { position: absolute; }
+  #steerzone { left: 0; bottom: 0; width: 50%; height: 62%; }
+  body[data-hand="left"] #steerzone { left: 50%; }
+  #stick { position: absolute; left: 108px; bottom: 44px; width: 120px; height: 120px; margin: 0 -60px; border-radius: 50%; background: rgba(255,255,255,.28); border: 2px solid rgba(255,255,255,.75); opacity: .55; }
+  #stick[style*="top"] { bottom: auto; margin: -60px; }
+  body[data-hand="left"] #stick:not([style*="top"]) { left: auto; right: 108px; margin: 0 -60px; }
+  #knob { position: absolute; left: 34px; top: 34px; width: 52px; height: 52px; border-radius: 50%; background: rgba(255,255,255,.9); }
+  #dpad { left: max(16px, env(safe-area-inset-left)); bottom: max(22px, env(safe-area-inset-bottom)); display: flex; gap: 12px; }
+  #pedals { right: max(16px, env(safe-area-inset-right)); bottom: max(22px, env(safe-area-inset-bottom)); display: flex; gap: 12px; align-items: flex-end; }
+  body[data-hand="left"] #dpad { left: auto; right: max(16px, env(safe-area-inset-right)); }
+  body[data-hand="left"] #pedals { right: auto; left: max(16px, env(safe-area-inset-left)); flex-direction: row-reverse; }
+  .pad { width: 74px; height: 74px; border-radius: 50%; background: rgba(255,255,255,.72); font-size: 15px; }
+  .pad.go { width: 86px; height: 86px; background: rgba(26,165,116,.9); color: #fff; }
+  .pad.stop { background: rgba(226,61,61,.88); color: #fff; }
+  .pad:active, .pad.on { filter: brightness(.82); }
+  body.no-touch #dpad, body.no-touch #pedals, body.no-touch #steerzone { display: none; }
+  #tiltcentre { position: absolute; left: var(--pad); bottom: max(22px, env(safe-area-inset-bottom)); }
+  body[data-hand="left"] #tiltcentre { left: auto; right: var(--pad); }
+  body.in-garage .touch, body.in-garage #actions, body.in-garage #tiltcentre { display: none !important; }
+  .sheet { position: fixed; inset: 0; background: rgba(16,24,40,.42); display: none; align-items: center; justify-content: center; padding: 12px; z-index: 5; }
+  .sheet.open { display: flex; }
+  .card { background: #fff; border-radius: 18px; padding: 14px; width: min(760px, 100%); max-height: 100%; overflow: auto; touch-action: pan-y; }
+  .card * { touch-action: pan-y; }
+  .card h2 { margin: 0 0 8px; font-size: 20px; }
+  .card p { margin: 4px 0 10px; font-weight: 500; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .row.end { justify-content: flex-end; margin-top: 10px; position: sticky; bottom: -14px; background: #fff; padding: 6px 0 10px; }
+  .offer { display: flex; gap: 10px; align-items: center; justify-content: space-between; border: 2px solid #e6eaf2; border-radius: 12px; padding: 9px 11px; margin-bottom: 7px; }
+  .offer b { display: block; }
+  .offer span { font-weight: 500; display: block; }
+  .offer em { font-style: normal; color: var(--bad); }
+  .ghost { background: #eef1f7; }
+  .ghost.on { background: var(--accent); color: #fff; }
+  #worldwrap { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  #world { width: min(68vh, 72vw); height: min(68vh, 72vw); border-radius: 12px; }
+  #mapside { display: flex; flex-direction: column; gap: 6px; flex: 0 1 210px; min-width: 170px; max-height: min(68vh, 72vw); overflow-y: auto; touch-action: pan-y; }
+  #mapside h2, #mapside p { margin: 2px 0; }
+  #mapside button { padding: 7px 10px; flex: none; }
+  @media (max-width: 640px) { #mapside { max-height: none; flex-basis: 100%; } }
+  #garage.sheet { background: none; justify-content: flex-end; padding: 0; pointer-events: none; }
+  body[data-hand="left"] #garage.sheet { justify-content: flex-start; }
+  #garage .card { pointer-events: auto; width: min(430px, 62vw); height: 100%; border-radius: 0; }
+  .tabs { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 8px; }
+  .items { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 7px; }
+  .item { border: 2px solid #e6eaf2; border-radius: 12px; padding: 7px 9px; text-align: left; background: #fff; }
+  .item.on { border-color: var(--accent); }
+  .item i { display: inline-block; width: 15px; height: 15px; border-radius: 4px; margin-right: 3px; vertical-align: -2px; }
+  .item small { display: block; font-weight: 500; opacity: .72; }
+  /* A temporary performance readout. */
+  #perf { position: fixed; z-index: 15; top: max(54px, calc(env(safe-area-inset-top) + 46px)); right: var(--pad); padding: 5px 8px; border-radius: 8px; font: 600 11px/1.35 ui-monospace, Consolas, monospace; white-space: pre; text-align: right; color: #fff; background: #0a121bb8; pointer-events: none; }
+  #perf:empty { display: none; }
+  #perf[data-band="good"] { color: #7ef0b0; }
+  #perf[data-band="warn"] { color: #ffd166; }
+  #perf[data-band="bad"] { color: #ff8a7a; }
+
+  /* The loader, and the title over the live tour of the town. */
+  :root { --glow: #5cf2d0; --glow2: #6aa8ff; --night: #081018; }
+  #loader { position: fixed; inset: 0; z-index: 20; display: grid; place-content: center; justify-items: center; gap: 22px; color: #eaf3ff; background: radial-gradient(120% 90% at 50% 40%, #16324a 0%, #0b1826 52%, var(--night) 100%); transition: opacity .7s ease, visibility .7s; }
+  #loader.done { opacity: 0; visibility: hidden; pointer-events: none; }
+  .wordmark { margin: 0; font: 800 clamp(44px, 9vw, 104px)/.92 'Segoe UI Variable Display', 'SF Pro Display', ui-rounded, 'Segoe UI', system-ui, sans-serif; letter-spacing: -.035em; color: #fff; }
+  .wordmark b { font-weight: 800; background: linear-gradient(100deg, var(--glow), var(--glow2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  #ld-bar { width: min(340px, 72vw); height: 4px; border-radius: 4px; background: #ffffff1f; overflow: hidden; }
+  #ld-bar i { display: block; height: 100%; width: 4%; border-radius: 4px; background: linear-gradient(90deg, var(--glow), var(--glow2)); box-shadow: 0 0 16px var(--glow); transition: width .35s cubic-bezier(.2,.8,.2,1); }
+  #ld-text { font-size: 13px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: #a9bdd2; min-height: 18px; }
+  #loader .road { position: relative; width: min(340px, 72vw); height: 2px; overflow: hidden; opacity: .5; }
+  #loader .road::after { content: ''; position: absolute; inset: 0; width: 200%; background: repeating-linear-gradient(90deg, #fff 0 22px, transparent 22px 44px); animation: dash .7s linear infinite; }
+  @keyframes dash { to { transform: translateX(-44px); } }
+
+  #title { position: fixed; inset: 0; z-index: 9; color: #fff; display: grid; grid-template-rows: auto 1fr auto; padding: max(18px, env(safe-area-inset-top)) max(26px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(26px, env(safe-area-inset-left)); background: linear-gradient(95deg, #081018e8 0%, #08101899 38%, #08101810 68%), linear-gradient(0deg, #08101899 0%, #08101800 34%); }
+  #veil { position: absolute; inset: 0; background: var(--night); opacity: 0; pointer-events: none; transition: opacity .5s ease; }
+  #veil.on { opacity: 1; transition: opacity .35s ease; }
+  #title > * { position: relative; }
+  .t-top { display: flex; justify-content: space-between; align-items: center; }
+  .t-tag { font-size: 12px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: #cfe0f0; }
+  #labs-link { font-size: 13px; font-weight: 600; color: #fff; text-decoration: none; padding: 8px 15px; border-radius: 999px; border: 1px solid #ffffff38; background: #ffffff14; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); transition: background .2s; }
+  #labs-link:hover { background: #ffffff2e; }
+  .t-main { align-self: center; max-width: 620px; display: grid; gap: 16px; justify-items: start; animation: rise .9s cubic-bezier(.2,.8,.2,1) both; }
+  @keyframes rise { from { opacity: 0; transform: translateY(18px); } }
+  .t-sub { margin: 0; max-width: 440px; font-size: clamp(15px, 2.1vw, 18px); font-weight: 400; line-height: 1.45; color: #dbe6f2; }
+  #start { position: relative; margin-top: 6px; padding: 15px 34px; border-radius: 14px; font-size: 18px; font-weight: 700; color: #06201b; background: linear-gradient(100deg, var(--glow), #7fd8ff); box-shadow: 0 10px 34px #5cf2d055; transition: transform .16s ease, box-shadow .16s ease; }
+  #start:hover { transform: translateY(-2px); box-shadow: 0 14px 44px #5cf2d088; }
+  #start:active { transform: translateY(0) scale(.98); }
+  #t-stats { display: flex; flex-wrap: wrap; gap: 8px; }
+  #t-stats span { padding: 6px 12px; border-radius: 999px; font-size: 12.5px; font-weight: 600; background: #ffffff17; border: 1px solid #ffffff24; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+  #t-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+  #t-controls small { margin-right: 4px; font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: #cfe0f0; }
+  #t-controls button { padding: 7px 13px; border-radius: 999px; font-size: 13px; font-weight: 600; color: #fff; border: 1px solid #ffffff30; background: #ffffff14; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); transition: background .15s, color .15s; }
+  #t-controls button:hover { background: #ffffff2e; }
+  #t-controls button.on { color: #06201b; border-color: transparent; background: var(--glow); }
+  .t-foot { display: flex; justify-content: space-between; align-items: flex-end; gap: 18px; }
+  #t-place { max-width: 440px; display: grid; gap: 2px; transition: opacity .35s ease; }
+  #t-place.off { opacity: 0; }
+  #t-place small { font-size: 11px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--glow); }
+  #t-place b { font-size: 20px; font-weight: 700; }
+  #t-place span { font-size: 13px; font-weight: 400; line-height: 1.4; color: #cfdbe8; }
+  #t-dots { display: flex; gap: 6px; }
+  #t-dots i { width: 26px; height: 3px; border-radius: 3px; background: #ffffff38; transition: background .3s; }
+  #t-dots i.on { background: var(--glow); }
+  @media (max-height: 460px) { .t-main { gap: 9px; } .wordmark { font-size: 40px; } .t-sub { display: none; } #t-place span { display: none; } }
+  @media (prefers-reduced-motion: reduce) { .t-main, #loader .road::after { animation: none; } }
+</style>
+</head>
+<body>
+<canvas id="scene"></canvas>
+<div id="hud" hidden>
+  <div class="bar">
+    <div class="side">
+      <canvas id="mini" width="224" height="224"></canvas>
+      <div class="gauges">
+        <div class="chip" id="speed">0 km/h</div>
+        <div class="chip" id="fuelchip"><span id="fueltext">Fuel</span><div id="fuelbar"><div id="fuelfill"></div></div></div>
+        <div class="chip" id="dmgchip" title="Bodywork: a side fills in red as it takes damage"><svg id="dmgcar" viewBox="0 0 34 52" aria-hidden="true"><rect class="shell" x="6" y="2" width="22" height="48" rx="7"/><rect class="dent" id="dent-front" x="7.5" y="3.5" width="19" height="7" rx="3"/><rect class="dent" id="dent-back" x="7.5" y="41.5" width="19" height="7" rx="3"/><rect class="dent" id="dent-left" x="7.5" y="13" width="5" height="26" rx="2"/><rect class="dent" id="dent-right" x="21.5" y="13" width="5" height="26" rx="2"/></svg><span id="dmgtext">Undamaged</span></div>
+        <div class="chip" id="points">0 Points</div>
+        <button class="chip" id="roadchip" aria-label="Road sense record">Road sense</button>
+        <div class="chip" id="streak" hidden></div>
+      </div>
+    </div>
+    <div class="side">
+      <button id="btn-jobs">Jobs</button>
+      <button id="btn-map">Map</button>
+      <button id="btn-cam">Camera</button>
+      <button id="btn-controls">Controls</button>
+      <button id="btn-pause">Menu</button>
+    </div>
+  </div>
+  <div id="centre">
+    <div id="banner"></div>
+    <svg id="compass" viewBox="0 0 40 40"><path d="M20 3 L33 35 L20 28 L7 35 Z" fill="#17b897" stroke="#fff" stroke-width="2"/></svg>
+    <div id="tracker"></div>
+    <div id="ticker"></div>
+    <div id="coach"></div>
+  </div>
+  <div id="toast"></div>
+  <div id="actions"></div>
+  <div class="touch" id="steerzone"><div id="stick"><div id="knob"></div></div></div>
+  <button id="tiltcentre" style="display:none">Re-centre</button>
+  <div class="touch" id="dpad"><button class="pad" id="pad-left" aria-label="Steer left">Left</button><button class="pad" id="pad-right" aria-label="Steer right">Right</button></div>
+  <div class="touch" id="pedals"><button class="pad stop" id="pad-brake">Brake</button><button class="pad go" id="pad-go">Go</button></div>
+</div>
+<div class="sheet" id="jobs"><div class="card"></div></div>
+<div class="sheet" id="mapsheet"><div class="card"></div></div>
+<div class="sheet" id="pause"><div class="card"></div></div>
+<div class="sheet" id="fuelshop"><div class="card"></div></div>
+<div class="sheet" id="dialog"><div class="card"></div></div>
+<div class="sheet" id="garage"><div class="card"></div></div>
+<div class="sheet" id="picker"><div class="card"></div></div>
+<div id="title">
+  <div id="veil"></div>
+  <header class="t-top"><span class="t-tag">A town to drive</span><a id="labs-link" href="labs.html">Labs</a></header>
+  <section class="t-main">
+    <h1 class="wordmark"><b>ARA</b><br />Driving</h1>
+    <p class="t-sub">Take a job, drive it, and spend what you earn on fuel, cars and style.</p>
+    <div id="t-stats"></div>
+    <button id="start">Start driving</button>
+    <div id="t-controls" role="group" aria-label="Controls"><small>Controls</small></div>
+  </section>
+  <footer class="t-foot">
+    <div id="t-place"><small>Now showing</small><b></b><span></span></div>
+    <div id="t-dots"><i></i><i></i><i></i><i></i></div>
+  </footer>
+</div>
+<div id="perf"></div>
+<div id="loader">
+  <h1 class="wordmark"><b>ARA</b> Driving</h1>
+  <div id="ld-bar"><i></i></div>
+  <div class="road"></div>
+  <div id="ld-text">Starting up</div>
+</div>
+<script type="module" src="/src/main.ts"></script>
+</body>
+</html>

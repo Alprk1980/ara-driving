@@ -1,0 +1,62 @@
+[
+  {
+    "key": "take_job",
+    "text": "Tap Jobs so you can pick a job and earn Points."
+  },
+  {
+    "key": "follow_route",
+    "text": "Follow green arrows toward the yellow beacon so you finish your job."
+  },
+  {
+    "key": "delivery",
+    "text": "Drive gently to avoid bumps so you keep your bonus."
+  },
+  {
+    "key": "passenger",
+    "text": "Brake smoothly so you keep your passenger happy and earn tips."
+  },
+  {
+    "key": "trial",
+    "text": "Hit every checkpoint so you beat the clock."
+  },
+  {
+    "key": "fuel",
+    "text": "Stop at a station and refuel before you run dry."
+  },
+  {
+    "key": "twist",
+    "text": "Read the job card so you earn extra pay."
+  },
+  {
+    "key": "garage",
+    "text": "You earned Points, so spend them in the garage."
+  },
+  {
+    "key": "finds",
+    "text": "Open the Map and read clues so you find hidden things."
+  },
+  {
+    "key": "streak",
+    "text": "Finish jobs in a row so you earn extra pay, and avoid tows."
+  },
+  {
+    "key": "regular",
+    "text": "You can return for this regular's story to unlock more."
+  },
+  {
+    "key": "ghost",
+    "text": "Race the ghost so you beat your best run."
+  },
+  {
+    "key": "rank",
+    "text": "Open Jobs so you can see your new rank and unlock more."
+  },
+  {
+    "key": "goals",
+    "text": "Open Jobs so you can check Today goals and earn Points."
+  },
+  {
+    "key": "car_job",
+    "text": "This premium car job only appears while you drive it."
+  }
+]

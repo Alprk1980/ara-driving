@@ -1,0 +1,218 @@
+[
+  {
+    "id": "spotless_morning_round",
+    "kind": "spotless",
+    "target": 1,
+    "text": "Finish a job without a scratch"
+  },
+  {
+    "id": "spotless_careful_runs",
+    "kind": "spotless",
+    "target": 2,
+    "text": "Finish jobs with spotless care"
+  },
+  {
+    "id": "spotless_pristine_day",
+    "kind": "spotless",
+    "target": 3,
+    "text": "Drive a whole day without a dent"
+  },
+  {
+    "id": "gold_quick_run",
+    "kind": "gold",
+    "target": 1,
+    "text": "Win a time trial in gold"
+  },
+  {
+    "id": "gold_double_time",
+    "kind": "gold",
+    "target": 2,
+    "text": "Win time trials in gold"
+  },
+  {
+    "id": "gold_shiny_run",
+    "kind": "gold",
+    "target": 1,
+    "text": "Earn gold in a clock race"
+  },
+  {
+    "id": "twist_small_surprise",
+    "kind": "twist",
+    "target": 1,
+    "text": "Finish a job with a surprise"
+  },
+  {
+    "id": "twist_odd_tasks",
+    "kind": "twist",
+    "target": 2,
+    "text": "Finish jobs with special twists"
+  },
+  {
+    "id": "twist_curious_run",
+    "kind": "twist",
+    "target": 1,
+    "text": "Finish a twist job with care"
+  },
+  {
+    "id": "passenger_short_hops",
+    "kind": "passenger",
+    "target": 2,
+    "text": "Give riders a smooth ride"
+  },
+  {
+    "id": "passenger_city_loop",
+    "kind": "passenger",
+    "target": 3,
+    "text": "Take passengers around town"
+  },
+  {
+    "id": "passenger_full_day",
+    "kind": "passenger",
+    "target": 4,
+    "text": "Keep riders happy all day"
+  },
+  {
+    "id": "delivery_small_parcel",
+    "kind": "delivery",
+    "target": 2,
+    "text": "Deliver parcels on time"
+  },
+  {
+    "id": "delivery_market_run",
+    "kind": "delivery",
+    "target": 3,
+    "text": "Deliver goods to town shops"
+  },
+  {
+    "id": "delivery_busy_route",
+    "kind": "delivery",
+    "target": 4,
+    "text": "Finish deliveries without fuss"
+  },
+  {
+    "id": "trial_quick_clocks",
+    "kind": "trial",
+    "target": 2,
+    "text": "Finish time trials on time"
+  },
+  {
+    "id": "trial_speed_loop",
+    "kind": "trial",
+    "target": 3,
+    "text": "Beat the clock in a race run"
+  },
+  {
+    "id": "trial_neat_runs",
+    "kind": "trial",
+    "target": 2,
+    "text": "Finish neat timed runs"
+  },
+  {
+    "id": "km_town_drive",
+    "kind": "km",
+    "target": 3,
+    "text": "Drive across town"
+  },
+  {
+    "id": "km_coast_cruise",
+    "kind": "km",
+    "target": 5,
+    "text": "Cruise the coast road"
+  },
+  {
+    "id": "km_country_wander",
+    "kind": "km",
+    "target": 8,
+    "text": "Wander the country lanes"
+  },
+  {
+    "id": "find_hidden_item",
+    "kind": "find",
+    "target": 1,
+    "text": "Find a hidden object"
+  },
+  {
+    "id": "find_hidden_pair",
+    "kind": "find",
+    "target": 2,
+    "text": "Find hidden objects"
+  },
+  {
+    "id": "find_secret_spot",
+    "kind": "find",
+    "target": 1,
+    "text": "Find a secret spot"
+  },
+  {
+    "id": "streak_job_chain",
+    "kind": "streak",
+    "target": 3,
+    "text": "Keep a run of jobs going"
+  },
+  {
+    "id": "streak_long_run",
+    "kind": "streak",
+    "target": 4,
+    "text": "Keep a longer job run going"
+  },
+  {
+    "id": "streak_good_flow",
+    "kind": "streak",
+    "target": 3,
+    "text": "Keep a smooth job flow"
+  },
+  {
+    "id": "clean_no_bumps",
+    "kind": "clean",
+    "target": 2,
+    "text": "Finish jobs without any bumps"
+  },
+  {
+    "id": "clean_gentle_runs",
+    "kind": "clean",
+    "target": 3,
+    "text": "Finish runs with no bumps"
+  },
+  {
+    "id": "clean_smooth_handling",
+    "kind": "clean",
+    "target": 2,
+    "text": "Finish jobs with smooth handling"
+  },
+  {
+    "id": "night_job_dark",
+    "kind": "night",
+    "target": 1,
+    "text": "Finish a job after dark"
+  },
+  {
+    "id": "night_late_runs",
+    "kind": "night",
+    "target": 2,
+    "text": "Finish jobs after dark"
+  },
+  {
+    "id": "night_lantern_run",
+    "kind": "night",
+    "target": 3,
+    "text": "Finish night jobs carefully"
+  },
+  {
+    "id": "story_regular_chat",
+    "kind": "story",
+    "target": 1,
+    "text": "Finish a story for a regular"
+  },
+  {
+    "id": "story_regular_visit",
+    "kind": "story",
+    "target": 2,
+    "text": "Finish stories for regulars"
+  },
+  {
+    "id": "story_town_tale",
+    "kind": "story",
+    "target": 1,
+    "text": "Finish a tale for a regular"
+  }
+]

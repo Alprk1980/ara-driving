@@ -1,0 +1,42 @@
+[
+  {
+    "key": "left_ahead",
+    "text": "Turn left ahead"
+  },
+  {
+    "key": "left_now",
+    "text": "Turn left now"
+  },
+  {
+    "key": "right_ahead",
+    "text": "Turn right ahead"
+  },
+  {
+    "key": "right_now",
+    "text": "Turn right now"
+  },
+  {
+    "key": "uturn_ahead",
+    "text": "U-turn ahead"
+  },
+  {
+    "key": "uturn_now",
+    "text": "U-turn now"
+  },
+  {
+    "key": "reached",
+    "text": "Destination reached"
+  },
+  {
+    "key": "recalculating",
+    "text": "Recalculating route"
+  },
+  {
+    "key": "fuel_low",
+    "text": "Fuel is low"
+  },
+  {
+    "key": "fuel_critical",
+    "text": "Fuel is critical"
+  }
+]

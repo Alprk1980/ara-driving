@@ -1,0 +1,69 @@
+<!doctype html>
+<!-- A bench, not gameplay: try one part of the game on its own — the car body, its fit, the damage. Linked from the title screen and the Menu. -->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ARA Driving — Labs</title>
+<style>
+  :root { color-scheme: dark; --bg: #12141a; --panel: #1b1f28; --line: #2c3140; --ink: #e7eaf2; --dim: #9aa3b5; --good: #57c07a; --bad: #e4645b; }
+  * { box-sizing: border-box; }
+  body { margin: 0; height: 100vh; display: grid; grid-template-columns: 220px 1fr 380px; grid-template-rows: minmax(0, 1fr); background: var(--bg); color: var(--ink); font: 14px/1.45 system-ui, sans-serif; }
+  aside { background: var(--panel); border-inline: 1px solid var(--line); overflow-y: auto; }
+  #side { padding: 14px; }
+  #side h1 { font-size: 15px; margin: 0 0 2px; }
+  #side h1 small { display: block; font-weight: 400; color: var(--dim); }
+  #labs { display: grid; gap: 6px; margin: 14px 0; }
+  #labs button { text-align: left; padding: 9px 11px; border: 1px solid var(--line); border-radius: 8px; background: #232838; color: var(--ink); cursor: pointer; }
+  #labs button.on { background: #3d4a6b; border-color: #5b6c96; }
+  #side .note { color: var(--dim); font-size: 12px; }
+  #stage { position: relative; }
+  #side a { display: block; padding: 9px 11px; border: 1px solid var(--line); border-radius: 8px; color: var(--ink); text-decoration: none; }
+  #view { width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; }
+  #stage .hint { position: absolute; left: 10px; bottom: 8px; color: var(--dim); font-size: 12px; pointer-events: none; }
+  #cammode { position: absolute; right: 10px; top: 10px; padding: 7px 12px; border: 1px solid var(--line); border-radius: 8px; background: #232838; color: var(--ink); cursor: pointer; }
+  #cammode.on, #guides.on { background: #3d4a6b; border-color: #5b6c96; }
+  #viewbar { position: absolute; left: 10px; top: 10px; right: 110px; display: flex; flex-wrap: wrap; gap: 6px; }
+  #viewbar button { padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; background: #232838; color: var(--ink); cursor: pointer; }
+  #views { display: contents; }
+  #bench { padding: 14px; }
+  #bench h2 { font-size: 15px; margin: 0 0 8px; }
+  #bench p { color: var(--dim); font-size: 12.5px; margin: 6px 0; }
+  #bench label { display: block; margin: 8px 0 2px; color: var(--dim); font-size: 12px; }
+  #bench select, #bench input[type="range"] { width: 100%; }
+  #bench .row { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+  #bench .row button { flex: 1; padding: 8px 6px; border: 1px solid var(--line); border-radius: 8px; background: #232838; color: var(--ink); cursor: pointer; }
+  #bench .row button.on { background: #3d4a6b; border-color: #5b6c96; }
+  #bench textarea { width: 100%; height: 150px; font: 11px/1.4 ui-monospace, monospace; background: #14161d; color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 8px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th, td { text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--line); }
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+  .bad { color: var(--bad); } .good { color: var(--good); }
+  ul.err { color: var(--bad); font-size: 12px; padding-left: 18px; margin: 6px 0; }
+  .bar { height: 8px; background: #14161d; border-radius: 4px; overflow: hidden; }
+  .bar i { display: block; height: 100%; background: #e0913f; }
+  .kv { display: flex; justify-content: space-between; font-size: 12.5px; margin: 3px 0; }
+  @media (max-width: 860px) {
+    body { height: auto; grid-template-columns: 1fr; grid-template-rows: auto; }
+    #stage { height: 58vh; }
+    #labs { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+<aside id="side">
+  <h1>ARA Driving <small>Labs — a bench per part</small></h1>
+  <nav id="labs"></nav>
+  <p class="note">Bench pages for trying one part on its own: how a car is sculpted, how the pieces fit, what a crash leaves.</p>
+  <a href="index.html">Back to the game</a>
+</aside>
+<main id="stage">
+  <canvas id="view"></canvas>
+  <div id="viewbar"><span id="views"></span><button id="guides" class="on" type="button">Guides</button></div>
+  <button id="cammode" type="button">Free look</button>
+  <div class="hint" id="camhint">drag to orbit · wheel to zoom · F switches to free look</div>
+</main>
+<aside id="bench"></aside>
+<script type="module" src="/src/labs/main.ts"></script>
+</body>
+</html>

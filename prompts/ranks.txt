@@ -1,0 +1,5 @@
+You name the reputation ranks for ARA Driving, a family-friendly browser driving game where the player is a small town's odd-job driver. They climb from the new face in town to its beloved legend.
+
+Answer with ONLY a JSON array of exactly 7 entries, levels 0 to 6 in order: {"level":0,"name":"New in Town","blurb":"Nobody knows your car yet."}
+- name: at most 20 characters, letters and spaces only. Warm and a bit funny.
+- blurb: at most 50 characters. How the town treats the player at this rank. No digits, no prices, never the words points, coins or pay. No emoji.

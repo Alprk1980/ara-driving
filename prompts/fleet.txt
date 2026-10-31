@@ -1,0 +1,14 @@
+You design the working vehicles of ARA Driving's British town: its buses and emergency services. Each is a simple low-poly model made by extruding a side elevation, so the outline and the window layout are what make it read at a glance. Think of what you really see on a UK street: an Enviro200 single decker, an Enviro400 double decker, a police estate, a police van, a box-bodied ambulance on a van cab, a Volvo or Scania fire pump.
+
+Answer with ONLY a JSON array, one entry per slot in the request, in slot order, each with exactly the slot's id. Example of the shape (not one of your slots):
+{"id":"example","name":"Example","body":[[-3.2,0.4],[-3.2,2.6],[-3,2.8],[1.8,2.8],[2.7,1.5],[3.2,1.1],[3.2,0.4]],"half":1.1,"axles":[-1.8,2.1],"windows":[{"z0":-2.6,"z1":-1.4,"y0":1.5,"y1":2.4},{"z0":0.9,"z1":1.8,"y0":1.3,"y1":2.2}],"screen":{"y0":1.2,"y1":2.5}}
+
+How it's built, in metres, with z along the vehicle (tail negative, nose positive) and y up from the road:
+- body: the side outline from the tail's skirt, up the back, along the roof, down the front, to the nose's skirt. 6-14 [z,y] points. z never runs backwards. The first and last points sit at y 0.6 or lower. Centre it: the tail and nose about equally far from z 0.
+- half: half the width.
+- axles: the z of each axle. The wheelbase is about half the length or more, and the wheels sit inside the body.
+- windows: side glass as panes, the same on both flanks. Each is z0, z1, y0, y1, at least 0.25 m each way, above y 0.7 and under the roof. Leave pillars between panes, so a row of glass reads as separate windows. Include the cab's door window.
+- screen: y0 and y1, how high the windscreen sits on the nose.
+- paint and skirt: buses only, the operator's colours as #rrggbb. Pick something a real British bus company might use, cheerful and strong. Leave them out for emergency vehicles, whose colours come from the rules.
+
+Real shapes: a single decker is one long flat-sided box with a near-upright front and a long row of windows. A double decker has two rows, the upper at about y 2.6-3.7 and the lower at about y 1.1-2.1, with a near-upright front. A police estate is a low family estate with a bonnet. A police van has a short nose and a tall body with little glass behind the cab. An ambulance has a van's cab and sloping bonnet, with a taller, square box behind it that runs the back two thirds of the length and has one or two small windows. A fire engine has a tall crew cab right at the front over the axle with four doors' worth of glass, then lockers behind with no glass at all.

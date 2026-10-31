@@ -1,0 +1,68 @@
+[
+  {
+    "id": "dawn",
+    "at": 0.22,
+    "sky": "#ad8fa0",
+    "fog": "#c8a8b4",
+    "sun": "#ffd2a0",
+    "sunPower": 0.9,
+    "ambient": 1.2,
+    "tint": "#b98c72",
+    "night": 0.35
+  },
+  {
+    "id": "morning",
+    "at": 0.33,
+    "sky": "#a8dcf5",
+    "fog": "#b4e0f4",
+    "sun": "#fff2d8",
+    "sunPower": 1.8,
+    "ambient": 2.1,
+    "tint": "#fff8ec",
+    "night": 0
+  },
+  {
+    "id": "noon",
+    "at": 0.5,
+    "sky": "#a8dcf5",
+    "fog": "#b4e0f4",
+    "sun": "#fff2d8",
+    "sunPower": 2,
+    "ambient": 2.3,
+    "tint": "#ffffff",
+    "night": 0
+  },
+  {
+    "id": "golden",
+    "at": 0.7,
+    "sky": "#e3c8a8",
+    "fog": "#ecd7bb",
+    "sun": "#ffd39a",
+    "sunPower": 1.6,
+    "ambient": 1.7,
+    "tint": "#e7c79f",
+    "night": 0.05
+  },
+  {
+    "id": "dusk",
+    "at": 0.78,
+    "sky": "#8a6a9e",
+    "fog": "#a386b4",
+    "sun": "#ff8fbf",
+    "sunPower": 0.7,
+    "ambient": 1.1,
+    "tint": "#97769c",
+    "night": 0.55
+  },
+  {
+    "id": "night",
+    "at": 0.92,
+    "sky": "#335a7e",
+    "fog": "#3f688c",
+    "sun": "#c9d8ff",
+    "sunPower": 0.25,
+    "ambient": 0.7,
+    "tint": "#3a506b",
+    "night": 1
+  }
+]

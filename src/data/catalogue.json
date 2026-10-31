@@ -1,0 +1,639 @@
+[
+  {
+    "id": "tomato_red",
+    "kind": "paint",
+    "style": "solid",
+    "tier": "common",
+    "name": "Tomato Red",
+    "price": 50,
+    "colors": [
+      "#d9352b"
+    ]
+  },
+  {
+    "id": "sky_blue",
+    "kind": "paint",
+    "style": "solid",
+    "tier": "common",
+    "name": "Sky Blue",
+    "price": 50,
+    "colors": [
+      "#4fa3d1"
+    ]
+  },
+  {
+    "id": "lemon_yellow",
+    "kind": "paint",
+    "style": "solid",
+    "tier": "common",
+    "name": "Lemon Yellow",
+    "price": 50,
+    "colors": [
+      "#f4d03f"
+    ]
+  },
+  {
+    "id": "mint_green",
+    "kind": "paint",
+    "style": "solid",
+    "tier": "common",
+    "name": "Mint Green",
+    "price": 50,
+    "colors": [
+      "#7fd8a5"
+    ]
+  },
+  {
+    "id": "peach_cream",
+    "kind": "paint",
+    "style": "solid",
+    "tier": "common",
+    "name": "Peach Cream",
+    "price": 50,
+    "colors": [
+      "#f7c8a0"
+    ]
+  },
+  {
+    "id": "slate_gray",
+    "kind": "paint",
+    "style": "solid",
+    "tier": "common",
+    "name": "Slate Gray",
+    "price": 50,
+    "colors": [
+      "#6f7882"
+    ]
+  },
+  {
+    "id": "coral_pink",
+    "kind": "paint",
+    "style": "solid",
+    "tier": "common",
+    "name": "Coral Pink",
+    "price": 50,
+    "colors": [
+      "#ef7b7b"
+    ]
+  },
+  {
+    "id": "cocoa_brown",
+    "kind": "paint",
+    "style": "solid",
+    "tier": "common",
+    "name": "Cocoa Brown",
+    "price": 50,
+    "colors": [
+      "#7b5e4c"
+    ]
+  },
+  {
+    "id": "dragon_gold",
+    "kind": "paint",
+    "style": "metallic",
+    "tier": "legendary",
+    "name": "Dragon Gold",
+    "price": 1000,
+    "colors": [
+      "#d4af37"
+    ]
+  },
+  {
+    "id": "phoenix_bronze",
+    "kind": "paint",
+    "style": "metallic",
+    "tier": "legendary",
+    "name": "Phoenix Bronze",
+    "price": 1000,
+    "colors": [
+      "#cd7f32"
+    ]
+  },
+  {
+    "id": "moon_silver",
+    "kind": "paint",
+    "style": "metallic",
+    "tier": "legendary",
+    "name": "Moon Silver",
+    "price": 1000,
+    "colors": [
+      "#c0c0c0"
+    ]
+  },
+  {
+    "id": "sunset_wave",
+    "kind": "pattern",
+    "style": "two_tone",
+    "tier": "rare",
+    "name": "Sunset Wave",
+    "price": 150,
+    "colors": [
+      "#ff7e5f",
+      "#feb47b"
+    ]
+  },
+  {
+    "id": "ocean_stripe",
+    "kind": "pattern",
+    "style": "two_tone",
+    "tier": "rare",
+    "name": "Ocean Stripe",
+    "price": 150,
+    "colors": [
+      "#2e86ab",
+      "#a7d8e8"
+    ]
+  },
+  {
+    "id": "forest_dusk",
+    "kind": "pattern",
+    "style": "two_tone",
+    "tier": "rare",
+    "name": "Forest Dusk",
+    "price": 150,
+    "colors": [
+      "#2d6a4f",
+      "#95d5b2"
+    ]
+  },
+  {
+    "id": "candy_dash",
+    "kind": "pattern",
+    "style": "two_tone",
+    "tier": "rare",
+    "name": "Candy Dash",
+    "price": 150,
+    "colors": [
+      "#ff9ff3",
+      "#feca57"
+    ]
+  },
+  {
+    "id": "canyon_bluff",
+    "kind": "pattern",
+    "style": "stripes",
+    "tier": "epic",
+    "name": "Canyon Bluff",
+    "price": 400,
+    "colors": [
+      "#ff7b3b",
+      "#7b3f2a"
+    ]
+  },
+  {
+    "id": "ocean_ribbon",
+    "kind": "pattern",
+    "style": "stripes",
+    "tier": "epic",
+    "name": "Ocean Ribbon",
+    "price": 400,
+    "colors": [
+      "#18a2b8",
+      "#0b4f6c"
+    ]
+  },
+  {
+    "id": "ember_trail",
+    "kind": "pattern",
+    "style": "flames",
+    "tier": "epic",
+    "name": "Ember Trail",
+    "price": 400,
+    "colors": [
+      "#ff6b1a",
+      "#8b1e1e"
+    ]
+  },
+  {
+    "id": "frost_fire",
+    "kind": "pattern",
+    "style": "flames",
+    "tier": "epic",
+    "name": "Frost Fire",
+    "price": 400,
+    "colors": [
+      "#7ff0ff",
+      "#1e5cff"
+    ]
+  },
+  {
+    "id": "meadow_check",
+    "kind": "pattern",
+    "style": "checker",
+    "tier": "epic",
+    "name": "Meadow Check",
+    "price": 400,
+    "colors": [
+      "#6cc04a",
+      "#2f6b2f"
+    ]
+  },
+  {
+    "id": "night_grid",
+    "kind": "pattern",
+    "style": "checker",
+    "tier": "epic",
+    "name": "Night Grid",
+    "price": 400,
+    "colors": [
+      "#2a2a3c",
+      "#d8d8e8"
+    ]
+  },
+  {
+    "id": "sea_silk",
+    "kind": "pattern",
+    "style": "waves",
+    "tier": "epic",
+    "name": "Sea Silk",
+    "price": 400,
+    "colors": [
+      "#3fbf9f",
+      "#0a6b7a"
+    ]
+  },
+  {
+    "id": "dune_ripple",
+    "kind": "pattern",
+    "style": "waves",
+    "tier": "epic",
+    "name": "Dune Ripple",
+    "price": 400,
+    "colors": [
+      "#e8b45c",
+      "#8c5a2a"
+    ]
+  },
+  {
+    "id": "tiny_star",
+    "kind": "decal",
+    "style": "small",
+    "tier": "common",
+    "name": "Tiny Star",
+    "price": 50,
+    "colors": [
+      "#ffd166"
+    ],
+    "shape": "star"
+  },
+  {
+    "id": "sweet_heart",
+    "kind": "decal",
+    "style": "small",
+    "tier": "common",
+    "name": "Sweet Heart",
+    "price": 50,
+    "colors": [
+      "#ff6b81"
+    ],
+    "shape": "heart"
+  },
+  {
+    "id": "cub_paw",
+    "kind": "decal",
+    "style": "small",
+    "tier": "common",
+    "name": "Cub Paw",
+    "price": 50,
+    "colors": [
+      "#8b5a2b"
+    ],
+    "shape": "paw"
+  },
+  {
+    "id": "team_number",
+    "kind": "decal",
+    "style": "small",
+    "tier": "common",
+    "name": "Team Number",
+    "price": 50,
+    "colors": [
+      "#f2f2f2"
+    ],
+    "shape": "number"
+  },
+  {
+    "id": "storm_bolt",
+    "kind": "decal",
+    "style": "large",
+    "tier": "rare",
+    "name": "Storm Bolt",
+    "price": 150,
+    "colors": [
+      "#ffe066"
+    ],
+    "shape": "bolt"
+  },
+  {
+    "id": "royal_crown",
+    "kind": "decal",
+    "style": "large",
+    "tier": "rare",
+    "name": "Royal Crown",
+    "price": 150,
+    "colors": [
+      "#e8b93c"
+    ],
+    "shape": "crown"
+  },
+  {
+    "id": "nova_star",
+    "kind": "decal",
+    "style": "large",
+    "tier": "rare",
+    "name": "Nova Star",
+    "price": 150,
+    "colors": [
+      "#9ef0ff"
+    ],
+    "shape": "star"
+  },
+  {
+    "id": "wild_paw",
+    "kind": "decal",
+    "style": "large",
+    "tier": "rare",
+    "name": "Wild Paw",
+    "price": 150,
+    "colors": [
+      "#b5794a"
+    ],
+    "shape": "paw"
+  },
+  {
+    "id": "storm_wing",
+    "kind": "body",
+    "style": "spoiler",
+    "tier": "epic",
+    "name": "Storm Wing",
+    "price": 400,
+    "colors": [
+      "#4f75c8"
+    ]
+  },
+  {
+    "id": "aero_crest",
+    "kind": "body",
+    "style": "spoiler",
+    "tier": "epic",
+    "name": "Aero Crest",
+    "price": 400,
+    "colors": [
+      "#2fbfa4"
+    ]
+  },
+  {
+    "id": "bolt_split",
+    "kind": "body",
+    "style": "sport_kit",
+    "tier": "epic",
+    "name": "Bolt Split",
+    "price": 400,
+    "colors": [
+      "#ff6b35"
+    ]
+  },
+  {
+    "id": "fire_fin",
+    "kind": "body",
+    "style": "sport_kit",
+    "tier": "epic",
+    "name": "Fire Fin",
+    "price": 400,
+    "colors": [
+      "#e74c3c"
+    ]
+  },
+  {
+    "id": "neon_circuit",
+    "kind": "body",
+    "style": "signature",
+    "tier": "legendary",
+    "name": "Neon Circuit",
+    "price": 1000,
+    "colors": [
+      "#12f0c8",
+      "#1a2233"
+    ]
+  },
+  {
+    "id": "royal_mirage",
+    "kind": "body",
+    "style": "signature",
+    "tier": "legendary",
+    "name": "Royal Mirage",
+    "price": 1000,
+    "colors": [
+      "#7048c8",
+      "#ffcf5c"
+    ]
+  },
+  {
+    "id": "daisy_cap",
+    "kind": "accessory",
+    "style": "cap",
+    "tier": "common",
+    "name": "Daisy Cap",
+    "price": 50,
+    "colors": [
+      "#f7cf4d"
+    ]
+  },
+  {
+    "id": "mint_puff",
+    "kind": "accessory",
+    "style": "cap",
+    "tier": "common",
+    "name": "Mint Puff",
+    "price": 50,
+    "colors": [
+      "#9ee4c6"
+    ]
+  },
+  {
+    "id": "cloud_cap",
+    "kind": "accessory",
+    "style": "cap",
+    "tier": "common",
+    "name": "Cloud Cap",
+    "price": 50,
+    "colors": [
+      "#d9e6f6"
+    ]
+  },
+  {
+    "id": "rally_grip",
+    "kind": "accessory",
+    "style": "gloves",
+    "tier": "common",
+    "name": "Rally Grip",
+    "price": 50,
+    "colors": [
+      "#b0623f"
+    ]
+  },
+  {
+    "id": "ember_palm",
+    "kind": "accessory",
+    "style": "gloves",
+    "tier": "common",
+    "name": "Ember Palm",
+    "price": 50,
+    "colors": [
+      "#ff6b4a"
+    ]
+  },
+  {
+    "id": "night_shade",
+    "kind": "accessory",
+    "style": "sunglasses",
+    "tier": "rare",
+    "name": "Night Shade",
+    "price": 150,
+    "colors": [
+      "#1f2a44"
+    ]
+  },
+  {
+    "id": "sky_mirror",
+    "kind": "accessory",
+    "style": "sunglasses",
+    "tier": "rare",
+    "name": "Sky Mirror",
+    "price": 150,
+    "colors": [
+      "#6fd7e8"
+    ]
+  },
+  {
+    "id": "retro_rose",
+    "kind": "accessory",
+    "style": "sunglasses",
+    "tier": "rare",
+    "name": "Retro Rose",
+    "price": 150,
+    "colors": [
+      "#f0879a"
+    ]
+  },
+  {
+    "id": "cobalt_drift",
+    "kind": "outfit",
+    "style": "jacket",
+    "tier": "rare",
+    "name": "Cobalt Drift",
+    "price": 150,
+    "colors": [
+      "#3373c7",
+      "#dce8f7"
+    ]
+  },
+  {
+    "id": "desert_dash",
+    "kind": "outfit",
+    "style": "jacket",
+    "tier": "rare",
+    "name": "Desert Dash",
+    "price": 150,
+    "colors": [
+      "#c9925c",
+      "#f1e2c8"
+    ]
+  },
+  {
+    "id": "moss_trail",
+    "kind": "outfit",
+    "style": "jacket",
+    "tier": "rare",
+    "name": "Moss Trail",
+    "price": 150,
+    "colors": [
+      "#5d9457",
+      "#dfe7ce"
+    ]
+  },
+  {
+    "id": "ink_wave",
+    "kind": "outfit",
+    "style": "jacket",
+    "tier": "rare",
+    "name": "Ink Wave",
+    "price": 150,
+    "colors": [
+      "#263b62",
+      "#7cc5e5"
+    ]
+  },
+  {
+    "id": "panda_pilot",
+    "kind": "outfit",
+    "style": "themed",
+    "tier": "epic",
+    "name": "Panda Pilot",
+    "price": 400,
+    "colors": [
+      "#262626",
+      "#f2f2f2"
+    ]
+  },
+  {
+    "id": "bubble_run",
+    "kind": "outfit",
+    "style": "themed",
+    "tier": "epic",
+    "name": "Bubble Run",
+    "price": 400,
+    "colors": [
+      "#ff86bd",
+      "#5fe4cf"
+    ]
+  },
+  {
+    "id": "nova_ace",
+    "kind": "outfit",
+    "style": "themed",
+    "tier": "epic",
+    "name": "Nova Ace",
+    "price": 400,
+    "colors": [
+      "#7531d6",
+      "#2ad4f2"
+    ]
+  },
+  {
+    "id": "knight_helm",
+    "kind": "outfit",
+    "style": "costume",
+    "tier": "legendary",
+    "name": "Knight Helm",
+    "price": 1000,
+    "colors": [
+      "#c7cfd9",
+      "#55627a"
+    ]
+  },
+  {
+    "id": "dragon_mail",
+    "kind": "outfit",
+    "style": "costume",
+    "tier": "legendary",
+    "name": "Dragon Mail",
+    "price": 1000,
+    "colors": [
+      "#d64a2f",
+      "#3f4145"
+    ]
+  },
+  {
+    "id": "galaxy_suit",
+    "kind": "outfit",
+    "style": "costume",
+    "tier": "legendary",
+    "name": "Galaxy Suit",
+    "price": 1000,
+    "colors": [
+      "#2b1146",
+      "#69c8ff"
+    ]
+  }
+]
