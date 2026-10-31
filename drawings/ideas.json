@@ -1,0 +1,494 @@
+[
+  {
+    "id": "tallow_row",
+    "type": "style_market_row",
+    "name": "Tallow Row",
+    "concept": "A narrow market row with a steep central Dutch gable and a deep timber canopy that shelters each shopfront.",
+    "storeys": 3,
+    "wide": 18,
+    "deep": 14,
+    "roof": "pitched",
+    "walls": "cream render with red brick plinth and dark tile hanging",
+    "features": [
+      "steep Dutch gable over entrance",
+      "continuous timber shop canopy",
+      "paired arched windows"
+    ]
+  },
+  {
+    "id": "wheatsheaf_passage",
+    "type": "style_corner_arcade",
+    "name": "Wheatsheaf Passage",
+    "concept": "A corner arcade block where a glazed ground-floor colonnade turns the corner and a tall brick parapet caps the upper walls.",
+    "storeys": 4,
+    "wide": 20,
+    "deep": 16,
+    "roof": "parapet",
+    "walls": "buff brick with stone dressings and green ironwork",
+    "features": [
+      "glazed corner colonnade",
+      "tall brick parapet",
+      "vertical brick pilasters"
+    ]
+  },
+  {
+    "id": "sterling_house",
+    "type": "style_old_bank",
+    "name": "Sterling House",
+    "concept": "A stone bank block with a rusticated ground-floor colonnade, a pedimented centre, and a dark mansard roof.",
+    "storeys": 4,
+    "wide": 16,
+    "deep": 18,
+    "roof": "mansard",
+    "walls": "honey limestone with grey slate mansard",
+    "features": [
+      "rusticated ground floor",
+      "pedimented central bay",
+      "dark mansard roof",
+      "stone window surrounds"
+    ]
+  },
+  {
+    "id": "crescent_tower",
+    "type": "style_glass_tower",
+    "name": "Crescent Tower",
+    "concept": "A green glass office tower with a stepped setback crown and tall vertical fins that split the facade into simple boxes.",
+    "storeys": 10,
+    "wide": 24,
+    "deep": 24,
+    "roof": "setback",
+    "walls": "green glass and pale concrete fins",
+    "features": [
+      "stepped concrete setback",
+      "tall vertical window fins",
+      "top-floor terrace parapet",
+      "pale corner balconies"
+    ]
+  },
+  {
+    "id": "cobalt_ridge",
+    "type": "style_ribbon_office",
+    "name": "Cobalt Ridge",
+    "concept": "A crisp ribbon-window office with a stepped parapet and a continuous metal spandrel tying the floors together.",
+    "storeys": 8,
+    "wide": 32,
+    "deep": 22,
+    "roof": "setback",
+    "walls": "pale concrete with dark grey window bands and steel spandrels",
+    "features": [
+      "horizontal glazing bands",
+      "projecting metal spandrels",
+      "setback top floor",
+      "flat roof behind parapet"
+    ]
+  },
+  {
+    "id": "ashfield_chambers",
+    "type": "style_stone_chambers",
+    "name": "Ashfield Chambers",
+    "concept": "A stone office block with tall window bays, deep reveals and a heavy cornice that reads as one solid mass from the street.",
+    "storeys": 7,
+    "wide": 30,
+    "deep": 24,
+    "roof": "parapet",
+    "walls": "honey-coloured limestone with grey granite plinth",
+    "features": [
+      "deep window recesses",
+      "projecting stone pilasters",
+      "heavy cornice",
+      "flat roof behind stone parapet"
+    ]
+  },
+  {
+    "id": "cedar_court_flats",
+    "type": "style_tower_flats",
+    "name": "Cedar Court Flats",
+    "concept": "A slender residential tower with staggered balconies wrapping two sides and a brick stair bay at the back.",
+    "storeys": 9,
+    "wide": 24,
+    "deep": 24,
+    "roof": "flat",
+    "walls": "cream brick with deep green window frames and white balconies",
+    "features": [
+      "staggered projecting balconies",
+      "brick stair bay",
+      "full-height window bays",
+      "flat roof with low parapet"
+    ]
+  },
+  {
+    "id": "bluebell_terrace",
+    "type": "style_painted_terrace",
+    "name": "Bluebell Terrace",
+    "concept": "A two-storey garden terrace with paired gables, bright front doors and shallow bays projecting from each ground floor.",
+    "storeys": 2,
+    "wide": 12,
+    "deep": 10,
+    "roof": "pitched",
+    "walls": "soft green render with white trim and red tile roof",
+    "features": [
+      "shallow bay windows",
+      "front doors under small canopy",
+      "paired gable ends",
+      "white-framed sash windows"
+    ]
+  },
+  {
+    "id": "hollis_brick_semis",
+    "type": "style_brick_semis",
+    "name": "Hollis Semis",
+    "concept": "A matched pair of semi-detached houses tied together by one tall central chimney, each with a projecting bay under a steep roof gable.",
+    "storeys": 2,
+    "wide": 10,
+    "deep": 12,
+    "roof": "pitched",
+    "walls": "warm red brick with white painted trim",
+    "features": [
+      "projecting bay windows",
+      "tall central chimney",
+      "half-timbered front gable",
+      "steep slate roof",
+      "painted sash windows"
+    ]
+  },
+  {
+    "id": "cobble_cottages",
+    "type": "style_pebble_cottages",
+    "name": "Cobble Cottages",
+    "concept": "A squat pair of pebble-dash cottages with a steep hipped roof pierced by two gabled dormers and small square-pane windows beneath stone lintels.",
+    "storeys": 2,
+    "wide": 12,
+    "deep": 11,
+    "roof": "pitched",
+    "walls": "cream pebbledash over grey flint rubble",
+    "features": [
+      "steep hipped roof",
+      "two gabled dormers",
+      "small square-pane windows",
+      "stone door surround",
+      "rough pebbledash wall"
+    ]
+  },
+  {
+    "id": "fern_court_flats",
+    "type": "style_garden_flats",
+    "name": "Fern Court Flats",
+    "concept": "A low block of two-storey flats held together by a continuous covered colonnade, with a mansard roof and evenly spaced dormers.",
+    "storeys": 2,
+    "wide": 14,
+    "deep": 12,
+    "roof": "mansard",
+    "walls": "pale brick with lime-white render bands",
+    "features": [
+      "covered colonnade along front",
+      "mansard roof with dormers",
+      "small projecting balconies",
+      "rendered wall bands",
+      "timber front doors"
+    ]
+  },
+  {
+    "id": "copper_tin_shed",
+    "type": "style_tin_shed",
+    "name": "Copper Shed",
+    "concept": "A low workshop block under a sawtooth roof of north-light prisms, with corrugated iron walls and one wide sliding loading door.",
+    "storeys": 2,
+    "wide": 32,
+    "deep": 26,
+    "roof": "sawtooth",
+    "walls": "corrugated galvanised iron over pale brick base",
+    "features": [
+      "sawtooth north-light roof",
+      "corrugated iron cladding",
+      "wide sliding loading door",
+      "steel Crittall windows",
+      "external steel bracing"
+    ]
+  },
+  {
+    "id": "aggregate_hall",
+    "type": "style_concrete_depot",
+    "name": "Aggregate Hall",
+    "concept": "A low works hall whose repeated north-light roof sawtooths run along the whole side, making a crisp grey comb at speed.",
+    "storeys": 2,
+    "wide": 32,
+    "deep": 24,
+    "roof": "sawtooth",
+    "walls": "pale grey precast concrete with glazed brick plinth",
+    "features": [
+      "north-light sawtooth roof",
+      "glazed brick plinth",
+      "deep concrete lintels",
+      "vertical concrete pilasters",
+      "flat-roofed entrance porch"
+    ]
+  },
+  {
+    "id": "chill_yard_store",
+    "type": "style_cold_store",
+    "name": "Chill Yard Store",
+    "concept": "A squat insulated store with a pale blue panel body and a crisp grey parapet cap, so it reads as a cool boxy volume in the works district.",
+    "storeys": 2,
+    "wide": 26,
+    "deep": 22,
+    "roof": "parapet",
+    "walls": "pale blue insulated panels with grey metal capping",
+    "features": [
+      "grey metal parapet cap",
+      "square roof vents",
+      "pale blue panel joints",
+      "recessed service door",
+      "low grey plinth"
+    ]
+  },
+  {
+    "id": "kiln_row",
+    "type": "style_high_street_brick",
+    "name": "Kiln Row",
+    "concept": "A narrow brick row with a stepped Dutch gable and cream stone shopfront, lifting its frontage above the old-town street.",
+    "storeys": 4,
+    "wide": 10,
+    "deep": 14,
+    "roof": "pitched",
+    "walls": "dark red brick with cream stone shopfront and window surrounds",
+    "features": [
+      "stepped Dutch gable",
+      "stone shopfront pilasters",
+      "timber bay windows",
+      "brick chimney stacks",
+      "pale stone cills"
+    ]
+  },
+  {
+    "id": "spinning_shed",
+    "type": "style_old_mill",
+    "name": "Spinning Shed",
+    "concept": "A broad brick mill with a long shallow pitched roof and a tall square stair tower, giving a crisp silhouette against the works sky.",
+    "storeys": 3,
+    "wide": 36,
+    "deep": 18,
+    "roof": "pitched",
+    "walls": "brown brick with pale lintels and slate roof",
+    "features": [
+      "tall square stair tower",
+      "long shallow pitched roof",
+      "regular Crittall windows",
+      "slate roof",
+      "stone lintels"
+    ]
+  },
+  {
+    "id": "cinder_lane_station",
+    "type": "station_fire",
+    "name": "Cinder Lane Station",
+    "concept": "A three-storey fire station with three tall glazed bays and a square drill tower at one end.",
+    "storeys": 3,
+    "wide": 24,
+    "deep": 18,
+    "roof": "parapet",
+    "walls": "red brick with white glazed bays and pale stone plinth",
+    "features": [
+      "three tall glazed bays",
+      "square drill tower with hoist hatch",
+      "brass-framed bay doors",
+      "pale stone plinth",
+      "flat roof with parapet"
+    ],
+    "bays": 3
+  },
+  {
+    "id": "marsh_road_station",
+    "type": "station_ambulance",
+    "name": "Marsh Road Station",
+    "concept": "A two-storey station with two tall glazed bays grouped under a shallow barrel roof and a first-floor office band.",
+    "storeys": 2,
+    "wide": 18,
+    "deep": 14,
+    "roof": "barrel",
+    "walls": "cream render with blue-grey window frames",
+    "features": [
+      "two glazed bay doors",
+      "shallow barrel roof",
+      "deep canopy over bays",
+      "blue-grey Crittall windows",
+      "first-floor office band"
+    ],
+    "bays": 2
+  },
+  {
+    "id": "bramley_police_station",
+    "type": "station_police",
+    "name": "Bramley Police Station",
+    "concept": "A civic police station in pale brick with a recessed entrance porch and a single glazed bay door beside a brick gate pillar.",
+    "storeys": 2,
+    "wide": 18,
+    "deep": 14,
+    "roof": "pitched",
+    "walls": "pale buff brick with white porch and dark grey frames",
+    "features": [
+      "recessed stone entrance porch",
+      "single glazed bay door",
+      "tall Crittall windows",
+      "brick gate pillars",
+      "pitched slate roof"
+    ],
+    "bays": 1
+  },
+  {
+    "id": "cobb_corner_shop",
+    "type": "place_shop",
+    "name": "Cobb Corner Shop",
+    "concept": "A corner shop with a chamfered glazed corner and a first-floor bay window stepping over the junction.",
+    "storeys": 2,
+    "wide": 8,
+    "deep": 10,
+    "roof": "mansard",
+    "walls": "cream stucco with green timber front and grey slate roof",
+    "features": [
+      "chamfered glazed corner",
+      "first-floor canted bay",
+      "green timber shopfront",
+      "deep stone cills",
+      "mansard roof with dormer"
+    ]
+  },
+  {
+    "id": "kettle_cafe",
+    "type": "place_cafe",
+    "name": "Kettle Cafe",
+    "concept": "A one-storey cafe with a deep front loggia, low parapet, and full-height glazed folding doors that shelter an outdoor terrace.",
+    "storeys": 1,
+    "wide": 12,
+    "deep": 10,
+    "roof": "parapet",
+    "walls": "cream render with sage green joinery",
+    "features": [
+      "deep front loggia",
+      "full-height glazed folding doors",
+      "sage green fascia",
+      "low flat parapet"
+    ]
+  },
+  {
+    "id": "meadow_primary",
+    "type": "place_school",
+    "name": "Meadow Primary",
+    "concept": "A two-storey primary school arranged around a shallow courtyard, with a brick base, hanging tile roof, and tall Crittall windows over a covered cloister.",
+    "storeys": 2,
+    "wide": 36,
+    "deep": 20,
+    "roof": "pitched",
+    "walls": "buff brick with red tile hanging and dark Crittall windows",
+    "features": [
+      "covered cloister",
+      "steeply pitched tile roofs",
+      "tall Crittall windows",
+      "red tile hanging panels",
+      "small clock turret"
+    ]
+  },
+  {
+    "id": "kingsley_market_hall",
+    "type": "place_market",
+    "name": "Kingsley Market Hall",
+    "concept": "A long market hall with a north-light sawtooth roof, arched glazed brick bays, and a brick clock gable that reads clearly from the main street.",
+    "storeys": 1,
+    "wide": 32,
+    "deep": 24,
+    "roof": "sawtooth",
+    "walls": "glazed brick with dark steel frames and stone plinth",
+    "features": [
+      "north-light sawtooth roof",
+      "arched brick bays",
+      "stone plinth",
+      "stepped clock gable",
+      "deep covered entrances"
+    ]
+  },
+  {
+    "id": "wren_house",
+    "type": "place_office",
+    "name": "Wren House",
+    "concept": "A narrow four-storey office with projecting oriel bays, brick pilasters, and a mansard roof lit by small dormer windows.",
+    "storeys": 4,
+    "wide": 14,
+    "deep": 12,
+    "roof": "mansard",
+    "walls": "red brick with cream stone dressings and dark sash windows",
+    "features": [
+      "projecting oriel bays",
+      "brick pilasters",
+      "stone door surround",
+      "mansard roof",
+      "small dormer windows"
+    ]
+  },
+  {
+    "id": "elmwood_clinic",
+    "type": "place_clinic",
+    "name": "Elmwood Clinic",
+    "concept": "A two-storey clinic with a sawtooth north-light roof running over the waiting hall, giving a jagged profile above a pale brick front.",
+    "storeys": 2,
+    "wide": 26,
+    "deep": 16,
+    "roof": "sawtooth",
+    "walls": "pale London stock brick with white lintels",
+    "features": [
+      "sawtooth glazed roof",
+      "covered entrance porch",
+      "deep bay windows",
+      "steel-framed windows"
+    ]
+  },
+  {
+    "id": "ashcombe_library",
+    "type": "place_library",
+    "name": "Ashcombe Library",
+    "concept": "A two-storey library with a central Dutch gable and a stone bay reading room, lit by a band of tall arched windows under a pale slate roof.",
+    "storeys": 2,
+    "wide": 28,
+    "deep": 22,
+    "roof": "pitched",
+    "walls": "cream Portland stone with grey slate",
+    "features": [
+      "central Dutch gable",
+      "stone bay window",
+      "tall arched windows",
+      "stone entrance steps"
+    ]
+  },
+  {
+    "id": "thistle_house",
+    "type": "place_house",
+    "name": "Thistle House",
+    "concept": "A two-storey home with a steep front gable hung in plain tile and a first-floor jetty projecting over the ground floor.",
+    "storeys": 2,
+    "wide": 11,
+    "deep": 10,
+    "roof": "pitched",
+    "walls": "white render with plain red tile hanging",
+    "features": [
+      "steep front gable",
+      "first-floor jetty",
+      "paired bay windows",
+      "tiled porch"
+    ]
+  },
+  {
+    "id": "fen_road_depot",
+    "type": "place_depot",
+    "name": "Fen Road Depot",
+    "concept": "A one-storey depot with a long shallow pitched roof and a run of recessed roller doors, lit by a high band of steel-framed windows.",
+    "storeys": 1,
+    "wide": 32,
+    "deep": 20,
+    "roof": "pitched",
+    "walls": "grey concrete block with red brick plinth",
+    "features": [
+      "recessed roller doors",
+      "high clerestory windows",
+      "concrete loading apron",
+      "corrugated roof sheeting"
+    ]
+  }
+]

@@ -3,6 +3,6 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
   base: './',
-  build: { rollupOptions: { input: { game: 'index.html', labs: 'labs.html', photovox: 'photovox.html' } } }, // the labs bench ships beside the game, linked from its title screen and Menu
+  build: { rollupOptions: { input: { game: 'index.html', labs: 'labs.html', photovox: 'photovox.html', gallery: 'gallery.html' } } }, // the labs bench ships beside the game, linked from its title screen and Menu
   test: { include: ['schemas/**/*.test.ts', 'src/**/*.test.ts'] },
 });

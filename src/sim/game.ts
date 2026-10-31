@@ -5,7 +5,7 @@ import type { Find, Goal, GoalKind, TownEventCard } from '../../schemas/content.
 import { carById, RECOVERY_FEE, FIND_ALL_REWARD, FIND_REWARD, FUEL_PRICE, GOAL_REWARD, HOME_TOPUP_PCT, rankOf, rankPay, REGULAR_FINALE, REP_FINALE, REP_GOAL, REP_JOB, REP_SPOTLESS, streakBonus } from './economy.ts';
 import { FuelManager } from './fuel.ts';
 import { advance, freshDaily, goalsFor } from './goals.ts';
-import { ActiveQuest, freshProgress, GHOST_KEEP, QuestGenerator, type Ghost, type Offer, type Progress, type QuestContent } from './quests.ts';
+import { ActiveQuest, freshProgress, GHOST_KEEP, placeAt, QuestGenerator, storyPlot, type Ghost, type Offer, type Progress, type QuestContent } from './quests.ts';
 import { Navigator, route, routeVia, type Cue } from './route.ts';
 import { dist, makeRng, Town, type Plot, type Vec } from './town.ts';
 import { Traffic } from './traffic.ts';
@@ -95,6 +95,7 @@ export class Game {
     const day = opts.day ?? '';
     if (this.progress.daily.day !== day) this.progress.daily = freshDaily(day);
     this.goals = goalsFor(content.goals ?? [], day);
+    this.town.fitPlaces((p) => placeAt(this.town, content.places, p)?.kind, (content.regulars ?? []).map((_, i) => storyPlot(this.town, i)));
     const seed = opts.seed ?? Date.now() % 100000;
     this.gen = new QuestGenerator(this.town, content, makeRng(seed), this.progress);
     this.goHome();

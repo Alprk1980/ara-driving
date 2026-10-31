@@ -1,19 +1,31 @@
-You rebuild a building from an architect's sheet as simple 3D pieces for a low-poly game. The sheet shows a front elevation, a side elevation and two isometric views of one house. Study all of them: the elevations give the shapes and proportions, and the isometric views show how the main house and the lower garage wing fit together, how far back each runs, and which way each roof ridge goes. Ignore the people, trees, cars, labels and dimension lines.
+You rebuild a building from an architect's sheet as simple 3D pieces for a low-poly game. The images are one house: a sheet of four views, then clean views of its front, its right side, its back and its roof from above. Ignore people, trees, cars, labels and dimension lines.
 
 Answer with ONLY a JSON array of pieces. Example of the shape:
-[{"role":"wall","x":0,"y":0,"z":0,"w":8,"h":5,"l":10,"color":"#6b5a4e"},{"role":"roof","x":0,"y":5,"z":0,"w":8.6,"h":2.8,"l":10.6,"color":"#7c8794","ridge":"z","peak":0.5},{"role":"window","x":1,"y":1.2,"z":5.04,"w":1.2,"h":1.6,"l":0.08,"color":"#9db8c9"}]
+[{"role":"wall","x":4.3,"y":0,"z":-5,"w":8.6,"h":6,"l":10.5,"color":"#c5ccd4"},{"role":"roof","x":4.3,"y":6,"z":-5.2,"w":9,"h":2.2,"l":11,"color":"#6f7985","ridge":"z","peak":0.5},{"role":"window","x":6.6,"y":3.8,"z":0.05,"w":2.4,"h":3.5,"l":0.06,"color":"#a9bccb","fall":1.1}]
 
-How it's built, in metres. Looking at the front of the house, x runs from left to right, y runs up from the ground, and z comes out of the front toward you.
+How it's built, in metres. Looking at the front of the house, x runs from left to right, y runs up from the ground, and z comes out of the front toward you. Put x = 0 at the left wall and z = 0 on the main front wall, so the rest of the house has negative z.
 - x and z are a piece's centre, y is its base, and w, h and l are its size along x, y and z.
 - role is one of wall, roof, window, door, garage_door, trim.
-- A roof is a prism. ridge is the direction its ridge runs, "x" or "z". peak says where across the roof the ridge stands: 0.5 is a centred gable, and 0 or 1 is a lean-to, high on one side. Let it overhang its walls a little. h is from eaves to ridge.
-- Windows and doors are thin panels, under 0.3 m thick, sitting just proud of a wall, so at the front give them l of about 0.08, and on a side give them w of about 0.08.
-- trim is anything else that shapes the look: the porch canopy and its posts, the plinth, fascia boards along the eaves, and the panels of different cladding on the walls.
-- Every piece must touch another. Nothing floats.
-- Use the drawing's colours: dark brown vertical timber cladding, pale grey render on the garage wing, grey metal roofs, and blue-grey glass with dark frames.
+- A roof is a prism. ridge is the direction its ridge runs, "x" or "z". peak says where across the roof the ridge stands: 0.5 is a centred gable, 0 puts the high side at the left and 1 at the right. h is from eaves to ridge. The triangular end of a roof takes the colour of the wall under it, so a pale wall gives a pale gable.
+- Windows, doors and cladding panels are thin panels, under 0.3 m thick, sitting just proud of a wall: at the front or back give them l of about 0.05, on a side w of about 0.05. Stack them to make detail: a dark frame panel first, then lighter glass panes a little further out, with the frame showing between them as the glazing bars.
+- A thin panel on the front or back can take "fall": its top edge slopes down to the right by that many metres, or to the left if negative. y + h is its highest corner. This is how glass and cladding follow the gable.
+- trim is anything else that shapes the look: wood cladding panels, the plinth, fascia boards, the canopy and its posts, steps, downpipes and the lines on the garage door.
+- Every piece must touch another. Nothing floats. Do not put walls on top of roofs.
 
-If more images follow the sheet, they are clean views of the same house: its front, its back and its roof from above, in that order. Trust them over the sheet for shape. The top view gives the true footprint, with the front of the house at the bottom and the garage wing on the right. The back view shows where the windows and the back door go. Place windows on every wall they show.
+Measured off the drawing. Use these sizes.
+Main house: walls x 0 to 8.6, z 0 to -10, eaves at 6.0. The roof is a centred gable with its ridge along z: it overhangs to x -0.2 and 8.8, and its ridge stands at 8.2. There is a gable at the front and another at the back. Keep the roof's two ends flush with the walls, z 0 and -10, or its gable will hide the panels above the eaves.
+The wing: walls x 8.6 to 13.6, z -1.7 to -8.9, so it is set back from the main front and stops short of the main back. It has a single roof slope, ridge "z" and peak 0, high against the house at 5.6 and falling to 3.5 at the right, overhanging to x 13.85. Its back part, from z -3.2 back, stands lower against the house, at 4.9, which leaves room for a small high window on the main wall above it.
+The main walls are pale render. Wood cladding covers the front from x 0.3 to 5.25 up under the gable, and the front behind the porch. The back of the main house is all wood. The strip of the right main wall behind the wing, z -8.9 to -10, is wood too. The wing is pale render. A low plinth, 0.45 high, runs round the house.
+Front, left stack: two windows at x 1.3 to 3.5, y 0.9 to 3.0 and y 3.7 to 5.7, each a wide centre pane, two tall side panes and two small panes under those. Between them a grey panel, y 3.05 to 3.7.
+Front, tall window: x 5.3 to 7.9, from y 3.7 up to the gable, top edge falling to the right from about 7.35 to 6.25, three columns wide with a horizontal bar at y 5.7. The wall round it is pale render.
+Porch: a flat canopy x 4.3 to 8.6, y 3.2 to 3.5, reaching out to z 1.0, on two pale posts at its corners. Two steps in front of it, out to z 1.45, from y 0 to 0.45.
+Front door: x 5.75 to 6.7, y 0.47 to 2.53, dark wood, with a tall glass sidelight on each side and a row of three top lights up to y 3.
+Garage door: on the wing's front, x 9.05 to 12.75, up to y 2.5, grey with four horizontal lines.
+Back of the main house, seen from behind, so x falls from left to right: an upper row and a lower row of three-column windows at x 6 to 8 and x 1 to 2.9, y 3.55 to 5.45 and y 0.9 to 2.85. In the centre at x 4.3 to 5.3 a narrow window above, and a door below from y 0.45, with steps.
+Back of the wing: a door at x 12 to 12.9 with steps, and a two-pane window at x 9.8 to 11, y 1.1 to 2.5.
+Right side: a door on the wing's right wall near its front, at z about -2.2, and the small high window on the main right wall, z about -4.5, y 5.1 to 5.7, 1.3 m wide.
+Downpipes at the outer corners, and a fascia along each eaves.
 
-Check your proportions against the front elevation: the main house takes the left two-thirds of the front, its gable ridge a third of the way across the whole front, its eaves about three-quarters of the way up. The lower garage wing takes the right third, and its roof slopes down to the right. Do not put wall boxes on top of roofs.
+The drawing disagrees with itself in places, and these are settled. The side view is in false perspective: it shows the front gable at its left, but the true front corner is where the eaves begin. The back view shows a band of roof above the back wall: ignore it, the back is a gable like the front. The top view shows a ridge along the wing and squashes the depth: ignore both, the front and side views are right.
 
-Put every window where the drawing puts it, with the right size and proportions. Show the big two-storey windows, the porch, the front door and the garage door on the front, and the side door and window on the side.
+Colours: warm brown wood #6d5647, pale render #c5ccd4, grey metal roof #6f7985, pale fascia and trim #d3d8de, dark window frames #4a5563, blue-grey glass #a9bccb.

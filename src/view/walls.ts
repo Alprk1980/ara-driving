@@ -3,7 +3,6 @@
 // out of the town's merged meshes and a stand-in takes over, the same walls with holes, on the same materials.
 import * as THREE from 'three';
 import type { Box } from '../sim/town.ts';
-import type { TownBuildings } from './townblocks.ts';
 import { alongOf, ACROSS, cellIndex, craterRadius, HIT_HEIGHT, LAYERS, strike, TILE, TILE_VOXELS, tileKey, tilesNear, tileWidth, VOXEL, wallKey, wallOf, wallPoint, type Tile, type Wall } from './wallbreak.ts';
 
 const POOL_TILES = 200, MAX_BUILDINGS = 8, FILL = 1.01; // a hair over full size, so an intact wall reads as wall and only the crater shows blocks
@@ -11,6 +10,14 @@ const OUTER_GAP = 0.2; // seconds between hits on a wall, so scraping along one 
 const POCKET = '#17181d';
 
 const col = new THREE.Color(), matrix = new THREE.Matrix4();
+
+/** What a set of buildings has to offer to be broken: see them, take one away, and build its stand-in with the opened tiles cut out. */
+export type Breakable = {
+  indexOf(b: Box): number;
+  setWalls(i: number, on: boolean): void;
+  standIn(i: number, open: ReadonlyMap<string, ReadonlySet<string>>): THREE.Group;
+  colorAt(i: number, wall: Wall, along: number, y: number, out: THREE.Color): THREE.Color;
+};
 
 type Opened = Tile & { slot: number };
 type Damaged = { b: Box; index: number; mesh: THREE.Group | null; walls: Map<string, { wall: Wall; tiles: Map<string, Opened> }> };
@@ -22,9 +29,9 @@ export class WallDamage {
   private damaged: Damaged[] = []; // oldest first
   private last = -Infinity;
   private scene: THREE.Object3D;
-  private town: TownBuildings;
+  private town: Breakable;
 
-  constructor(scene: THREE.Object3D, town: TownBuildings) {
+  constructor(scene: THREE.Object3D, town: Breakable) {
     this.scene = scene;
     this.town = town;
     this.voxels = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshLambertMaterial(), POOL_TILES * TILE_VOXELS);

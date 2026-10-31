@@ -3,10 +3,16 @@
 export type Vec = { x: number; z: number };
 export type RoadNode = Vec & { id: number };
 export type Edge = { a: number; b: number; len: number };
+import drawnFoot from '../data/drawnfoot.json' with { type: 'json' };
 import { DISTRICTS, districtAt, onBuffer, type DistrictId } from './districts.ts';
 import { SERVICE_RULES, type ServiceId } from '../../schemas/services.ts';
 
-export type Box = { x: number; z: number; hx: number; hz: number; h: number; hue: number; district?: DistrictId; style?: string; front?: Vec }; // style: a bench can pin one; front: unit vector to the street
+export type Box = { x: number; z: number; hx: number; hz: number; h: number; hue: number; district?: DistrictId; style?: string; front?: Vec; drawn?: string; turn?: number }; // style: a bench can pin one; front: unit vector to the street
+export type DrawnFoot = { id: string; type: string; district?: DistrictId; kind?: string; service?: string; cx: number; cz: number; w: number; d: number; h: number };
+export const DRAWN_FOOT = drawnFoot as unknown as DrawnFoot[]; // the buildings built from drawings, as the town needs to site them
+// How many lots take each design. Spread out, so the same one doesn't turn up twice in a street.
+export const DRAWN_COPIES: Record<DistrictId, number> = { oldtown: 8, business: 6, garden: 16, works: 6 };
+const DRAWN_APART_M = 110, DRAWN_FILLS = 0.5, DRAWN_ASSEMBLY = 3; // how far apart two of a design stand, how much of a lot's front one must fill, and how many neighbouring lots a big one may take
 export const FURNITURE_KINDS = ['bench', 'bin', 'planter', 'bollard', 'cycle_rack', 'bus_shelter', 'hedge', 'container', 'pallets'] as const;
 export type ParkedCar = Vec & { heading: number; colour: number; drive?: boolean };
 export type Zebra = Vec & { edge: number; along: number; ux: number; uz: number }; // along: metres from the edge's node a
@@ -56,6 +62,7 @@ export class Town {
   edges: Edge[] = [];
   adj: { to: number; edge: number }[][] = [];
   boxes: Box[] = [];
+  drawnPlots = new Map<Plot, { id: string; x: number; z: number; turn: number }>(); // the plots that take a drawn building, set when the places are known
   trees: Vec[] = [];
   parked: ParkedCar[] = [];
   furniture: Furniture[] = [];
@@ -86,6 +93,88 @@ export class Town {
     const open = this.flood();
     this.spots = this.spots.filter((s) => open.has(this.gridKey(s.x, s.z)));
     if (!opts.bare) this.siteServices();
+    if (!opts.bare) this.siteDrawn(makeRng(seed + 3));
+  }
+
+  /** The rectangle a building takes with its front edge held where it is, and the way that faces. */
+  private frontage(frontAt: Vec, front: Vec, w: number, d: number) {
+    const onX = Math.abs(front.x) >= Math.abs(front.z), sign = (onX ? front.x : front.z) >= 0 ? 1 : -1;
+    return { x: frontAt.x - (onX ? sign * d / 2 : 0), z: frontAt.z - (onX ? 0 : sign * d / 2), hx: onX ? d / 2 : w / 2, hz: onX ? w / 2 : d / 2, turn: onX ? (sign * Math.PI) / 2 : sign > 0 ? 0 : Math.PI };
+  }
+
+  private overlapping(r: { x: number; z: number; hx: number; hz: number }) {
+    return this.boxes.filter((o) => Math.abs(r.x - o.x) < r.hx + o.hx + 0.3 && Math.abs(r.z - o.z) < r.hz + o.hz + 0.3);
+  }
+
+  private standsClear(r: { x: number; z: number; hx: number; hz: number }) {
+    for (const p of this.plots) if (Math.abs(r.x - p.x) < r.hx + PLOT_SOLID && Math.abs(r.z - p.z) < r.hz + PLOT_SOLID) return false;
+    for (const s of this.services) if (Math.abs(r.x - s.x) < r.hx + 20 && Math.abs(r.z - s.z) < r.hz + 20) return false;
+    return [[0, 0], [1, 1], [1, -1], [-1, 1], [-1, -1], [1, 0], [-1, 0], [0, 1], [0, -1]].every(([a, b]) => !this.edges.some((e) => this.segDist({ x: r.x + a * r.hx, z: r.z + b * r.hz }, e) < ROAD_W / 2 + 1));
+  }
+
+  // Comes last and uses its own stream, so it moves nothing else: a lot's building is swapped for a drawn one of its district, whose front
+  // keeps to the lot's front, and the solid shrinks or grows to fit. Parked cars and furniture were set against the lot, so they stay clear.
+  private siteDrawn(rng: Rng) {
+    const order = this.boxes.map((b) => ({ b, k: rng() })).sort((p, q) => p.k - q.k).map((p) => p.b), gone = new Set<Box>();
+    for (const m of DRAWN_FOOT) {
+      if (!m.district) continue;
+      const taken: Box[] = [];
+      for (const b of order) {
+        if (taken.length >= DRAWN_COPIES[m.district]) break;
+        if (gone.has(b) || b.district !== m.district || b.drawn || !b.front || taken.some((o) => dist(o, b) < DRAWN_APART_M)) continue;
+        const onX = Math.abs(b.front.x) >= Math.abs(b.front.z), along = onX ? b.hz : b.hx, depth = onX ? b.hx : b.hz;
+        if (m.w / 2 < along * DRAWN_FILLS) continue;
+        const frontAt = { x: b.x + (onX ? Math.sign(b.front.x) * depth : 0), z: b.z + (onX ? 0 : Math.sign(b.front.z) * depth) }, r = this.frontage(frontAt, b.front, m.w, m.d);
+        // A building too big for its lot takes in the lots beside it, as a developer would, up to DRAWN_ASSEMBLY of them.
+        const others = this.overlapping(r).filter((o) => o !== b);
+        if (others.length > DRAWN_ASSEMBLY || others.some((o) => o.district !== m.district || o.drawn) || !this.standsClear(r)) continue;
+        if (others.length) {
+          const inside = (v: Vec) => Math.abs(v.x - r.x) < r.hx + 1 && Math.abs(v.z - r.z) < r.hz + 1;
+          if (this.spots.some(inside)) continue;
+          for (const o of others) {
+            gone.add(o);
+            this.boxes.splice(this.boxes.indexOf(o), 1);
+            for (const list of this.cells.values()) { const i = list.indexOf(o); if (i >= 0) list.splice(i, 1); }
+          }
+          this.trees = this.trees.filter((v) => !inside(v));
+          this.furniture = this.furniture.filter((v) => !inside(v));
+          this.parked = this.parked.filter((v) => !inside(v));
+        }
+        b.x = r.x; b.z = r.z; b.hx = r.hx; b.hz = r.hz; b.h = m.h; b.drawn = m.id; b.turn = r.turn;
+        this.index(b);
+        taken.push(b);
+      }
+    }
+  }
+
+  // The places: each kind's drawn building takes every other plot of that kind. One that outgrows its plot grows back from the plot's
+  // front, and only where that ground is clear; it then clears the trees and clutter on it, as a station does.
+  fitPlaces(kindOf: (p: Plot) => string | undefined, held: Plot[]) {
+    if (this.drawnPlots.size) return;
+    const seen = new Map<string, number>();
+    for (const p of this.plots) {
+      const kind = kindOf(p), m = DRAWN_FOOT.find((f) => f.kind === kind);
+      if (!m || !kind || held.includes(p)) continue;
+      const n = seen.get(kind) ?? 0;
+      seen.set(kind, n + 1);
+      if (n % 2) continue;
+      const len = dist(p, p.road) || 1, front = { x: (p.road.x - p.x) / len, z: (p.road.z - p.z) / len }, onX = Math.abs(front.x) >= Math.abs(front.z);
+      const frontAt = { x: p.x + (onX ? Math.sign(front.x) * PLOT_SOLID : 0), z: p.z + (onX ? 0 : Math.sign(front.z) * PLOT_SOLID) };
+      const r = this.frontage(frontAt, front, Math.max(m.w, 1), Math.max(m.d, 1));
+      const fits = m.w <= PLOT_SOLID * 2 + 0.6 && m.d <= PLOT_SOLID * 2 + 0.6;
+      if (!fits) {
+        const others = this.plots.filter((q) => q !== p);
+        const inside = (v: Vec) => Math.abs(v.x - r.x) < r.hx + 1 && Math.abs(v.z - r.z) < r.hz + 1;
+        if (this.overlapping(r).length || others.some((q) => Math.abs(r.x - q.x) < r.hx + PLOT_SOLID && Math.abs(r.z - q.z) < r.hz + PLOT_SOLID)) continue;
+        if (this.services.some((s) => dist(s, r) < Math.max(r.hx, r.hz) + 24) || this.spots.some(inside) || this.edges.some((e) => [[0, 0], [1, 1], [1, -1], [-1, 1], [-1, -1], [1, 0], [-1, 0], [0, 1], [0, -1]].some(([a, b]) => this.segDist({ x: r.x + a * r.hx, z: r.z + b * r.hz }, e) < ROAD_W / 2 + 1))) continue;
+        this.index({ x: r.x, z: r.z, hx: r.hx, hz: r.hz, h: 0, hue: 0 });
+        const clear = (v: Vec) => !inside(v);
+        this.trees = this.trees.filter(clear);
+        this.furniture = this.furniture.filter(clear);
+        this.parked = this.parked.filter(clear);
+      }
+      this.drawnPlots.set(p, { id: m.id, x: r.x, z: r.z, turn: r.turn });
+    }
   }
 
   private gridKey = (x: number, z: number) => Math.round(x / 6) * 10000 + Math.round(z / 6);

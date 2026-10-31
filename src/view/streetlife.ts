@@ -18,7 +18,7 @@ import { paintedMaterial, partsGeometry } from './parts.ts';
 const part = (shape: Part['shape'], x: number, y: number, z: number, w: number, h: number, l: number, color: string): Part => ({ shape, x, y, z, w, h, l, color });
 
 // White parts take each instance's tint, for hedges and containers.
-const FURNITURE_PARTS: Record<(typeof FURNITURE_KINDS)[number], Part[]> = {
+export const FURNITURE_PARTS: Record<(typeof FURNITURE_KINDS)[number], Part[]> = {
   bench: [part('box', 0, 0.42, 0, 1.7, 0.08, 0.45, '#8a5a34'), part('box', 0, 0.62, -0.2, 1.7, 0.42, 0.07, '#8a5a34'), part('box', -0.7, 0, 0, 0.09, 0.44, 0.44, '#33363d'), part('box', 0.7, 0, 0, 0.09, 0.44, 0.44, '#33363d')],
   bin: [part('cylinder', 0, 0, 0, 0.5, 0.95, 0.5, '#2f5d50'), part('cylinder', 0, 0.95, 0, 0.56, 0.1, 0.56, '#23262e')],
   planter: [part('box', 0, 0, 0, 1.1, 0.55, 1.1, '#8d8f98'), part('cone', 0, 0.55, 0, 1.15, 1, 1.15, '#3f9a57')],

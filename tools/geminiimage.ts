@@ -14,7 +14,7 @@ const res = await fetch(`https://aiplatform.googleapis.com/v1/publishers/google/
   headers: { 'content-type': 'application/json' },
   body: JSON.stringify(imagen ? { instances: [{ prompt }], parameters: { sampleCount: 1, aspectRatio: aspect } } : { contents: [{ role: 'user', parts }], generationConfig: { responseModalities: ['TEXT', 'IMAGE'] } }),
 });
-if (!res.ok) throw new Error(`${res.status}: ${(await res.text()).slice(0, 400)}`);
+if (!res.ok) throw new Error(`${res.status}: ${(await res.text()).slice(0, 400).replace(/\s+/g, ' ')}`);
 const body = await res.json() as { predictions?: { bytesBase64Encoded?: string }[]; candidates?: { content?: { parts?: { text?: string; inlineData?: { data: string } }[] } }[] };
 const data = body.predictions?.[0]?.bytesBase64Encoded ?? body.candidates?.[0]?.content?.parts?.find((p) => p.inlineData)?.inlineData?.data;
 if (!data) throw new Error(`no image came back: ${JSON.stringify(body).slice(0, 300)}`);

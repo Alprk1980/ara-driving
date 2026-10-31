@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Model Gallery</title>
+<style>
+  :root { --bg: #141821; --panel: #1c212b; --line: #2f3644; --text: #e8ebf1; --dim: #9aa3b2; --accent: #5be0c8; }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; background: var(--bg); color: var(--text); font: 15px system-ui, sans-serif; }
+  #app { display: grid; grid-template-columns: 300px 1fr; height: 100%; }
+  #side { display: flex; flex-direction: column; min-height: 0; background: var(--panel); border-right: 1px solid var(--line); }
+  header { padding: 14px 14px 10px; }
+  h1 { font-size: 19px; margin: 0 0 8px; }
+  #search { width: 100%; padding: 9px 10px; border: 1px solid var(--line); border-radius: 8px; background: #12151b; color: var(--text); font: inherit; }
+  #total { margin-top: 7px; color: var(--dim); font-size: 12.5px; }
+  #back { display: inline-block; margin-top: 7px; color: var(--accent); font-size: 12.5px; }
+  #list { flex: 1; overflow: auto; padding: 0 8px 14px; }
+  #list h2 { margin: 14px 6px 5px; font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--dim); }
+  #list button { display: block; width: 100%; padding: 7px 8px; border: 0; border-radius: 6px; background: none; color: var(--text); font: inherit; font-size: 14px; text-align: left; cursor: pointer; }
+  #list button:hover { background: #262c38; }
+  #list button.on { background: var(--accent); color: #06221d; font-weight: 600; }
+  main { position: relative; min-width: 0; }
+  #view { width: 100%; height: 100%; display: block; }
+  #info { position: absolute; left: 14px; top: 12px; right: 14px; pointer-events: none; text-shadow: 0 1px 3px #0009; }
+  #name { font-size: 22px; font-weight: 700; }
+  #kind { color: var(--accent); font-size: 13px; font-weight: 600; }
+  #facts { color: #d4dae4; font-size: 13px; margin-top: 3px; }
+  #tools { position: absolute; left: 14px; bottom: 12px; right: 14px; display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; padding: 8px 10px; border-radius: 10px; background: #1c212be6; }
+  #tools label { display: inline-flex; gap: 5px; align-items: center; font-size: 13px; cursor: pointer; }
+  #tools button { padding: 6px 12px; border: 1px solid var(--line); border-radius: 7px; background: #262c38; color: var(--text); font: inherit; font-size: 13px; cursor: pointer; }
+  #paintrow[hidden] { display: none; }
+  #hint { color: var(--dim); font-size: 12px; margin-left: auto; }
+  input[type=color] { width: 30px; height: 22px; padding: 0; border: 0; background: none; }
+  @media (max-width: 760px) { #app { grid-template-columns: 1fr; grid-template-rows: 62vh 1fr; } #side { order: 2; border-right: 0; } main { order: 1; } #hint { display: none; } }
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="side">
+    <header>
+      <h1>Model Gallery</h1>
+      <input id="search" type="text" placeholder="Search models" aria-label="Search models" />
+      <div id="total"></div>
+      <a id="back" href="labs.html">Back to Labs</a>
+    </header>
+    <nav id="list" aria-label="Models"></nav>
+  </aside>
+  <main>
+    <canvas id="view" aria-label="3D view of the chosen model"></canvas>
+    <div id="info"><div id="kind"></div><div id="name"></div><div id="facts"></div></div>
+    <div id="tools">
+      <button id="prev" type="button">Previous</button>
+      <button id="next" type="button">Next</button>
+      <label><input id="spin" type="checkbox" /> Spin</label>
+      <label><input id="scale" type="checkbox" checked /> Person for scale</label>
+      <label><input id="light" type="checkbox" /> Light background</label>
+      <label id="paintrow" hidden>Paint <input id="paint" type="color" value="#3d6fa8" /></label>
+      <span id="hint">Drag to turn · wheel to zoom · arrow keys to step</span>
+    </div>
+  </main>
+</div>
+<script type="module" src="/src/gallery/main.ts"></script>
+</body>
+</html>

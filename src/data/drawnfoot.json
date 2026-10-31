@@ -1,0 +1,282 @@
+[
+ {
+  "id": "aggregate_hall",
+  "type": "style_concrete_depot",
+  "district": "works",
+  "cx": 9.55,
+  "cz": -7.02,
+  "w": 19.28,
+  "d": 17.75,
+  "h": 8.5
+ },
+ {
+  "id": "ashcombe_library",
+  "type": "place_library",
+  "kind": "library",
+  "cx": 12.5,
+  "cz": -8.7,
+  "w": 25.5,
+  "d": 20.6,
+  "h": 14.4
+ },
+ {
+  "id": "ashfield_chambers",
+  "type": "style_stone_chambers",
+  "district": "business",
+  "cx": 15.4,
+  "cz": -10.5,
+  "w": 30.98,
+  "d": 21.18,
+  "h": 19.1
+ },
+ {
+  "id": "bluebell_terrace",
+  "type": "style_painted_terrace",
+  "district": "garden",
+  "cx": 7.13,
+  "cz": -4.2,
+  "w": 14.45,
+  "d": 9.98,
+  "h": 8.65
+ },
+ {
+  "id": "bramley_police_station",
+  "type": "station_police",
+  "service": "police",
+  "cx": 7.74,
+  "cz": -5.17,
+  "w": 15.69,
+  "d": 12.84,
+  "h": 9.35
+ },
+ {
+  "id": "cedar_court_flats",
+  "type": "style_tower_flats",
+  "district": "business",
+  "cx": 9.57,
+  "cz": -9.18,
+  "w": 19.39,
+  "d": 18.61,
+  "h": 20.8
+ },
+ {
+  "id": "chill_yard_store",
+  "type": "style_cold_store",
+  "district": "works",
+  "cx": 8.45,
+  "cz": -6.68,
+  "w": 17.06,
+  "d": 14.81,
+  "h": 10.07
+ },
+ {
+  "id": "cinder_lane_station",
+  "type": "station_fire",
+  "service": "fire",
+  "cx": 12.39,
+  "cz": -8.38,
+  "w": 24.95,
+  "d": 17.01,
+  "h": 14.49
+ },
+ {
+  "id": "cobalt_ridge",
+  "type": "style_ribbon_office",
+  "district": "business",
+  "cx": 21.9,
+  "cz": -11.82,
+  "w": 43.98,
+  "d": 24.54,
+  "h": 25
+ },
+ {
+  "id": "cobb_corner_shop",
+  "type": "place_shop",
+  "kind": "shop",
+  "cx": 5.04,
+  "cz": -5.73,
+  "w": 10.13,
+  "d": 11.71,
+  "h": 7.9
+ },
+ {
+  "id": "cobble_cottages",
+  "type": "style_pebble_cottages",
+  "district": "garden",
+  "cx": 7.6,
+  "cz": -5.4,
+  "w": 15.38,
+  "d": 10.98,
+  "h": 10.75
+ },
+ {
+  "id": "copper_shed",
+  "type": "style_tin_shed",
+  "district": "works",
+  "cx": 8.65,
+  "cz": -8.25,
+  "w": 17.55,
+  "d": 16.74,
+  "h": 10.2
+ },
+ {
+  "id": "crescent_tower",
+  "type": "style_glass_tower",
+  "district": "business",
+  "cx": 19.35,
+  "cz": -14.63,
+  "w": 39.9,
+  "d": 33.15,
+  "h": 25.55
+ },
+ {
+  "id": "elmwood_clinic",
+  "type": "place_clinic",
+  "kind": "clinic",
+  "cx": 8,
+  "cz": -6.1,
+  "w": 16.18,
+  "d": 15.39,
+  "h": 9.56
+ },
+ {
+  "id": "fen_road_depot",
+  "type": "place_depot",
+  "kind": "depot",
+  "cx": 11.65,
+  "cz": -6.05,
+  "w": 23.5,
+  "d": 12.28,
+  "h": 7.6
+ },
+ {
+  "id": "fern_court_flats",
+  "type": "style_garden_flats",
+  "district": "garden",
+  "cx": 8.18,
+  "cz": -5.15,
+  "w": 16.53,
+  "d": 13.27,
+  "h": 9.2
+ },
+ {
+  "id": "hollis_semis",
+  "type": "style_brick_semis",
+  "district": "garden",
+  "cx": 8.28,
+  "cz": -5.05,
+  "w": 17.55,
+  "d": 12.5,
+  "h": 10.72
+ },
+ {
+  "id": "kettle_cafe",
+  "type": "place_cafe",
+  "kind": "cafe",
+  "cx": 7.2,
+  "cz": -4.6,
+  "w": 14.58,
+  "d": 14.19,
+  "h": 6.93
+ },
+ {
+  "id": "kiln_row",
+  "type": "style_high_street_brick",
+  "district": "oldtown",
+  "cx": 4.3,
+  "cz": -6.39,
+  "w": 8.76,
+  "d": 13.01,
+  "h": 10.71
+ },
+ {
+  "id": "kingsley_market_hall",
+  "type": "place_market",
+  "kind": "market",
+  "cx": 10.75,
+  "cz": -9.5,
+  "w": 21.74,
+  "d": 19.24,
+  "h": 12.91
+ },
+ {
+  "id": "marsh_road_station",
+  "type": "station_ambulance",
+  "service": "ambulance",
+  "cx": 8.75,
+  "cz": -6.04,
+  "w": 17.7,
+  "d": 15.49,
+  "h": 10.72
+ },
+ {
+  "id": "meadow_primary",
+  "type": "place_school",
+  "kind": "school",
+  "cx": 9.1,
+  "cz": -6.09,
+  "w": 18.38,
+  "d": 15.99,
+  "h": 10.7
+ },
+ {
+  "id": "spinning_shed",
+  "type": "style_old_mill",
+  "district": "works",
+  "cx": 12.7,
+  "cz": -3.25,
+  "w": 25.46,
+  "d": 11.89,
+  "h": 15.3
+ },
+ {
+  "id": "sterling_house",
+  "type": "style_old_bank",
+  "district": "oldtown",
+  "cx": 12.85,
+  "cz": -10.4,
+  "w": 25.88,
+  "d": 22.77,
+  "h": 15.8
+ },
+ {
+  "id": "tallow_row",
+  "type": "style_market_row",
+  "district": "oldtown",
+  "cx": 9.7,
+  "cz": -5.07,
+  "w": 19.6,
+  "d": 14.24,
+  "h": 11.73
+ },
+ {
+  "id": "thistle_house",
+  "type": "place_house",
+  "kind": "house",
+  "cx": 6.8,
+  "cz": -3.09,
+  "w": 13.78,
+  "d": 10.27,
+  "h": 8.42
+ },
+ {
+  "id": "wheatsheaf_passage",
+  "type": "style_corner_arcade",
+  "district": "oldtown",
+  "cx": 10.99,
+  "cz": -5.19,
+  "w": 22.15,
+  "d": 14.81,
+  "h": 11.74
+ },
+ {
+  "id": "wren_house",
+  "type": "place_office",
+  "kind": "office",
+  "cx": 7.45,
+  "cz": -5.64,
+  "w": 15.08,
+  "d": 12.4,
+  "h": 8.9
+ }
+]

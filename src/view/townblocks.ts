@@ -162,8 +162,10 @@ export class TownBuildings {
       const p = this.plans[i], set = bufs.get(p.style.id)!;
       const was = { u: set.upper.pos.length / 3, g: set.ground.pos.length / 3, l: low.pos.length / 3 };
       tint.set(p.wall);
-      for (const r of wallRects(b, p)) for (const w of WALLS) emitWall(r.role === 'ground' ? set.ground : set.upper, b, p, r, w, tint, undefined);
-      emitParts(high, low, b, p);
+      if (!b.drawn) { // a building from a drawing stands in view/drawn.ts instead
+        for (const r of wallRects(b, p)) for (const w of WALLS) emitWall(r.role === 'ground' ? set.ground : set.upper, b, p, r, w, tint, undefined);
+        emitParts(high, low, b, p);
+      }
       this.slots.push({ upper: { start: was.u, count: set.upper.pos.length / 3 - was.u }, ground: { start: was.g, count: set.ground.pos.length / 3 - was.g }, low: { start: was.l, count: low.pos.length / 3 - was.l } });
     });
     for (const [id, set] of bufs) {

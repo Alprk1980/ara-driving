@@ -4,16 +4,13 @@
 //   npx vite --port 4179 --strictPort &   then   node --env-file=.env.llm tools/housebuild.ts sheet.png [--name house] [--target 8] [--rounds 5]
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { chromium } from 'playwright';
-import { houseErrors, trianglesOf, type HouseSize, type Piece } from '../schemas/house.ts';
+import { DRAWN_HOUSE, houseErrors, trianglesOf, type Piece } from '../schemas/house.ts';
 import { chat, MODEL, parseJson } from './llm.ts';
 
 const args = process.argv.slice(2), flag = (name: string, or: string) => { const i = args.indexOf(name); return i >= 0 ? args[i + 1] : or; };
-const sheet = args[0], views = flag('--views', '').split(',').filter(Boolean), name = // --views: clean views after the sheet, as front,back,top
+const sheet = args[0], views = flag('--views', '').split(',').filter(Boolean), name = // --views: clean views after the sheet, as front,side,back,top
  flag('--name', 'house'), target = Number(flag('--target', '8')), rounds = Number(flag('--rounds', '5'));
-// From the sheet: 12 m across the front and 8.2 m to the roof, with the main roof over two-thirds of the front, eaves at 73% of the
-// ridge, and six panes of glass. Its depth labels disagree with its drawing, so depth is wide.
-const SIZE: HouseSize = { wide: [11, 13.5], tall: [7.5, 9], deep: [9, 15], triangles: 1200, mainRoofShare: [0.58, 0.76], eaves: [0.62, 0.8], frontWindows: 5 };
-const REPAIRS = 4, BEST = `out/${name}-parts.json`;
+const SIZE = DRAWN_HOUSE, REPAIRS = 4, BEST = `out/${name}-parts.json`;
 const url = (file: string) => `data:image/png;base64,${readFileSync(file).toString('base64')}`;
 const image = (u: string) => ({ type: 'image_url', image_url: { url: u } });
 type Msg = { role: 'system' | 'user' | 'assistant'; content: unknown };
@@ -31,7 +28,7 @@ async function write(notes: string, last: Piece[] | null): Promise<Piece[] | nul
   const ask = `Rebuild this house as pieces.${last ? `\n\nYour last version:\n${JSON.stringify(last)}\n\nA reviewer compared it with the sheet and said:\n${notes}\nFix those, keeping what was right.` : ''}`;
   let msgs: Msg[] = [{ role: 'system', content: readFileSync('prompts/house.txt', 'utf8') }, { role: 'user', content: [{ type: 'text', text: ask }, image(url(sheet)), ...views.map((f) => image(url(f)))] }];
   for (let t = 1; t <= REPAIRS; t++) {
-    const raw = await chat(msgs as never, { model: MODEL, maxTokens: 20000, temperature: 0.4 }), list = parseJson(raw), errs = houseErrors(list, SIZE);
+    const raw = await chat(msgs as never, { model: MODEL, maxTokens: 32000, temperature: 0.4 }), list = parseJson(raw), errs = houseErrors(list, SIZE);
     console.log(`  draft ${t}: ${errs.length ? errs.slice(0, 3).join(' | ').slice(0, 200) : `${(list as Piece[]).length} pieces, ${trianglesOf(list as Piece[])} triangles`}`);
     if (!errs.length) return list as Piece[];
     msgs = [...msgs, { role: 'assistant', content: raw }, { role: 'user', content: `Fix these and answer the whole JSON array again:\n${errs.slice(0, 12).join('\n')}` }];
@@ -42,11 +39,16 @@ async function write(notes: string, last: Piece[] | null): Promise<Piece[] | nul
 async function photograph(tag: string, pieces: Piece[]) {
   await page.evaluate((p) => (window as any).photovox.pieces(p), pieces);
   const out: string[] = [];
-  for (const [label, yaw, pitch] of [['iso', 0.7, 0.55], ['iso2', -0.8, 0.55], ['front', 0, 0.02], ['side', Math.PI / 2, 0.02]] as const) {
+  for (const [label, yaw, pitch] of [['iso', 0.7, 0.55], ['iso2', -2.3, 0.55]] as const) {
     await page.evaluate(([y, p]) => (window as any).photovox.aim(y, p), [yaw, pitch]);
     await page.waitForTimeout(400);
     const file = `out/${tag}-${label}.png`;
     await page.locator('#view').screenshot({ path: file });
+    out.push(file);
+  }
+  for (const view of ['front', 'side', 'back'] as const) { // square-on and at the clean views' own scale, so the two can be compared directly
+    const file = `out/${tag}-${view}.png`;
+    writeFileSync(file, Buffer.from((await page.evaluate(([p, v]) => (window as any).photovox.plate(p, v), [pieces, view] as const) as string).split(',')[1], 'base64'));
     out.push(file);
   }
   return out;
@@ -54,7 +56,7 @@ async function photograph(tag: string, pieces: Piece[]) {
 
 /** Qwen's comparison of the model with the sheet. */
 async function review(shots: string[]) {
-  const ask = `The first ${1 + views.length} images are an architect's sheet for a house${views.length ? ', then its clean front, back and top views' : ''}. The last four show a low-poly model built from them: two isometric views, then the front and the side.`.concat(' ') + ' Judge how well the model captures the house: its shape, roofs, wings, and where the windows and doors are. Plain flat colours and simple shapes are intended. Answer with ONLY a JSON object: {"score":1-10,"problems":["short specific problem"]}';
+  const ask = `The first ${1 + views.length} images are an architect's sheet for a house${views.length ? ', then its clean front, right side, back and top views' : ''}. The last five show a low-poly model built from them: two three-quarter views, one from the front right and one from the back left, then square-on front, right side and back views drawn at the same scale as the clean views.`.concat(' ') + ' Judge how well the model captures the house: its shape, roofs, wing, and where the windows and doors are. Plain flat colours, no shadows, and simple shapes are intended. The left side has no drawing, so judge nothing there. The drawing disagrees with itself in two places, already settled: the back is a gable, so ignore the band of roof in the back view; and the wing roof is one slope falling to the right, so ignore the ridge along the wing in the top view. Answer with ONLY a JSON object: {"score":1-10,"problems":["short specific problem"]}';
   for (let t = 0; t < 3; t++) {
     const v = parseJson(await chat([{ role: 'user', content: [{ type: 'text', text: ask }, image(url(sheet)), ...views.map((f) => image(url(f))), ...shots.map((f) => image(url(f)))] }] as never, { model: MODEL, maxTokens: 12000, temperature: 0.2 }), 'object') as { score?: number; problems?: string[] | string } | null;
     if (v && typeof v.score === 'number') return { score: v.score, problems: [v.problems ?? []].flat() };

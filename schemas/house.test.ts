@@ -23,4 +23,12 @@ describe('a building in parts', () => {
   it('holds the main roof to the share of the front the drawing gives it', () => { expect(houseErrors(house(), { ...SIZE, mainRoofShare: [0.8, 0.9] }).join()).toMatch(/spans/); });
   it('holds the eaves to the drawing', () => { expect(houseErrors(house(), { ...SIZE, eaves: [0.2, 0.3] }).join()).toMatch(/eaves/); });
   it('asks for the glass the drawing shows', () => { expect(houseErrors(house(), { ...SIZE, frontWindows: 20 }).join()).toMatch(/window panes/); });
+  it('asks for the glass on the back too', () => { expect(houseErrors(house(), { ...SIZE, backWindows: 2 }).join()).toMatch(/on the back/); });
+  it('refuses a gable off centre or turned sideways', () => { const h = house(); h[1] = { ...h[1], ridge: 'x' }; expect(houseErrors(h, { ...SIZE, gableMain: true }).join()).toMatch(/centred gable/); });
+  it('wants the wing roof as one slope falling to the right', () => { const h = house(); h[3] = { ...h[3], ridge: 'z', peak: 0.5 }; expect(houseErrors(h, { ...SIZE, wingShed: true }).join()).toMatch(/one slope/); h[3] = { ...h[3], peak: 0 }; expect(houseErrors(h, { ...SIZE, wingShed: true })).toEqual([]); });
+  it('wants a raked window where the drawing has one', () => { const h = house(); expect(houseErrors(h, { ...SIZE, rakedWindow: true }).join()).toMatch(/follows the gable/); h[6] = { ...h[6], fall: 0.5 }; expect(houseErrors(h, { ...SIZE, rakedWindow: true })).toEqual([]); });
+  it('refuses a fall on a wall, or one deeper than the panel', () => { const h = house(); h[0] = { ...h[0], fall: 1 }; expect(houseErrors(h, SIZE).join()).toMatch(/fall/); const g = house(); g[6] = { ...g[6], fall: 2 }; expect(houseErrors(g, SIZE).join()).toMatch(/fall/); });
+  it('holds doors to real sizes', () => { expect(houseErrors(house(), { ...SIZE, door: { h: [1.95, 2.15], w: [0.75, 1] } }).join()).toMatch(/a door of 1.00 × 1.50/); });
+  it('holds the garage door to real sizes', () => { expect(houseErrors(house(), { ...SIZE, garage: { h: [1.95, 2.6], w: [3.5, 4.3] } }).join()).toMatch(/garage door of 3.00/); });
+  it('takes as many pieces as the drawing allows', () => { const many = [...house(), ...Array.from({ length: 80 }, () => box('trim', -2, 0, 6.2, 8, 0.3, 0.3))]; expect(houseErrors(many, { ...SIZE, triangles: 2000 }).join()).toMatch(/use 12-80/); expect(houseErrors(many, { ...SIZE, triangles: 2000, pieces: 100 })).toEqual([]); });
 });

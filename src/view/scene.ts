@@ -24,6 +24,7 @@ import { RoadControl } from './roadcontrol.ts';
 import { buildServices } from './services.ts';
 import { StreetLife } from './streetlife.ts';
 import { TownBuildings } from './townblocks.ts';
+import { DrawnBuildings } from './drawn.ts';
 import { WallDamage } from './walls.ts';
 import buildingStyles from '../data/buildingstyles.json';
 import type { BuildingStyle } from '../../schemas/buildings.ts';
@@ -130,7 +131,7 @@ function buildPlaces(scene: THREE.Scene, game: Game, landmarks: Landmark[], held
   const town = game.town, seen = new Map<string, number>(), geos: THREE.BufferGeometry[] = [];
   const m = new THREE.Matrix4();
   for (const p of town.plots) {
-    if (held.includes(p)) continue;
+    if (held.includes(p) || town.drawnPlots.has(p)) continue;
     const kind = placeAt(town, game.content.places, p)?.kind, designs = landmarks.filter((l) => l.kind === kind);
     if (!kind || !designs.length) continue;
     const n = seen.get(kind) ?? 0;
@@ -350,6 +351,8 @@ export class View {
   private cones: THREE.InstancedMesh;
   private debris: Debris;
   private walls: WallDamage;
+  drawnWalls: WallDamage;
+  drawn: DrawnBuildings;
   private dmg: DamageRig | null = null;
   private paint = DEFAULT_PAINT;
 
@@ -400,6 +403,8 @@ export class View {
     this.fx = new Fx(this.scene);
     this.debris = new Debris(this.scene);
     this.walls = new WallDamage(this.scene, this.look3.buildings);
+    this.drawn = new DrawnBuildings(this.scene, game.town);
+    this.drawnWalls = new WallDamage(this.scene, this.drawn);
     this.props = buildFinds(this.scene, game);
     for (const id of game.progress.found) this.hideFind(id);
 
@@ -425,7 +430,9 @@ export class View {
         this.fx.sparks(cx, cz, e.speed);
         this.debris.burst(cx, cz, nx, nz, e.speed, this.paint);
         if (h?.box) {
-          this.walls.hit(h.box, h.nx, h.nz, h.x, h.z, e.speed);
+          const drawn = this.drawn.boxAt(h.x, h.z); // the stations and big places stand on solids of their own, so go by where it landed
+          if (drawn) this.drawnWalls.hit(drawn, h.nx, h.nz, h.x, h.z, e.speed);
+          else this.walls.hit(h.box, h.nx, h.nz, h.x, h.z, e.speed);
           const i = this.look3.buildings.indexOf(h.box);
           if (i >= 0) this.debris.burst(cx, cz, nx, nz, e.speed, this.look3.buildings.plans[i].wall);
         }
@@ -690,6 +697,7 @@ export class View {
   }
 
   frame(dt: number, steer: number, brake = 0) {
+    this.drawn.update(this.camera.position);
     const g = this.game, p = g.player, rig = this.rig;
     this.countFrames(dt);
     this.dmg?.set(g.player.dents, g.player.marks);

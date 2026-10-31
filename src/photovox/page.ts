@@ -5,6 +5,7 @@ import { toCreasedNormals } from 'three/examples/jsm/utils/BufferGeometryUtils.j
 import { carve, cellAt, cutPreview, outlineMatch, viewAgreement, type Picture, type Shot, type View, type VoxelBlock } from './carve.ts';
 import { skinNormals, surfaceNet, type Skin } from '../view/carsurface.ts';
 import { simplify, type Wrapped } from './wrap.ts';
+import { piecesGeometry } from './pieces.ts';
 import type { Piece } from '../../schemas/house.ts';
 import type { Part } from '../../schemas/content.ts';
 import landmarks from '../data/landmarks.json';
@@ -84,39 +85,9 @@ function skin(b: VoxelBlock) {
   return new THREE.Mesh(g, materials);
 }
 
-/** A building written out as parts: boxes, and roofs as prisms, flat-shaded in one mesh. */
+/** A building written out as parts, shown as it stands. */
 function showPieces(pieces: Piece[]) {
-  const pos: number[] = [], col: number[] = [], c = new THREE.Color();
-  const tri = (a: number[], b: number[], d: number[]) => { pos.push(...a, ...b, ...d); for (let i = 0; i < 3; i++) col.push(c.r, c.g, c.b); };
-  const quad = (a: number[], b: number[], d: number[], e: number[]) => { tri(a, b, d); tri(a, d, e); };
-  for (const p of pieces) {
-    c.set(p.color);
-    // A gable's triangular end is wall, not roof: painted roof colour, it reads as a hip.
-    const under = pieces.filter((w) => w.role === 'wall' && Math.abs(w.y + w.h - p.y) < 0.5 && Math.abs(w.x - p.x) < (w.w + p.w) / 2 && Math.abs(w.z - p.z) < (w.l + p.l) / 2).sort((a, b) => b.w * b.l - a.w * a.l)[0];
-    const gableEnd = (draw: () => void) => { if (under) c.set(under.color); draw(); c.set(p.color); };
-    const x0 = p.x - p.w / 2, x1 = p.x + p.w / 2, z0 = p.z - p.l / 2, z1 = p.z + p.l / 2, y0 = p.y, y1 = p.y + p.h;
-    if (p.role === 'roof') {
-      if (p.ridge === 'z') {
-        const rx = x0 + p.w * (p.peak ?? 0.5);
-        gableEnd(() => { tri([x0, y0, z1], [x1, y0, z1], [rx, y1, z1]); tri([x1, y0, z0], [x0, y0, z0], [rx, y1, z0]); });
-        quad([x1, y0, z1], [x1, y0, z0], [rx, y1, z0], [rx, y1, z1]); quad([x0, y0, z0], [x0, y0, z1], [rx, y1, z1], [rx, y1, z0]);
-        quad([x0, y0, z0], [x1, y0, z0], [x1, y0, z1], [x0, y0, z1]);
-      } else {
-        const rz = z0 + p.l * (p.peak ?? 0.5);
-        gableEnd(() => { tri([x1, y0, z1], [x1, y0, z0], [x1, y1, rz]); tri([x0, y0, z0], [x0, y0, z1], [x0, y1, rz]); });
-        quad([x0, y0, z1], [x1, y0, z1], [x1, y1, rz], [x0, y1, rz]); quad([x1, y0, z0], [x0, y0, z0], [x0, y1, rz], [x1, y1, rz]);
-        quad([x0, y0, z0], [x1, y0, z0], [x1, y0, z1], [x0, y0, z1]);
-      }
-    } else {
-      quad([x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1]); quad([x1, y0, z0], [x0, y0, z0], [x0, y1, z0], [x1, y1, z0]);
-      quad([x1, y0, z1], [x1, y0, z0], [x1, y1, z0], [x1, y1, z1]); quad([x0, y0, z0], [x0, y0, z1], [x0, y1, z1], [x0, y1, z0]);
-      quad([x0, y1, z1], [x1, y1, z1], [x1, y1, z0], [x0, y1, z0]); quad([x0, y0, z0], [x1, y0, z0], [x1, y0, z1], [x0, y0, z1]);
-    }
-  }
-  const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-  g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
-  g.computeVertexNormals();
+  const g = piecesGeometry(pieces);
   g.computeBoundingBox();
   const box = g.boundingBox!, mid = box.getCenter(new THREE.Vector3());
   g.translate(-mid.x, -mid.y, -mid.z);
@@ -125,6 +96,26 @@ function showPieces(pieces: Piece[]) {
   scene.add(mesh);
   block = null;
   across = box.getSize(new THREE.Vector3()).length() * 0.8;
+}
+
+/** A square-on drawing of a building in parts, at the sheet's own scale and position, so it can be laid over the elevation it came from. */
+function plate(pieces: Piece[], view: 'front' | 'back' | 'side' | 'top', frame?: { w: number; h: number; px0: number; ground: number; m: number; span: number }): string {
+  const W = frame?.w ?? 1375, H = frame?.h ?? 768, m = frame?.m ?? (view === 'top' ? 60 : 90), s = new THREE.Scene(), rig = new THREE.WebGLRenderer({ preserveDrawingBuffer: true, antialias: true });
+  s.background = new THREE.Color('#ffffff');
+  const sun = new THREE.DirectionalLight('#ffffff', 1.3);
+  sun.position.set(view === 'back' ? -3 : 3, 6, view === 'back' ? -8 : 8);
+  s.add(new THREE.AmbientLight('#ffffff', 2.2), sun, new THREE.Mesh(piecesGeometry(pieces), new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide })));
+  const left = -(frame?.px0 ?? (view === 'side' ? 400 : 85)) / m, bottom = frame ? -(H - frame.ground) / m : view === 'top' ? -2 : -20 / m; // where the left of the house, or the front wall in a side view, and the ground stand on the sheet
+  const cam = new THREE.OrthographicCamera(left, left + W / m, bottom + H / m, bottom, 0.1, 200);
+  cam.position.set(view === 'side' ? 60 : view === 'back' ? frame?.span ?? 13.6 : 0, view === 'top' ? 60 : 0, view === 'front' ? 60 : view === 'back' ? -60 : 0);
+  if (view === 'top') cam.up.set(0, 0, -1);
+  cam.lookAt(view === 'side' ? 0 : cam.position.x, 0, 0);
+  rig.setPixelRatio(1);
+  rig.setSize(W, H);
+  rig.render(s, cam);
+  const url = rig.domElement.toDataURL('image/png');
+  rig.dispose();
+  return url;
 }
 
 /** The light version for the game: the skin with the triangles it doesn't need gone, its colours on its vertices, so it's one draw call. */
@@ -270,5 +261,6 @@ auto.photovox = {
   cuts: async (list: { view: View; url: string }[], tolerance: number) => Promise.all(list.map(async ({ url }) => urlOf(cutPreview(await fromUrl(url), tolerance)))),
   smooth: (n: number) => { smoothing = n; },
   pieces: showPieces,
+  plate,
   run: async (list: { view: View; url: string }[], long: number, tolerance: number, square = false) => build(await Promise.all(list.map(async ({ view, url }) => ({ view, pic: await fromUrl(url) }))), long, tolerance, square),
 };

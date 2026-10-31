@@ -6,3 +6,7 @@ out
 .qwen-gen.log
 .qwen-review.log
 out.log
+
+# contact sheets, rebuilt from drawings/sheets
+drawings/contact-*.png
+drawings/all-buildings.png
