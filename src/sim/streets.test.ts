@@ -110,7 +110,7 @@ describe('zebra crossings', () => {
     c.speed = c.want = c.cruise = 10;
     p.place(z.x + 200, z.z + 200, 0);
     let on = true;
-    t.walkers = { busy: () => on, board: () => 0 };
+    t.walkers = { busy: () => on, onStripes: () => on, lights: new Map(), board: () => 0 };
     let closest = Infinity;
     for (let i = 0; i < 60 * 10; i++) {
       t.step(1 / 60, p);

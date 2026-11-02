@@ -1,272 +1,327 @@
 [
   {
-    "id": "chat_roundabout_rumour",
-    "topic": "chat",
-    "text": "They say the town roundabout is shy. Go easy on it."
+    "id": "ad_corner_bakery",
+    "topic": "ad",
+    "text": "Corner Bakery has warm rolls and smiles by the till."
+  },
+  {
+    "id": "ad_toy_nook",
+    "topic": "ad",
+    "text": "Toy Nook keeps little hands busy and big imaginations happy."
+  },
+  {
+    "id": "ad_plant_shed",
+    "topic": "ad",
+    "text": "Plant Shed fills baskets with cheerful greenery and easy chats."
+  },
+  {
+    "id": "ad_sewing_basket",
+    "topic": "ad",
+    "text": "Sewing Basket has buttons, ribbons, and friendly help."
+  },
+  {
+    "id": "ad_candle_loft",
+    "topic": "ad",
+    "text": "Candle Loft sells lovely candles, so pop in for a cosy glow."
+  },
+  {
+    "id": "ad_sun_cup_cafe",
+    "topic": "ad",
+    "text": "Sun Cup Cafe pours friendly chats with your cuppa."
+  },
+  {
+    "id": "ad_maple_mug",
+    "topic": "ad",
+    "text": "Maple Mug makes mugs feel like a hug in a cup."
+  },
+  {
+    "id": "ad_berry_lane_cafe",
+    "topic": "ad",
+    "text": "Berry Lane Cafe serves toast, cakes, and a warm hello."
+  },
+  {
+    "id": "ad_fresh_cart",
+    "topic": "ad",
+    "text": "Fresh Cart has crisp veggies, bread, and cheerful greetings."
+  },
+  {
+    "id": "ad_sunday_market",
+    "topic": "ad",
+    "text": "Sunday Market is a lovely wander for treats and chats."
   },
   {
     "id": "chat_market_morning",
     "topic": "chat",
-    "text": "The market smells of bread and old socks."
-  },
-  {
-    "id": "chat_cat_crossing",
-    "topic": "chat",
-    "text": "A grey cat watches traffic like a mayor."
-  },
-  {
-    "id": "chat_bakery_smell",
-    "topic": "chat",
-    "text": "The bakery sends warm crumbs to my window."
+    "text": "Market's heaving today, so if you're after the good bread, I'd get a shift on."
   },
   {
     "id": "chat_school_run",
     "topic": "chat",
-    "text": "School cars wave like friendly ducks in a row."
+    "text": "School run's busy near the Garden Suburb, so take the long route and have a cheeky cuppa."
   },
   {
-    "id": "chat_fountain",
+    "id": "chat_high_street",
     "topic": "chat",
-    "text": "The fountain splashes like it has bad manners."
+    "text": "High street's buzzing, but the bus'll be stuck, so I'd walk and wave at the Fresh Cart."
   },
   {
-    "id": "chat_post_box",
+    "id": "chat_cuppa",
     "topic": "chat",
-    "text": "The post box is always waiting for letters."
+    "text": "I've just grabbed a mug from the Sun Cup Cafe, and it's doing its job."
   },
   {
-    "id": "chat_lamp_post",
+    "id": "chat_corner_bakery",
     "topic": "chat",
-    "text": "A lamp post hums a tune about Tuesday."
+    "text": "Corner Bakery's queue's snaking round, but the smell makes the wait feel like a lovely little holiday."
   },
   {
-    "id": "chat_neighbour_wave",
+    "id": "chat_parcel_dog",
     "topic": "chat",
-    "text": "A neighbour waves her watering can at passing cars."
+    "text": "Parcel Depot's busy again, and I saw a dog guarding the boxes like a tiny security guard."
   },
   {
-    "id": "chat_paper_hills",
+    "id": "chat_toy_nook",
     "topic": "chat",
-    "text": "The hills look like they were cut from paper."
+    "text": "Toy Nook's window display changed, so kids stop and mums pretend not to smile."
   },
   {
-    "id": "ad_wobble_bumper",
-    "topic": "ad",
-    "text": "Visit Wobble Bumper! We polish your car with polite fluff."
+    "id": "chat_bin_day",
+    "topic": "chat",
+    "text": "Garden Suburb's bin day, so if you hear a crunch, it's probably someone's dodgy recycling."
   },
   {
-    "id": "ad_tidy_tyre",
-    "topic": "ad",
-    "text": "Tidy Tyre Tea Rooms gives your wheels a biscuit."
+    "id": "chat_sewing_basket",
+    "topic": "chat",
+    "text": "Sewing Basket's got new wool, and I'm tempted to buy enough for a jumper."
   },
   {
-    "id": "ad_fender_friends",
-    "topic": "ad",
-    "text": "Fender Friends mends dents and tells them sorry."
+    "id": "chat_delivery_bay",
+    "topic": "chat",
+    "text": "Delivery Bay's packed, but drivers wave, so it's cheerful chaos rather than a proper fuss."
   },
   {
-    "id": "ad_loo_loop",
-    "topic": "ad",
-    "text": "The Loo Loop offers clean rest breaks and tiny cakes."
+    "id": "travel_old_town_queue",
+    "topic": "travel",
+    "text": "Old Town's busy, so take your time through the lights."
   },
   {
-    "id": "ad_sunny_socks",
-    "topic": "ad",
-    "text": "Sunny Socks Suits sell hats for happy headlights."
+    "id": "travel_business_quarter_flow",
+    "topic": "travel",
+    "text": "Business Quarter traffic's moving nicely today, so you're good to go."
   },
   {
-    "id": "ad_bumper_biscuits",
-    "topic": "ad",
-    "text": "Bumper Biscuits Bakery bakes cookies shaped like road signs."
+    "id": "travel_garden_suburb_school_run",
+    "topic": "travel",
+    "text": "School run's making Garden Suburb a bit slow today."
   },
   {
-    "id": "ad_glow_garden",
-    "topic": "ad",
-    "text": "Glow Garden Gifts wraps presents with twinkly moss."
+    "id": "travel_the_works_moving",
+    "topic": "travel",
+    "text": "The Works road's clear, so keep a steady pace."
   },
   {
-    "id": "ad_happy_horns",
-    "topic": "ad",
-    "text": "Happy Horns teaches your car to say hello gently."
+    "id": "travel_business_quarter_junction",
+    "topic": "travel",
+    "text": "A queue's building at the Business Quarter junction, but it's clearing soon."
   },
   {
-    "id": "weather_forecast_a",
+    "id": "travel_old_town_roundabout",
+    "topic": "travel",
+    "text": "Roundabout in Old Town's busy, so let's give one another a little space."
+  },
+  {
+    "id": "travel_garden_suburb_school_crossing",
+    "topic": "travel",
+    "text": "Garden Suburb's got a school run queue, so mind the crossing ahead."
+  },
+  {
+    "id": "travel_works_and_business_quarter",
+    "topic": "travel",
+    "text": "Traffic's moving well through The Works and Business Quarter, so keep the lane tidy."
+  },
+  {
+    "id": "weather_sunny_spells",
     "topic": "weather",
-    "text": "Clouds are drifting like sleepy ducks."
+    "text": "Sunny spells breaking through today, so enjoy the bright bits while they last."
   },
   {
-    "id": "weather_forecast_b",
+    "id": "weather_intervals",
     "topic": "weather",
-    "text": "The wind wants a gentle hug."
+    "text": "We've got sunny intervals later, with a fresh breeze keeping things nicely brisk."
   },
   {
-    "id": "weather_forecast_c",
+    "id": "weather_cloudy_mild",
     "topic": "weather",
-    "text": "Sun is peeking behind a hill."
+    "text": "Cloudy at first, then mild and bright, so a pleasant one for a drive."
   },
   {
-    "id": "weather_forecast_d",
+    "id": "weather_frost",
     "topic": "weather",
-    "text": "Fog will tiptoe through town soon."
+    "text": "Frost out on the lanes today, but it's turning bright and dry."
   },
   {
-    "id": "weather_forecast_e",
+    "id": "weather_misty",
     "topic": "weather",
-    "text": "Bright skies are on their way."
+    "text": "Misty first thing, then a fresh breeze clears it for bright, dry driving."
   },
   {
-    "id": "night_moon_smile",
+    "id": "weather_chilly",
+    "topic": "weather",
+    "text": "It's chilly now, but bright and mild, so keep your jacket handy."
+  },
+  {
+    "id": "night_stars",
     "topic": "night",
-    "text": "The moon smiles tonight."
+    "text": "It's a clear night, so if you're home late, look up for stars."
   },
   {
-    "id": "night_star_sprinkle",
+    "id": "night_evening",
     "topic": "night",
-    "text": "The night has bright stars."
+    "text": "Evening's settling in, and the town looks lovely under the moon."
   },
   {
-    "id": "night_soft_dark",
+    "id": "night_dark",
     "topic": "night",
-    "text": "The dark is soft and quiet."
+    "text": "Dark tonight, so take your time and enjoy the quiet roads."
   },
   {
-    "id": "night_evening_tune",
+    "id": "night_late",
     "topic": "night",
-    "text": "The evening hums a little tune."
+    "text": "If you're out late, keep it cosy and let the night slow you down."
   },
   {
-    "id": "night_hello_gently",
+    "id": "night_moon",
     "topic": "night",
-    "text": "The night says hello gently."
+    "text": "The moon's high now, so I hope your night's gentle and easy."
   },
   {
-    "id": "rain_tapping_roofs",
+    "id": "rain_showers",
     "topic": "rain",
-    "text": "The rain taps on roofs."
+    "text": "Showers are popping through, so mind the puddles and enjoy the patter."
   },
   {
-    "id": "rain_shiny_roads",
+    "id": "rain_drizzle",
     "topic": "rain",
-    "text": "The wet roads shine like ribbons."
+    "text": "Light drizzle on the windscreen, but it's the sort that makes the town cosy."
   },
   {
-    "id": "rain_umbrella_dance",
+    "id": "rain_outbreaks",
     "topic": "rain",
-    "text": "An umbrella dances in the rain."
+    "text": "Outbreaks of rain moving over, so keep your wipers on and keep calm."
   },
   {
-    "id": "rain_tiny_drizzle",
+    "id": "rain_wet_roads",
     "topic": "rain",
-    "text": "A tiny drizzle tickles windows."
+    "text": "Wet roads making the streets shine, so pop your umbrella out and stay cheerful."
   },
   {
-    "id": "rain_puddle_moon",
+    "id": "rain_umbrellas",
     "topic": "rain",
-    "text": "A puddle holds a tiny moon."
+    "text": "Umbrellas out, drivers! It's a nice wet one, perfect for a cosy cuppa after."
   },
   {
-    "id": "job_done_nice_work",
+    "id": "rain_puddles",
+    "topic": "rain",
+    "text": "Puddles sparkling on the pavement, so splash around gently and enjoy the rain."
+  },
+  {
+    "id": "job_done_tucked",
     "topic": "job_done",
-    "text": "Nice work, driver, you made it!"
+    "text": "Well done, driver, that's another job tucked away neatly."
   },
   {
-    "id": "job_done_lovely_delivery",
+    "id": "job_done_cuppa",
     "topic": "job_done",
-    "text": "That delivery was lovely!"
+    "text": "Lovely work, you've earned yourself a proper cuppa now."
   },
   {
-    "id": "job_done_smooth_trip",
+    "id": "job_done_happy",
     "topic": "job_done",
-    "text": "You turned a hard trip smooth!"
+    "text": "Sorted, you've had a nice little win on the high street."
   },
   {
-    "id": "job_done_town_hello",
+    "id": "job_done_smile",
     "topic": "job_done",
-    "text": "Well done, town waves hello."
+    "text": "That's a smart bit of work, let's keep smiling."
   },
   {
-    "id": "job_done_another_hooray",
+    "id": "job_done_town",
     "topic": "job_done",
-    "text": "Another happy job, hooray!"
+    "text": "Brilliant, you've just made the town a bit happier."
   },
   {
-    "id": "job_lost_gentle_start",
+    "id": "job_lost_wait",
     "topic": "job_lost",
-    "text": "No job this time, but the road still likes you."
+    "text": "Don't fret, driver, there's another job waiting somewhere."
   },
   {
-    "id": "job_lost_take_a_breath",
+    "id": "job_lost_okay",
     "topic": "job_lost",
-    "text": "Shake it off, friend. Another lovely drive is coming."
+    "text": "It's okay, everyone misses a job now and then."
   },
   {
-    "id": "job_lost_missed_the_drop",
+    "id": "job_lost_chin",
     "topic": "job_lost",
-    "text": "The parcel missed you, but you are still a star."
+    "text": "Keep your chin up, we've got plenty going on."
   },
   {
-    "id": "job_lost_no_rush",
+    "id": "job_lost_rolling",
     "topic": "job_lost",
-    "text": "No rush, no fuss. You did well to try."
+    "text": "No worries, let's keep rolling and try again soon."
   },
   {
-    "id": "job_lost_learn_the_lanes",
+    "id": "job_lost_town",
     "topic": "job_lost",
-    "text": "We lost that parcel, but the lanes will teach us."
+    "text": "Cheer up, the town won't let you down."
   },
   {
-    "id": "fuel_low_cheeky_tank",
+    "id": "fuel_low_petrol",
     "topic": "fuel_low",
-    "text": "Your tank is yawning. A little sip would help."
+    "text": "If the petrol's running low, pop into the forecourt."
   },
   {
-    "id": "fuel_low_pump_pals",
+    "id": "fuel_low_tank",
     "topic": "fuel_low",
-    "text": "The pump is humming, but your tank is quiet."
+    "text": "Give the tank a top-up before you head off."
   },
   {
-    "id": "fuel_low_need_a_fill",
+    "id": "fuel_low_pump",
     "topic": "fuel_low",
-    "text": "Your tank needs a fill; please visit the pump."
+    "text": "The pump's waiting, so keep your tank happy."
   },
   {
-    "id": "fuel_low_tank_talk",
+    "id": "fuel_low_fuel",
     "topic": "fuel_low",
-    "text": "Your petrol is shy. Please visit the friendly pump."
+    "text": "Don't run out, driver, there's fuel just ahead."
   },
   {
-    "id": "fuel_low_fuel_fuss",
+    "id": "fuel_low_ready",
     "topic": "fuel_low",
-    "text": "Don't fuss, but the fuel is getting sleepy."
+    "text": "You'll need petrol, and the pump's by the bus stop."
   },
   {
-    "id": "fuel_low_little_sip",
-    "topic": "fuel_low",
-    "text": "A little fuel would keep this little town moving."
-  },
-  {
-    "id": "streak_rolling_nicely",
+    "id": "streak_row",
     "topic": "streak",
-    "text": "You are on a roll, and the town is smiling."
+    "text": "You're on a lovely streak, keep that roll going."
   },
   {
-    "id": "streak_another_smile",
+    "id": "streak_roll",
     "topic": "streak",
-    "text": "Another job, another smile. Keep that lovely streak going."
+    "text": "You've nailed them in a row, that's great."
   },
   {
-    "id": "streak_row_of_grins",
+    "id": "streak_shift",
     "topic": "streak",
-    "text": "What a row! The streetlights are clapping for you."
+    "text": "That shift's gone like a breeze, driver."
   },
   {
-    "id": "streak_shift_done",
+    "id": "streak_another",
     "topic": "streak",
-    "text": "Great shift! The little town waves its flags."
+    "text": "Here's another, you're building a proper streak."
   },
   {
-    "id": "streak_keep_going",
+    "id": "streak_keep",
     "topic": "streak",
-    "text": "Keep going, star driver. You are lovely and steady."
+    "text": "Streak's climbing, and we've got more jobs coming up."
   }
 ]

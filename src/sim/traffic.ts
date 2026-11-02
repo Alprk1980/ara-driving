@@ -11,6 +11,7 @@ import { carsOverlap, type CarBox } from './collide.ts';
 import { KERB_KG } from './economy.ts';
 import type { KerbCar, ParkedCars } from './parked.ts';
 import { signalFor, STOP_LINE_M } from './signals.ts';
+import type { CrossingLight } from './crossings.ts';
 import { dist, type BusRoute, type BusStop, type Leg, type Rng, type Town, type Vec, type Zebra } from './town.ts';
 
 const COUNT = 16;
@@ -75,7 +76,7 @@ export class Traffic {
   clock = 0; // the signal plans run from this
   stuck = 0; // seconds the player has driven on, holding up a crew on blue lights
   private holding = false;
-  walkers: { busy(z: Zebra): boolean; board(s: BusStop, player: Vec): number } | null = null;
+  walkers: { busy(z: Zebra): boolean; onStripes(z: Zebra): boolean; lights: ReadonlyMap<Zebra, CrossingLight>; board(s: BusStop, player: Vec): number } | null = null;
   kerb: ParkedCars | null = null;
   private nextCall: number;
   private nextCollect = COLLECT_EVERY_S;
@@ -207,7 +208,11 @@ export class Traffic {
     }
     for (const z of this.town.zebrasOn.get(c.edge) ?? []) {
       const at = c.to === this.town.edges[c.edge].b ? z.along : e.len - z.along, gap = at - c.along - c.halfL - ZEBRA_STOP_M;
-      if (gap > -1.5 && gap < 30 && this.walkers?.busy(z)) want = Math.min(want, c.blue ? RED_CROSS_MPS : brakeFor(gap));
+      if (gap < -1.5 || gap > 30) continue;
+      const light = this.walkers?.lights.get(z), a = light?.traffic;
+      // A pelican or puffin: stop on red, and on amber unless too close; on a pelican's flashing amber, go once it's clear.
+      const stop = light ? a === 'red' || a === 'redAmber' || (a === 'amber' && gap > (c.speed * c.speed) / (2 * CALM_MPS2)) || (a === 'flashingAmber' && this.walkers!.onStripes(z)) : this.walkers?.busy(z);
+      if (stop) want = Math.min(want, c.blue ? RED_CROSS_MPS : brakeFor(gap));
     }
     if (c.role === 'bus' && c.plan) want = this.busStop(c, want, dt, player);
     if (c.chase) {

@@ -33,13 +33,16 @@ export class RadioHost {
     return this.pick(topic);
   }
 
-  tick(dt: number, at: { night: boolean; rain: boolean }): string | null {
+  /** `rush` is the busy part of the morning or evening, when local radio runs its travel news (Smooth's public files: at the
+   * peaks, and weekends as needed). Weather lines are for dry spells; the rain has its own. */
+  tick(dt: number, at: { night: boolean; rain: boolean; rush?: boolean }): string | null {
     this.cool -= dt;
     if ((this.clock -= dt) > 0) return null;
     this.clock = GAP_S[0] + this.rng() * (GAP_S[1] - GAP_S[0]);
     const roll = this.rng();
     if (at.rain && roll < 0.4) return this.pick('rain');
     if (at.night && roll < 0.4) return this.pick('night');
-    return this.pick(roll < 0.55 ? 'chat' : roll < 0.8 ? 'ad' : 'weather');
+    if (at.rush && roll < 0.65) return this.pick('travel');
+    return this.pick(roll < 0.45 ? 'chat' : roll < 0.7 ? 'ad' : roll < 0.85 || at.rain ? 'travel' : 'weather');
   }
 }

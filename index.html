@@ -23,6 +23,7 @@
   .chip { background: var(--panel); border-radius: 12px; padding: 7px 11px; white-space: nowrap; }
   #mini { width: 112px; height: 112px; border-radius: 50%; border: 3px solid #fff; background: #b9dfae; display: block; }
   .gauges { display: flex; flex-direction: column; gap: 5px; min-width: 118px; }
+  .side.dropped .gauges { flex-direction: row; flex-wrap: wrap; max-width: 330px; } /* below the cockpit mirror: two to a row, clear of the dash screen */
   #fuelbar { height: 8px; border-radius: 4px; background: #d9dee8; overflow: hidden; margin-top: 4px; }
   #fuelfill { height: 100%; width: 100%; background: var(--good); }
   #fuelchip.low #fuelfill { background: var(--warn); }
@@ -51,7 +52,8 @@
   #ticker { color: #fff; background: rgba(16,24,40,.55); border-radius: 10px; padding: 4px 10px; font-size: 12px; font-weight: 500; text-align: center; display: none; }
   #streak { background: #ffd23e; }
   .card .warn { color: #c02a22; font-weight: 600; }
-  #roadchip { border: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+  #roadchip, #points { border: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+  .ledger { max-height: min(52vh, 420px); overflow-y: auto; touch-action: pan-y; }
   #roadchip.rising { box-shadow: inset 3px 0 0 #1f9a54; }
   #roadchip.falling { box-shadow: inset 3px 0 0 #d8352c; }
   .roadrow.good span:first-child { color: #1f7a45; }
@@ -177,7 +179,7 @@
         <div class="chip" id="speed">0 km/h</div>
         <div class="chip" id="fuelchip"><span id="fueltext">Fuel</span><div id="fuelbar"><div id="fuelfill"></div></div></div>
         <div class="chip" id="dmgchip" title="Bodywork: a side fills in red as it takes damage"><svg id="dmgcar" viewBox="0 0 34 52" aria-hidden="true"><rect class="shell" x="6" y="2" width="22" height="48" rx="7"/><rect class="dent" id="dent-front" x="7.5" y="3.5" width="19" height="7" rx="3"/><rect class="dent" id="dent-back" x="7.5" y="41.5" width="19" height="7" rx="3"/><rect class="dent" id="dent-left" x="7.5" y="13" width="5" height="26" rx="2"/><rect class="dent" id="dent-right" x="21.5" y="13" width="5" height="26" rx="2"/></svg><span id="dmgtext">Undamaged</span></div>
-        <div class="chip" id="points">0 Points</div>
+        <button class="chip" id="points" aria-label="Points history">0 Points</button>
         <button class="chip" id="roadchip" aria-label="Road sense record">Road sense</button>
         <div class="chip" id="streak" hidden></div>
       </div>

@@ -7,6 +7,31 @@
 - [ ] Finish the research pass: prices, pay, weather and day length.
 - [ ] More street variety: dormers, bay windows, deeper loading bays, shop signs.
 
+## Life in town (asked for 2026-11-02)
+Get out of the car, live in the town on foot, ride the buses, work real jobs for the services, and spend what you earn.
+Each stage needs its own research pass first: how each job really runs, and the real numbers behind it.
+
+### Stage A: on foot
+- [ ] Get out of the car wherever it's parked, and back in. The car stays where you left it, and the save keeps it.
+- [ ] Walk the pavements as one of the town's figures, with a camera that follows; cross at zebras and green men.
+- [ ] Doors on the shops and places you can walk up to.
+
+### Stage B: buses as a passenger
+- [ ] Wait at a stop, flag the bus, pay the fare (England's bus fare cap is a real number to look up), ride, ring the
+      bell, get off at the next stop.
+
+### Stage C: shops and a shopping centre
+- [ ] Go into a shop and buy things with the Points jobs earn: clothes for your figure, food, parts and paint.
+- [ ] A shopping centre in the Business Quarter, with several shops under one roof.
+- [ ] How far "going inside" goes here, or hands over to ARA World, is one of that game's open decisions (below).
+
+### Stage D: careers
+- [ ] Sign on at the station or depot and drive its vehicle on real shifts: bus driver (a timetabled route, stopping at
+      each stop), recovery driver (tow broken-down and crashed cars), mechanic (mend cars at the garage and the roadside),
+      police (answer calls, stop the drivers who break the law), firefighter and paramedic (answer 999 calls).
+- [ ] Ranks within each career that unlock vehicles and better-paid work.
+- [ ] More places to drive to, including businesses with deliveries of their own.
+
 ## Decided
 These differ from real cars and roads on purpose. Played and approved on 2026-10-30, so leave them unless asked.
 - Braking at 16 m/s², about twice a real car's. It feels right here.

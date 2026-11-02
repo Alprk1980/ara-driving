@@ -3,6 +3,7 @@
 export type Vec = { x: number; z: number };
 export type RoadNode = Vec & { id: number };
 export type Edge = { a: number; b: number; len: number };
+import type { CrossingKind } from './crossings.ts';
 import drawnFoot from '../data/drawnfoot.json' with { type: 'json' };
 import { DISTRICTS, districtAt, onBuffer, type DistrictId } from './districts.ts';
 import { SERVICE_RULES, type ServiceId } from '../../schemas/services.ts';
@@ -15,7 +16,7 @@ export const DRAWN_COPIES: Record<DistrictId, number> = { oldtown: 8, business: 
 const DRAWN_APART_M = 110, DRAWN_FILLS = 0.5, DRAWN_ASSEMBLY = 3; // how far apart two of a design stand, how much of a lot's front one must fill, and how many neighbouring lots a big one may take
 export const FURNITURE_KINDS = ['bench', 'bin', 'planter', 'bollard', 'cycle_rack', 'bus_shelter', 'hedge', 'container', 'pallets'] as const;
 export type ParkedCar = Vec & { heading: number; colour: number; drive?: boolean };
-export type Zebra = Vec & { edge: number; along: number; ux: number; uz: number }; // along: metres from the edge's node a
+export type Zebra = Vec & { edge: number; along: number; ux: number; uz: number; kind: CrossingKind }; // along: metres from the edge's node a; a pelican or puffin has signals
 export type Leg = { edge: number; to: number };
 export type BusStop = Vec & { leg: number; along: number; edge: number; to: number }; // along: metres into the leg, in the direction of travel
 export type BusRoute = { legs: Leg[]; stops: BusStop[] };
@@ -365,7 +366,10 @@ export class Town {
       for (const [along, end] of [[ZEBRA_OFF, e.a], [e.len - ZEBRA_OFF, e.b]]) {
         const p = { x: a.x + ux * along, z: a.z + uz * along }, zone = districtAt(p.x, p.z);
         if ((zone !== 'oldtown' && zone !== 'business') || this.signals.has(end)) continue;
-        const z = { ...p, edge: k, along, ux, uz };
+        // Old Town keeps old pelicans, the Business Quarter has puffins, and every other crossing in each is a zebra: a
+        // judged mix for a town of this age (see crossings.ts).
+        const kind: CrossingKind = this.zebras.length % 2 === 0 ? 'zebra' : zone === 'oldtown' ? 'pelican' : 'puffin';
+        const z = { ...p, edge: k, along, ux, uz, kind };
         this.zebras.push(z);
         this.zebrasOn.set(k, [...(this.zebrasOn.get(k) ?? []), z]);
       }

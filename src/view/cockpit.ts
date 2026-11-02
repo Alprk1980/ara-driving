@@ -29,7 +29,36 @@ const INTERIOR = { pad: '#565b67', lower: '#6d727e', frame: '#454a55', lining: '
 // about 19 degrees across. The glass size is judged from typical cars (about 250 by 65 mm), as R46's own minimum wasn't found.
 const MIRROR_W = 0.25, MIRROR_H = 0.065, R46_ACROSS = 2 * Math.atan(10 / 60);
 const MIRROR_PX = 512, MIRROR_FAR_M = 400, MIRROR_DIP = 0.03; // a small picture, drawn only so far back, tipped down a little toward the road
-export type Mirror = { cam: THREE.PerspectiveCamera; target: THREE.WebGLRenderTarget };
+export type Mirror = { cam: THREE.PerspectiveCamera; target: THREE.WebGLRenderTarget; glass?: THREE.Mesh };
+export type BackCamera = Mirror & { view: THREE.Mesh; blank: THREE.Mesh };
+// The reversing camera. UN R158 sets what a close-range rear view must show, but the search couldn't confirm its numbers,
+// so these are judged: a wide view tipped well down, so the ground from the bumper to a few metres back fills the screen.
+const BACK_PX = 384, BACK_FOV = 70, BACK_DIP = 0.5, BACK_FAR_M = 120;
+
+/** The guide lines over a reversing camera's picture: two lines closing toward the top, crossed red, amber and green
+ * from near to far. The colours are the usual ones on car screens; where they fall is judged, not measured. */
+function guideLines(): THREE.CanvasTexture {
+  const c = document.createElement('canvas');
+  c.width = 260;
+  c.height = 150;
+  const g = c.getContext('2d')!, at = (t: number) => ({ y: 150 - t * 110, half: 95 - t * 45 });
+  g.lineWidth = 4;
+  g.lineCap = 'round';
+  ([[0, 0.25, '#ff3b30'], [0.25, 0.6, '#ffcc00'], [0.6, 1, '#34c759']] as const).forEach(([a, b, colour]) => {
+    const p = at(a), q = at(b);
+    g.strokeStyle = colour;
+    g.beginPath();
+    for (const s of [-1, 1]) { g.moveTo(130 + s * p.half, p.y); g.lineTo(130 + s * q.half, q.y); }
+    g.moveTo(130 - q.half, q.y);
+    g.lineTo(130 - q.half + 18, q.y);
+    g.moveTo(130 + q.half, q.y);
+    g.lineTo(130 + q.half - 18, q.y);
+    g.stroke();
+  });
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
 export const STEER_TURN = 1.7; // radians the wheel turns at full lock: well short of the 2-3 real turns, so the hands stay on it
 
 /** A straight limb or strut between two points. */
@@ -84,7 +113,7 @@ export function buildDriver(driver: Driver, find: Lookup, pose: Pose): THREE.Gro
 export type Cabin = { floor: number; deck: number; roof: number; cabZ: number; cabLen: number; pose: Pose };
 
 /** The cockpit view: the inside of the car around the driver's eye, seen only from the cockpit camera (the body hides itself there). */
-export function buildCockpit(size: readonly [number, number, number], cab: Cabin, skin: THREE.Material, dark: THREE.Material, driver: Driver, find: Lookup): { dash: THREE.Group; dashCanvas: HTMLCanvasElement; dashTex: THREE.CanvasTexture; hands: THREE.Group; eye: { x: number; y: number; z: number }; mirror: Mirror } {
+export function buildCockpit(size: readonly [number, number, number], cab: Cabin, skin: THREE.Material, dark: THREE.Material, driver: Driver, find: Lookup): { dash: THREE.Group; dashCanvas: HTMLCanvasElement; dashTex: THREE.CanvasTexture; hands: THREE.Group; eye: { x: number; y: number; z: number }; mirror: Mirror; back: BackCamera } {
   const [len, , wide] = size, { eye, wheel } = cab.pose;
   const dash = new THREE.Group(), mat = (color: string) => new THREE.MeshLambertMaterial({ color });
   const pad = mat(INTERIOR.pad), lower = mat(INTERIOR.lower), frame = mat(INTERIOR.frame), lining = new THREE.MeshBasicMaterial({ color: INTERIOR.lining }), rim = mat(INTERIOR.rim);
@@ -107,10 +136,30 @@ export function buildCockpit(size: readonly [number, number, number], cab: Cabin
   gauges.position.set(eye.x, cowl - 0.05, shield - 0.356);
   dash.add(gauges);
 
-  // The centre stack: a screen and two vents, toward the middle of the car from the driver.
-  const stack = eye.x < 0 ? 0.02 : -0.02;
+  // The centre stack and two vents, toward the middle of the car from the driver, and the screen standing on top of the dash,
+  // as most new cars now have it, where the driver sees it over the wheel rather than down by the gear lever.
+  const stack = eye.x < 0 ? 0.02 : -0.02, screenY = cowl + 0.09;
   dash.add(box(0.34, 0.32, 0.05, frame, stack, cowl - 0.19, shield - 0.32));
-  dash.add(box(0.26, 0.15, 0.01, new THREE.MeshBasicMaterial({ color: INTERIOR.screen }), stack, cowl - 0.15, shield - 0.35));
+  dash.add(box(0.3, 0.19, 0.03, frame, stack, screenY, shield - 0.33));
+  const blank = box(0.26, 0.15, 0.01, new THREE.MeshBasicMaterial({ color: INTERIOR.screen }), stack, screenY, shield - 0.35);
+  dash.add(blank);
+  // The reversing camera: above the number plate, looking back and down, shown on the centre screen while reversing. Like
+  // real ones, its picture is a mirror image, so left on the screen is left behind the car.
+  const backTarget = new THREE.WebGLRenderTarget(BACK_PX, Math.round(BACK_PX * 0.15 / 0.26));
+  backTarget.texture.repeat.x = -1;
+  backTarget.texture.offset.x = 1;
+  const view = new THREE.Mesh(new THREE.PlaneGeometry(0.26, 0.15), new THREE.MeshBasicMaterial({ map: backTarget.texture }));
+  view.rotation.y = Math.PI;
+  view.position.set(stack, screenY, shield - 0.356);
+  const guides = new THREE.Mesh(new THREE.PlaneGeometry(0.26, 0.15), new THREE.MeshBasicMaterial({ map: guideLines(), transparent: true, depthWrite: false }));
+  guides.position.z = 0.001;
+  view.add(guides);
+  view.visible = false;
+  dash.add(view);
+  const backCam = new THREE.PerspectiveCamera(BACK_FOV, 0.26 / 0.15, 0.05, BACK_FAR_M);
+  backCam.position.set(0, cab.floor + cab.deck * 0.85, -len / 2 - 0.05);
+  backCam.rotation.x = -BACK_DIP;
+  dash.add(backCam);
   for (const s of [-1, 1]) dash.add(box(0.11, 0.04, 0.01, rim, stack + s * 0.07, cowl - 0.28, shield - 0.35));
 
   // The car around you: pillars raked back from the scuttle, the header, roof lining, door tops and the mirrors.
@@ -153,5 +202,5 @@ export function buildCockpit(size: readonly [number, number, number], cab: Cabin
   }
   dash.add(column);
   dash.visible = false;
-  return { dash, dashCanvas, dashTex, hands, eye, mirror: { cam, target } };
+  return { dash, dashCanvas, dashTex, hands, eye, mirror: { cam, target, glass }, back: { cam: backCam, target: backTarget, view, blank } };
 }

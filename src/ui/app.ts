@@ -3,7 +3,7 @@ import type { CatalogueItem, CatalogueKind, ChatterLine, GuideLine, RadioTopic, 
 import { credit, spend, unlock, type Player } from '../../schemas/profile.ts';
 import { putGameSave, putPlayer } from '../../kit/profile.ts';
 import { Dpad, FloatingJoystick, Gamepad, Keyboard, STICK_RADIUS, Tilt, type Held, type InputRouter, type InputScheme, type SchemeId } from '../input/schemes.ts';
-import { emptySave, GAME_ID, SAVE_KEY, type Design, type DriveSave, type Driver } from '../save.ts';
+import { emptySave, GAME_ID, LEDGER_KEEP, SAVE_KEY, type Design, type DriveSave, type Driver, type LedgerLine } from '../save.ts';
 import { SIDES, type Side } from '../sim/car.ts';
 import { CAR_JOBS, carById, CARS, MARKET_BOOST, RANK_REP, RANK_UNLOCKS, REPAIR_RATE, streakBonus, TWIST_RULES, WARN_CRITICAL_PCT, WARN_LOW_PCT } from '../sim/economy.ts';
 import { isNight, type Game, type GameEvent, type Wallet } from '../sim/game.ts';
@@ -28,6 +28,7 @@ const $svg = (id: string) => document.getElementById(id) as unknown as SVGElemen
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
 const HUB_URL = '../ara-games/';
 const AUTOSAVE_S = 15; // seconds between saves while driving
+const RUSH = [[7 / 24, 9.5 / 24], [16 / 24, 18.5 / 24]] as const; // the morning and evening peaks, as parts of the day: judged round the school run and the commute
 const TIER_LABEL = { common: 'Common', rare: 'Rare', epic: 'Epic', legendary: 'Legendary' };
 
 type Tab = 'cars' | 'paint' | 'pattern' | 'decal' | 'body' | 'outfit' | 'accessory';
@@ -36,18 +37,26 @@ const TABS: [Tab, string][] = [['cars', 'Cars'], ['paint', 'Paint'], ['pattern',
 /** The shared player, kept in memory and written after every change. */
 export class ProfileWallet implements Wallet {
   player: Player;
+  ledger: LedgerLine[] = []; // the app hands over the save's own list, newest first
   constructor(player: Player) { this.player = player; }
   points() { return this.player.coins; }
-  spend(n: number) {
+  spend(n: number, why = 'Spent') {
     const next = spend(this.player, n);
     if (!next) return false;
     this.player = next;
     void putPlayer(next);
+    this.note(-n, why);
     return true;
   }
-  earn(n: number) {
+  earn(n: number, why = 'Earned') {
     this.player = credit(this.player, n);
     void putPlayer(this.player);
+    this.note(n, why);
+  }
+  private note(n: number, why: string) {
+    if (!n) return;
+    this.ledger.unshift({ at: new Date().toISOString(), n, why, total: this.points() });
+    this.ledger.length = Math.min(this.ledger.length, LEDGER_KEEP);
   }
   owns(id: string) { return this.player.games[GAME_ID]?.unlocked.includes(id) ?? false; }
   grant(id: string) {
@@ -204,6 +213,7 @@ export class App {
     $('btn-pause').onclick = () => this.openPause();
     $('btn-controls').onclick = () => this.openControls();
     $('roadchip').onclick = () => this.openRoad();
+    $('points').onclick = () => this.openPoints();
     $('btn-phone').onclick = () => this.openPhone();
     addEventListener('keydown', (e) => {
       if (e.repeat) return;
@@ -292,6 +302,7 @@ export class App {
         this.store();
         break;
       case 'points': this.refreshPoints(); break;
+      case 'goodDriving': this.ticker(`+${e.pay} Points for clean driving`); break;
       case 'bump': this.sound.crash(e.speed); this.riderSays('bump'); break;
       case 'road': {
         const lines = (roadLines as RoadLine[]).filter((l) => l.moment === e.moment), line = lines[Math.floor(Math.random() * lines.length)]?.text ?? e.moment;
@@ -337,6 +348,7 @@ export class App {
     this.bodywork();
 
     if ((this.saveClock -= dt) <= 0) { this.saveClock = AUTOSAVE_S; this.store(); } // a closed tab or a crash loses a few seconds at most
+    this.clearMirror();
     if ((this.miniClock -= dt) <= 0) { this.miniClock = 1 / 15; drawMini(this.mini, g, this.img); }
     this.compass();
     this.tracker();
@@ -352,7 +364,7 @@ export class App {
     const streak = $('streak');
     streak.hidden = g.streak < 1;
     if (g.streak > 0) streak.textContent = `Streak ${g.streak}: next +${Math.round(streakBonus(g.streak) * 100)}%`;
-    this.djSays(this.radio.tick(dt, { night: isNight(g.dayFrac), rain: g.rain > 0.3 }));
+    this.djSays(this.radio.tick(dt, { night: isNight(g.dayFrac), rain: g.rain > 0.3, rush: RUSH.some(([a, b]) => g.dayFrac >= a && g.dayFrac < b) }));
     this.guide.tick(dt);
     const q = g.quest;
     if (q?.phase === 'Active' && q.offer.type === 'passenger' && q.offer.twist !== 'sleeping') {
@@ -446,7 +458,7 @@ export class App {
   private repair() {
     const p = this.game.player;
     const cost = Math.ceil(p.damage * 100 * REPAIR_RATE);
-    if (!this.save.debug && !this.wallet.spend(cost)) return this.toast(`You need ${cost - this.wallet.points()} more Points`);
+    if (!this.save.debug && !this.wallet.spend(cost, 'Bodywork repair')) return this.toast(`You need ${cost - this.wallet.points()} more Points`);
     p.mend(0);
     this.refreshPoints();
     this.store();
@@ -480,6 +492,25 @@ export class App {
     const rows = (r.log ?? []).slice(0, ROAD_ROWS).map((e) => `<div class="goal roadrow ${e.by > 0 ? 'good' : e.by < 0 ? 'bad' : ''}"><span>${e.by > 0 ? '▲' : e.by < 0 ? '▼' : '•'} ${esc(ROAD_NAMES[e.moment])}</span><span>${e.by > 0 ? `+${e.by}` : e.by < 0 ? e.by : ''} · ${ago(e.at)}</span></div>`).join('');
     const pay = s.bonus ? `Your jobs pay ${Math.round(s.bonus * 100)}% more.` : 'Reach 60 to earn more on every job.';
     const c = this.sheet('dialog', `<h2>Road sense: ${Math.round(r.score)}</h2><p>${pay} ${r.good} good moments, ${r.bad} bad. Licence points: ${s.points} of 12.</p>${rows || '<p>Nothing yet. Wait at a red or stop at a zebra to start your record.</p>'}<div class="row end"><button class="primary" id="x">Keep driving</button></div>`);
+    c.querySelector<HTMLElement>('#x')!.onclick = () => this.close('dialog');
+  }
+
+  /** In the cockpit, the left-hand panels drop below the interior mirror, so it can be seen. */
+  private clearMirror() {
+    const side = document.querySelector<HTMLElement>('#hud .bar .side')!, m = this.view.mirrorRect();
+    const top = side.offsetTop, drop = m && m.left < side.offsetLeft + side.offsetWidth ? Math.max(0, Math.round(m.bottom + 6 - top)) : 0;
+    if (side.dataset.drop !== String(drop)) { side.dataset.drop = String(drop); side.style.transform = drop ? `translateY(${drop}px)` : ''; side.classList.toggle('dropped', drop > 0); }
+  }
+
+  /** The Points history: each change, newest first, with what it was for and the balance after. */
+  private openPoints() {
+    const today = new Date().toDateString(), when = (iso: string) => {
+      const d = new Date(iso), t = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+      return d.toDateString() === today ? t : `${d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} ${t}`;
+    };
+    const lines = this.wallet.ledger, earned = lines.filter((l) => l.n > 0).reduce((a, l) => a + l.n, 0), spent = lines.filter((l) => l.n < 0).reduce((a, l) => a - l.n, 0);
+    const rows = lines.map((l) => `<div class="goal roadrow ${l.n > 0 ? 'good' : 'bad'}"><span>${l.n > 0 ? `+${l.n}` : l.n} · ${esc(l.why)}</span><span>${l.total.toLocaleString('en-GB')} · ${when(l.at)}</span></div>`).join('');
+    const c = this.sheet('dialog', `<h2>Points: ${this.wallet.points().toLocaleString('en-GB')}</h2><p>${lines.length ? `The last ${lines.length} changes: ${earned.toLocaleString('en-GB')} in, ${spent.toLocaleString('en-GB')} out. Driving cleanly earns a little every kilometre.` : 'Nothing yet. Jobs, goals, finds and clean driving earn Points; fuel and repairs spend them.'}</p><div class="ledger">${rows}</div><div class="row end"><button class="primary" id="x">Keep driving</button></div>`);
     c.querySelector<HTMLElement>('#x')!.onclick = () => this.close('dialog');
   }
 
@@ -726,7 +757,7 @@ export class App {
   private pickItem(id: string) {
     const c = this.find(id)!;
     if (!this.wallet.owns(id) && !this.save.debug) {
-      if (!this.wallet.spend(c.price)) return this.toast(`You need ${c.price - this.wallet.points()} more Points`);
+      if (!this.wallet.spend(c.price, `Bought ${c.name}`)) return this.toast(`You need ${c.price - this.wallet.points()} more Points`);
       this.wallet.grant(id);
       this.refreshPoints();
     }
@@ -740,7 +771,7 @@ export class App {
   private pickCar(id: string) {
     const car = carById(id);
     if (car.price > 0 && !this.wallet.owns(id) && !this.save.debug) {
-      if (!this.wallet.spend(car.price)) return this.toast(`You need ${car.price - this.wallet.points()} more Points`);
+      if (!this.wallet.spend(car.price, `Bought the ${car.name}`)) return this.toast(`You need ${car.price - this.wallet.points()} more Points`);
       this.wallet.grant(id);
       this.refreshPoints();
     }

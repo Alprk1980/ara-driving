@@ -10,6 +10,9 @@ export const SAVE_KEY = 'ara_driving';
 export type Design = { paint?: string; pattern?: string; decal?: string; body?: string };
 export type Driver = { outfit?: string; cap?: string; gloves?: string; sunglasses?: string };
 export type Hand = 'right' | 'left';
+/** One change to the Points balance, for the history: when, by how much, why, and the balance after. */
+export type LedgerLine = { at: string; n: number; why: string; total: number };
+export const LEDGER_KEEP = 100;
 /** A blow that knocked a hole in a building: box is its index in the town's boxes, and the rest is where and how hard. */
 export type WallHit = { box: number; nx: number; nz: number; x: number; z: number; speed: number };
 
@@ -35,10 +38,11 @@ export type DriveSave = {
   lastStart: number; // the last game's, so the next one lands somewhere else
   trip: Trip | null; // where the drive was left: the car, the clock, the job and the sat nav
   walls: WallHit[]; // the holes still showing in buildings
+  ledger: LedgerLine[]; // the latest Points changes, newest first
 };
 
 export const emptySave = (touch: boolean): DriveSave => ({
-  v: 1, car: 'hatchback', fuel: {}, dmg: {}, designs: {}, driver: {}, input: touch ? 'joystick' : 'keyboard', hand: 'right', camera: 0, muted: false, radio: 0, progress: freshProgress(), guide: [], graphics: 'auto', body: 'voxel', picked: false, debug: false, start: -1, lastStart: -1, trip: null, walls: [],
+  v: 1, car: 'hatchback', fuel: {}, dmg: {}, designs: {}, driver: {}, input: touch ? 'joystick' : 'keyboard', hand: 'right', camera: 0, muted: false, radio: 0, progress: freshProgress(), guide: [], graphics: 'auto', body: 'voxel', picked: false, debug: false, start: -1, lastStart: -1, trip: null, walls: [], ledger: [],
 });
 
 export function saveErrors(s: DriveSave): string[] {
@@ -67,10 +71,11 @@ export function saveErrors(s: DriveSave): string[] {
 
 const finite = (...n: unknown[]) => n.every((v) => typeof v === 'number' && Number.isFinite(v));
 
-/** The drive and the holes are checked apart from the rest: one that's gone wrong is dropped, and the save is kept. */
+/** The drive, the holes and the history are checked apart from the rest: one that's gone wrong is dropped, and the save is kept. */
 export function keepDrive(s: DriveSave) {
   if (tripErrors(s.trip).length) s.trip = null;
   if (!Array.isArray(s.walls) || !s.walls.every((w) => w && Number.isInteger(w.box) && finite(w.nx, w.nz, w.x, w.z, w.speed))) s.walls = [];
+  if (!Array.isArray(s.ledger) || !s.ledger.every((l) => l && typeof l.why === 'string' && typeof l.at === 'string' && finite(l.n, l.total))) s.ledger = [];
 }
 
 export function tripErrors(t: Trip | null): string[] {

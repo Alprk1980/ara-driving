@@ -48,7 +48,8 @@ export type GameEvent =
   | { type: 'rank'; level: number }
   | { type: 'goal'; goal: Goal; pay: number }
   | { type: 'event'; card: TownEventCard | null; edge: number }
-  | { type: 'road'; moment: RoadMoment; pay: number; points: number; score: number };
+  | { type: 'road'; moment: RoadMoment; pay: number; points: number; score: number }
+  | { type: 'goodDriving'; pay: number };
 
 /** Where the drive was left: the car on the road, the clock, the job and the sat nav. Saved beside the progress, so a
  * reload carries on where it stopped. A job's places are kept as indexes into the town's plots, which a fixed seed rebuilds the same. */
@@ -59,8 +60,11 @@ export type Trip = {
   quest: { offer: Omit<Offer, 'start' | 'end'> & { start: number; end: number }; at: QuestState } | null;
 };
 
-/** Where Points live. The app backs this with the shared profile; tests use a number. */
-export type Wallet = { points(): number; spend(n: number): boolean; earn(n: number): void };
+/** Where Points live. The app backs this with the shared profile; tests use a number. `why` is what the history shows. */
+export type Wallet = { points(): number; spend(n: number, why?: string): boolean; earn(n: number, why?: string): void };
+
+/** What each moment on the road reads as in the Points history. */
+const ROAD_WHY: Partial<Record<RoadMoment, string>> = { red_stop: 'Waited at a red light', zebra_wait: 'Waited at a zebra', blue_pull: 'Made way for blue lights', pulled_over: 'Police fine', course: 'Driver course', recovery_called: 'Recovery truck' };
 
 export class Game {
   town: Town;
@@ -126,10 +130,18 @@ export class Game {
 
   /** Something the driving record has to say, with its reward or its fine. */
   roadEvent(e: { moment: RoadMoment; pay: number; points: number }) {
-    if (e.pay > 0) this.wallet.earn(e.pay);
-    else if (e.pay < 0) this.wallet.spend(Math.min(-e.pay, this.wallet.points()));
+    const why = ROAD_WHY[e.moment] ?? 'On the road';
+    if (e.pay > 0) this.wallet.earn(e.pay, why);
+    else if (e.pay < 0) this.wallet.spend(Math.min(-e.pay, this.wallet.points()), why);
     this.emit({ type: 'road', ...e, score: Math.round(this.road.rec.score) });
     if (e.pay) this.emit({ type: 'points', points: this.wallet.points() });
+  }
+
+  /** A clean stretch of driving, paid as you go. */
+  goodDriving(pay: number) {
+    this.wallet.earn(pay, 'Clean driving');
+    this.emit({ type: 'goodDriving', pay });
+    this.emit({ type: 'points', points: this.wallet.points() });
   }
 
   private gainRep(n: number) {
@@ -140,7 +152,7 @@ export class Game {
 
   private goalStep(kind: GoalKind, by = 1, best = false) {
     for (const goal of advance(this.goals, this.progress.daily, kind, by, best)) {
-      this.wallet.earn(GOAL_REWARD);
+      this.wallet.earn(GOAL_REWARD, `Goal: ${goal.text}`);
       this.emit({ type: 'goal', goal, pay: GOAL_REWARD });
       this.emit({ type: 'points', points: this.wallet.points() });
       this.gainRep(REP_GOAL);
@@ -320,7 +332,7 @@ export class Game {
     const room = this.player.car.tank - this.player.fuel;
     const bought = Math.min(litres, room, this.wallet.points() / FUEL_PRICE);
     const cost = Math.ceil(bought * FUEL_PRICE); // part litres round up, so a fill-up reaches the brim
-    if (bought <= 0 || !this.wallet.spend(cost)) return 0;
+    if (bought <= 0 || !this.wallet.spend(cost, `Fuel, ${Math.round(bought)} L`)) return 0;
     this.fuel.add(this.player, bought);
     this.emit({ type: 'points', points: this.wallet.points() });
     return bought;
@@ -344,7 +356,7 @@ export class Game {
       p.addDent(sideOf(n.nx, n.nz, p.heading), crushLevel(n.dv, p.car.tough), contactAt(n.nx, n.nz, p.heading)); // its own change of speed: see traffic.ts
     }
     if (wall > FIRE_CALL_MPS) this.traffic.call('fire', p, p);
-    if (impact > BUMP_MPS) { this.quest?.onBump(); this.emit({ type: 'bump', speed: impact, by: crash > wall ? 'car' : 'wall' }); if (crash > wall) this.road.knocked(crash); }
+    if (impact > BUMP_MPS) { this.quest?.onBump(); this.emit({ type: 'bump', speed: impact, by: crash > wall ? 'car' : 'wall' }); if (crash > wall) this.road.knocked(crash); else this.road.scraped(); }
     else if ((this.lastSpeed - p.speed) / STEP > HARD_STOP_MPS2 + 3) { this.road.hardStop(); if (this.quest) { this.quest.onHardStop(); this.emit({ type: 'hardStop' }); } }
     if (++this.roadTick % ROAD_STEPS === 0) this.road.step(ROAD_STEPS * STEP);
     if (p.state === 'Refuelling') p.mend(p.damage - STEP / REPAIR_S);
@@ -393,7 +405,7 @@ export class Game {
       this.progress.found.push(f.id);
       const of = this.content.finds!.length, total = this.progress.found.length;
       const pay = FIND_REWARD + (total === of ? FIND_ALL_REWARD : 0);
-      this.wallet.earn(pay);
+      this.wallet.earn(pay, 'Hidden find');
       this.emit({ type: 'found', find: f, pay, total, of });
       this.emit({ type: 'points', points: this.wallet.points() });
       this.goalStep('find');
@@ -428,7 +440,7 @@ export class Game {
   private finishRegular(r: NonNullable<Offer['regular']>) {
     this.progress.arcs[r.id] = r.step + 1;
     const finale = r.step + 1 === r.total ? REGULAR_FINALE : 0;
-    if (finale) this.wallet.earn(finale);
+    if (finale) this.wallet.earn(finale, `${r.name}'s story`);
     this.emit({ type: 'regular', id: r.id, name: r.name, thanks: r.thanks, finale });
     this.goalStep('story');
     if (finale) this.gainRep(REP_FINALE);
@@ -477,7 +489,7 @@ export class Game {
       const done = q.finish(p.car);
       const bonus = streakBonus(this.streak), extra = Math.round(done.pay * bonus), pay = Math.round((done.pay + extra) * (1 + rankPay(this.rank) + this.road.bonus));
       this.streak = pay > 0 ? this.streak + 1 : 0;
-      if (pay > 0) this.wallet.earn(pay);
+      if (pay > 0) this.wallet.earn(pay, `Job: ${q.offer.title}`);
       this.emit({ type: 'questDone', offer: q.offer, pay, grade: done.grade });
       if (pay > 0 && this.streak > 1) this.emit({ type: 'streak', jobs: this.streak, bonus, pay: extra });
       if (q.offer.regular && pay > 0) this.finishRegular(q.offer.regular);

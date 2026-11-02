@@ -36,6 +36,12 @@ const CAM_LAG = 6, ROLL = 0.08, PITCH = 0.009, BODY_EASE = 7; // how the chase c
 const SLIDE_START = 0.45, HARD_BRAKE = 9;
 const GLOW = '#ffcf7a', LIGHTS_ON = 0.3; // headlights come on past this much night
 const INDICATOR_PER_MIN = 90; // the law allows 60-120 flashes a minute
+const SIGNAL_LIT = { red: '#ff2b1c', amber: '#ffb01f', green: '#28e06a' }; // as the signal heads in roadcontrol.ts
+// The cockpit's vertical field of view. A view true to a 24 inch monitor 60 cm away would be about 28 degrees (2 atan of
+// half the screen's height over the distance, the sim racing calculators' rule), too narrow to see the road's edges here;
+// 72 made the signals small and far off, and 55 felt too close in play (2026-11-02). 62 is a judged middle: things ahead
+// show 1.25 times bigger than at 72, and the secondary signals across each junction and the dash readout do the rest.
+const COCKPIT_FOV = 62;
 const ATTRACT_SHOT_S = 7; // seconds on each district in the title screen's tour
 const LOOK_PER_PX = 0.005, LOOK_HOLD_S = 1.5, LOOK_SETTLE = 3; // mouse look: radians per pixel, how long it stays put after letting go, how fast it settles back
 export type Quality = 'auto' | 'low' | 'high';
@@ -196,9 +202,12 @@ function buildTown(scene: THREE.Scene, game: Game, landmarks: Landmark[], held: 
   const ZIG_M = 2, ZIG_OUT = 0.22;
   for (const z of town.zebras) {
     const { ux, uz } = z;
-    for (let s = -5; s <= 5; s += 1.2) {
+    if (z.kind === 'zebra') for (let s = -5; s <= 5; s += 1.2) {
       const c = { x: z.x - uz * s, z: z.z + ux * s };
       quad(line, { x: c.x - ux * 1.4, z: c.z - uz * 1.4 }, { x: c.x + ux * 1.4, z: c.z + uz * 1.4 }, 0.3, 0.05);
+    } else for (const edge of [-1.4, 1.4]) for (let s = -5.6; s <= 5.6; s += 0.8) { // a pelican or puffin: two rows of studs, no stripes
+      const c = { x: z.x - uz * s + ux * edge, z: z.z + ux * s + uz * edge };
+      quad(line, { x: c.x - uz * 0.2, z: c.z + ux * 0.2 }, { x: c.x + uz * 0.2, z: c.z - ux * 0.2 }, 0.2, 0.05);
     }
     for (const way of [1, -1]) for (const kerb of [-5.4, 0, 5.4]) for (let k = 0; k * ZIG_M < ZIGZAG_M; k++) {
       const at = (n: number, wob: number) => ({ x: z.x + ux * way * (2.4 + n * ZIG_M) - uz * (kerb + wob), z: z.z + uz * way * (2.4 + n * ZIG_M) + ux * (kerb + wob) });
@@ -585,6 +594,15 @@ export class View {
     g.fillRect(132, 56, 74 * pct, 18);
     g.fillStyle = '#eaf2ff';
     g.fillText('FUEL', 132, 44);
+    // The signal ahead, as a car's traffic light display shows it: three lamps across the top, and the distance to the line.
+    const sig = this.game.road.signalAhead();
+    if (sig) {
+      const lit = { red: sig.aspect === 'red' || sig.aspect === 'redAmber', amber: sig.aspect === 'amber' || sig.aspect === 'redAmber', green: sig.aspect === 'green' };
+      (['red', 'amber', 'green'] as const).forEach((k, i) => { g.beginPath(); g.arc(140 + i * 19, 15, 8, 0, 7); g.fillStyle = lit[k] ? SIGNAL_LIT[k] : '#2a2f3a'; g.fill(); });
+      g.fillStyle = '#eaf2ff';
+      g.font = '15px system-ui';
+      g.fillText(`${Math.round(sig.metres / 5) * 5} m`, 194, 21);
+    }
     const tick = p.indicator && this.game.time % (60 / INDICATOR_PER_MIN) < 30 / INDICATOR_PER_MIN;
     if (tick) { g.fillStyle = '#3ddc97'; g.font = '700 26px system-ui'; g.fillText(p.indicator < 0 ? '◀' : '▶', p.indicator < 0 ? 8 : 222, 34); }
     this.rig.dashTex.needsUpdate = true;
@@ -632,7 +650,7 @@ export class View {
 
   private drawTraffic(dt: number) {
     this.life.draw(dt, this.game.traffic, this.game.walkers, this.game.parked, this.attract ? this.stand : this.game.player);
-    this.control.draw(dt, this.game.traffic.clock);
+    this.control.draw(dt, this.game.traffic.clock, this.game.walkers.lights);
     for (const c of this.game.traffic.cars) { // a car that's taken a real hit smokes where it stands
       if (c.damage < 0.3 || Math.random() > dt * (1 + c.damage * 5)) continue;
       const nose = TRAFFIC_LENGTH * 0.3;
@@ -744,23 +762,42 @@ export class View {
     }
     this.freeLook(dt);
     this.camera.lookAt(this.look);
-    this.camera.fov = this.index === 3 ? 72 : this.index < 2 && !this.inGarage ? 60 + Math.min(1, p.kmh / 150) * 12 : 62;
+    this.camera.fov = this.index === 3 ? COCKPIT_FOV : this.index < 2 && !this.inGarage ? 60 + Math.min(1, p.kmh / 150) * 12 : 62;
     if (this.attract) this.tour(dt);
     this.camera.updateProjectionMatrix();
     if (this.index === 3 && !this.inGarage && !this.attract) this.drawMirror();
     this.renderer.render(this.scene, this.camera);
   }
 
-  /** The interior mirror's picture, drawn before the frame with the cockpit hidden, so it shows the road behind and not the car's insides. It reuses the frame's shadows rather than drawing them twice. */
+  /** The interior mirror's picture, and the reversing camera's while reversing, drawn before the frame with the cockpit hidden, so they show the road and not the car's insides. They reuse the frame's shadows rather than drawing them twice. */
   private drawMirror() {
     const { cam, target } = this.rig.mirror, r = this.renderer;
     this.rig.dash.visible = false;
     r.shadowMap.autoUpdate = false;
     r.setRenderTarget(target);
     r.render(this.scene, cam);
+    const back = this.rig.back, reversing = this.game.player.speed < -0.2; // the camera comes on with reverse, as the lamps do
+    back.view.visible = reversing;
+    back.blank.visible = !reversing;
+    if (reversing) { r.setRenderTarget(back.target); r.render(this.scene, back.cam); }
     r.setRenderTarget(null);
     r.shadowMap.autoUpdate = true;
     this.rig.dash.visible = true;
+  }
+
+  /** Where the interior mirror's glass is on screen, in CSS pixels, in the cockpit view; null in any other. */
+  mirrorRect(): { left: number; right: number; bottom: number } | null {
+    const glass = this.rig.mirror.glass;
+    if (this.index !== 3 || this.inGarage || !glass) return null;
+    const box = new THREE.Box3().setFromObject(glass), w = this.renderer.domElement.clientWidth, h = this.renderer.domElement.clientHeight;
+    let left = Infinity, right = -Infinity, bottom = -Infinity;
+    for (const x of [box.min.x, box.max.x]) for (const y of [box.min.y, box.max.y]) for (const z of [box.min.z, box.max.z]) {
+      const v = new THREE.Vector3(x, y, z).project(this.camera);
+      left = Math.min(left, (v.x + 1) / 2 * w);
+      right = Math.max(right, (v.x + 1) / 2 * w);
+      bottom = Math.max(bottom, (1 - v.y) / 2 * h);
+    }
+    return { left, right, bottom };
   }
 
   /** Knock a hole in a building, and keep the hit so a save can put the hole back. */

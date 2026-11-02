@@ -3,7 +3,7 @@
 //   ... quests --replace a,b   redoes shipped ids on purpose; nothing is silently overwritten.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { chat, parseJson } from './llm.ts';
-import { CAR_JOB_TYPES, carJobErrors, catalogueErrors, chatterErrors, eventErrors, findErrors, GOAL_KINDS, goalErrors, GUIDE_KEYS, GUIDE_WORD, guideErrors, landmarkErrors, PLACE_KINDS, placeErrors, PROP_KINDS, questTextErrors, radioErrors, RANK_COUNT, rankErrors, regularErrors, skyErrors, SKY_SLOTS, stationErrors, storyPlaceErrors, STYLES, TIER_PRICE, TWISTS, VOICE_KEYS, voiceErrors, type CatalogueKind, type JobCar, type Place, type Regular } from '../schemas/content.ts';
+import { adPlaces, CAR_JOB_TYPES, carJobErrors, catalogueErrors, chatterErrors, eventErrors, findErrors, GOAL_KINDS, goalErrors, GUIDE_KEYS, GUIDE_WORD, guideErrors, landmarkErrors, PLACE_KINDS, placeErrors, PROP_KINDS, questTextErrors, radioErrors, RANK_COUNT, rankErrors, regularErrors, skyErrors, SKY_SLOTS, stationErrors, storyPlaceErrors, STYLES, TIER_PRICE, TWISTS, VOICE_KEYS, voiceErrors, type CatalogueKind, type JobCar, type Place, type RadioLine, type Regular } from '../schemas/content.ts';
 import { buildingSetErrors, buildingStyleErrors, type BuildingStyle } from '../schemas/buildings.ts';
 import { carProfileErrors, profileVsCar, type CarBodyProfile } from '../schemas/carprofiles.ts';
 import { FLEET_RULES, fleetErrors } from '../schemas/fleet.ts';
@@ -12,6 +12,7 @@ import { greyHaired, HAIR_STYLES, personErrors, SKIN_TONES, skinTone, type Perso
 import { ROAD_MOMENTS, roadLineErrors, SERVICE_RULES, serviceErrors, type RoadLine } from '../schemas/services.ts';
 import { townCarErrors, townCarKindErrors, type TownCar } from '../schemas/towncars.ts';
 import { CARS, type CarId } from '../src/sim/economy.ts';
+import { DISTRICTS, DISTRICT_IDS } from '../src/sim/districts.ts';
 import { landmarkFor } from '../src/sim/quests.ts';
 import { Town } from '../src/sim/town.ts';
 
@@ -70,6 +71,8 @@ const slotBatch = (slots: ReturnType<typeof slot>): Batch => ({
   },
 });
 
+const townPlaces = () => JSON.parse(readFileSync('src/data/places.json', 'utf8')) as Place[];
+
 // Each hiding place, with the place and direction its clue has to give.
 function findBatches(perBatch: number): Batch[] {
   const town = new Town(), places = JSON.parse(readFileSync('src/data/places.json', 'utf8')) as Place[];
@@ -123,6 +126,7 @@ const KINDS: Record<string, Kind> = {
   },
   chatter: {
     file: 'src/data/chatter.json', prompt: 'prompts/chatter.txt', errors: chatterErrors as Kind['errors'], key: 'id',
+    checker: 'These are things passengers say to the driver in a family driving game set in a British town, read aloud by a speech engine. Flag any line no real person would say, that is nonsense rather than funny, that sounds stiff or American, that is rude, or that repeats the idea of another line.',
     batches: () => [
       { ask: 'Write 8 lines with moment board, 8 with moment bump and 6 with moment hard_stop.' },
       { ask: 'Write 8 lines with moment smooth, 8 with moment nervous, 6 with moment arrive_happy and 6 with moment arrive_cross.' },
@@ -174,12 +178,21 @@ const KINDS: Record<string, Kind> = {
     batches: () => [{ ask: `Slots:\n${SKY_SLOTS.map((s) => `id ${s.id}, at ${s.at}, night ${s.night.join('-')}, sunPower ${s.sunPower.join('-')}, ambient ${s.ambient.join('-')}, tint brightness ${s.tint.join('-')} (0 black, 1 white), sky and fog brightness within 0.25 of each other`).join('\n')}` }],
   },
   radio: {
-    file: 'src/data/radio.json', prompt: 'prompts/radio.txt', errors: radioErrors as Kind['errors'], key: 'id',
-    batches: () => [
-      { ask: 'Write 10 lines with topic chat and 8 with topic ad.' },
-      { ask: 'Write 5 lines each with topics weather, night, rain and job_done.' },
-      { ask: 'Write 5 lines with topic job_lost, 6 with topic fuel_low and 5 with topic streak.' },
-    ],
+    file: 'src/data/radio.json', prompt: 'prompts/radio.txt', errors: ((r: RadioLine) => radioErrors(r, adPlaces(townPlaces()))) as Kind['errors'], key: 'id',
+    checker: 'These are lines for a British local radio presenter in a family driving game, read aloud by a speech engine. Flag any line that a real presenter would never say, that is nonsense rather than funny, that sounds stiff or American, or that repeats the idea of another line.',
+    batches: () => {
+      const town = `The town's districts: ${DISTRICT_IDS.map((id) => DISTRICTS[id].name).join(', ')}. Its businesses: ${adPlaces(townPlaces()).join(', ')}.`;
+      return [
+        { ask: `${town}
+Write 10 lines with topic chat.` },
+        { ask: `${town}
+Write 10 lines with topic ad, each for a different business from the list, named exactly.` },
+        { ask: `${town}
+Write 8 lines with topic travel.` },
+        { ask: 'Write 6 lines with topic weather, 5 with topic night and 6 with topic rain.' },
+        { ask: 'Write 5 lines each with topics job_done, job_lost, fuel_low and streak.' },
+      ];
+    },
   },
   stations: {
     file: 'src/data/stations.json', prompt: 'prompts/stations.txt', errors: stationErrors as Kind['errors'], key: 'id',
@@ -302,7 +315,14 @@ for (const name of kinds) {
   const shipped = (existsSync(k.file) ? JSON.parse(readFileSync(k.file, 'utf8')) : []) as Entry[];
   const out = new Map(shipped.map((e) => [String(e[k.key]), e]));
   const log: unknown[] = [];
-  await Promise.all(k.batches().map(async (batch) => { // every batch at once: llm.ts holds them to the server's slots
+  // --repair: only the shipped entries the rules now fail go back, each with its problems, to be rewritten under the same id.
+  const broken = args.includes('--repair') ? shipped.filter((e) => k.errors(e as never).length) : [];
+  for (const e of broken) replace.add(String(e[k.key]));
+  const batches: Batch[] = args.includes('--repair')
+    ? (broken.length ? [{ ask: `Rewrite each of these entries to fix its problems. Keep every id and everything else about it the same.\n${broken.map((e) => `${JSON.stringify(e)}\nProblems: ${k.errors(e as never).join('; ')}`).join('\n\n')}`, fits: (e: Entry) => (replace.has(String(e[k.key])) ? [] : [`${String(e[k.key])}: rewrite only the entries given, keeping their ids`]) }] : [])
+    : k.batches();
+  if (args.includes('--repair')) console.log(`${name}: ${broken.length} to repair`);
+  await Promise.all(batches.map(async (batch) => { // every batch at once: llm.ts holds them to the server's slots
     let msgs: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
       { role: 'system', content: readFileSync(k.prompt, 'utf8') },
       { role: 'user', content: batch.ask },

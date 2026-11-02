@@ -42,3 +42,11 @@ export function walkFor(town: Town, node: number, time: number): boolean {
   const offset = town.signals.get(node);
   return offset !== undefined && walkAt(time + offset * CYCLE_S);
 }
+
+/** Seconds people have left to be over before traffic moves: the rest of the green man and the clearance after it, or 0
+ * when the green man isn't showing. */
+export function crossTimeFor(town: Town, node: number, time: number): number {
+  const offset = town.signals.get(node);
+  if (offset === undefined || !walkAt(time + offset * CYCLE_S)) return 0;
+  return PEOPLE + WALK_S + CLEAR_S - within(time + offset * CYCLE_S);
+}

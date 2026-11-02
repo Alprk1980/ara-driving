@@ -7,7 +7,7 @@
 // Friendly on purpose: 12 points means a ban in life, and here a course, as a ban would stop the game. Points last 3 game
 // days for 3 real years. Police who catch you have a word and a fine: they never ram, block or hurt anyone.
 import type { Game } from './game.ts';
-import { signalFor, STOP_LINE_M } from './signals.ts';
+import { signalFor, STOP_LINE_M, type Aspect } from './signals.ts';
 import { dist, ROAD_W, type Vec, type Zebra } from './town.ts';
 import type { TrafficCar } from './traffic.ts';
 import type { RoadMoment } from '../../schemas/services.ts';
@@ -17,9 +17,13 @@ export type Merit = 'red_stop' | 'zebra_wait' | 'blue_pull' | 'stopped_after';
 export type RoadEntry = { moment: RoadMoment; at: number; by: number }; // what happened, when on the record's clock, and how far it moved the score
 export type RoadRecord = { score: number; marks: { kind: Offence; at: number }[]; clock: number; good: number; bad: number; log?: RoadEntry[] }; // log: missing from older saves
 
-export const START_SCORE = 50, LICENCE_LIMIT = 12, MARK_DAYS = 3, COURSE_COST = 150, POLICE_FINE = 50;
-export const OFFENCES: Record<Offence, { points: number; drop: number }> = { red_run: { points: 3, drop: 12 }, zebra_run: { points: 3, drop: 12 }, blue_block: { points: 0, drop: 6 }, drove_off: { points: 6, drop: 20 }, phone_use: { points: 6, drop: 15 }, hoax_call: { points: 0, drop: 10 } }; // a hand-held phone at the wheel is 6 points since 2017, and a hoax call costs score: the offence exists, but the search couldn't confirm its terms
+export const START_SCORE = 50, LICENCE_LIMIT = 12, MARK_DAYS = 3, COURSE_COST = 60, POLICE_FINE = 20; // eased after play (2026-11-02): a slip shouldn't cost a job's pay
+// Driving well pays as you go: each clean kilometre, with no knock, sharp stop or offence, earns a little. Twice the fuel a
+// kilometre burns, well short of a job's pay, so it rewards care without replacing the work. A game number, not a real one.
+export const CLEAN_KM = 1, CLEAN_PAY = 4;
+export const OFFENCES: Record<Offence, { points: number; drop: number }> = { red_run: { points: 3, drop: 6 }, zebra_run: { points: 3, drop: 6 }, blue_block: { points: 0, drop: 3 }, drove_off: { points: 6, drop: 10 }, phone_use: { points: 6, drop: 8 }, hoax_call: { points: 0, drop: 5 } }; // the score drops were halved after play (2026-11-02); the licence points are the real ones: a hand-held phone at the wheel is 6 points since 2017, and a hoax call costs score: the offence exists, but the search couldn't confirm its terms
 export const MERITS: Record<Merit, { pay: number; rise: number }> = { red_stop: { pay: 5, rise: 1 }, zebra_wait: { pay: 8, rise: 2 }, blue_pull: { pay: 15, rise: 3 }, stopped_after: { pay: 0, rise: 0 } }; // only thanks, so a bump is never worth having
+const SIGNAL_SHOWN_M = 80; // how far ahead the dash shows a signal: judged, about two junction spacings in Old Town
 const LOG_KEEP = 30, TREND_EVERY_S = 30, TREND_SAMPLES = 5; // the arrow compares now with about two minutes ago
 const SMOOTH_PER_KM = 0.6, HARD_STOP_DROP = 1, BUMP_DROP = 2, COOLDOWN_S = 15, BLOCK_S = 4, MOVING_MPS = 1.5, STILL_MPS = 1;
 const WAIT_M = 16, LOOK_M = 34, CREW_M = 70, SEEN_M = 90, STOP_FOR_S = 3, LEAVE_M = 90, LEAVE_S = 20, MIN_KNOCK_MPS = 4;
@@ -37,6 +41,7 @@ export class RoadSense {
   private held: string | null = null; // the signal we're waiting at
   private gave: Zebra | null = null; // the zebra we've stopped for
   private ready = new Map<string, number>();
+  private clean = 0; // kilometres driven since the last slip
   private thanked = new WeakSet<TrafficCar>();
   incident: (Vec & { age: number; still: number }) | null = null;
   chaser: TrafficCar | null = null;
@@ -77,6 +82,7 @@ export class RoadSense {
 
   private offence(kind: Offence) {
     if (this.g.time < (this.ready.get(kind) ?? 0)) return;
+    this.clean = 0;
     this.ready.set(kind, this.g.time + COOLDOWN_S);
     const o = OFFENCES[kind];
     this.nudge(-o.drop);
@@ -117,12 +123,18 @@ export class RoadSense {
   knocked(speed: number) {
     if (speed >= MIN_KNOCK_MPS && !this.incident) this.incident = { x: this.g.player.x, z: this.g.player.z, age: 0, still: 0 };
     this.nudge(-BUMP_DROP);
+    this.clean = 0;
   }
 
   phoneAtWheel() { this.offence('phone_use'); }
   hoaxCall() { this.offence('hoax_call'); }
-  hardStop() { this.nudge(-HARD_STOP_DROP); }
-  smooth(km: number) { this.nudge(km * SMOOTH_PER_KM); }
+  hardStop() { this.nudge(-HARD_STOP_DROP); this.clean = 0; }
+  /** A knock into a wall: it doesn't mark the record, but it isn't clean driving either. */
+  scraped() { this.clean = 0; }
+  smooth(km: number) {
+    this.nudge(km * SMOOTH_PER_KM);
+    if ((this.clean += km) >= CLEAN_KM - 1e-9) { this.clean = 0; this.g.goodDriving(CLEAN_PAY); }
+  }
 
   private signals() {
     const { town, player: p, traffic } = this.g;
@@ -154,6 +166,18 @@ export class RoadSense {
       if (Math.abs(p.x - z.x) > LOOK_M || Math.abs(p.z - z.z) > LOOK_M) continue;
       const on = (q: Vec) => (q.x - z.x) * z.ux + (q.z - z.z) * z.uz, was = on(this.last), now = on(p), across = Math.abs((p.x - z.x) * z.uz - (p.z - z.z) * z.ux);
       if (across > ROAD_W / 2 + 1) continue;
+      const light = walkers.lights.get(z);
+      if (light) { // a pelican or puffin: its red is a red light, and its flashing amber means give way to anyone still on it
+        const a = light.traffic;
+        if (Math.abs(p.speed) < STILL_MPS && Math.abs(now) < WAIT_M && (a === 'red' || a === 'redAmber')) this.gave = z;
+        if (was * now <= 0 && was !== now && Math.abs(p.speed) > MOVING_MPS) {
+          if (a === 'red' || a === 'redAmber') this.offence('red_run');
+          else if (a === 'flashingAmber' && walkers.onStripes(z)) this.offence('zebra_run');
+          else if (this.gave === z) this.merit('red_stop');
+          this.gave = null;
+        }
+        continue;
+      }
       if (Math.abs(p.speed) < STILL_MPS && Math.abs(now) < WAIT_M && walkers.busy(z)) this.gave = z;
       if (was * now <= 0 && was !== now && Math.abs(p.speed) > MOVING_MPS) {
         if (walkers.onStripes(z)) this.offence('zebra_run');
@@ -220,6 +244,31 @@ export class RoadSense {
     this.last = { x: this.g.player.x, z: this.g.player.z };
   }
 
+  /** The signal on the road ahead and how far to its stop line, as a car's traffic light display shows it. */
+  signalAhead(range = SIGNAL_SHOWN_M): { aspect: Aspect; metres: number } | null {
+    const { town, player: p, traffic } = this.g, fx = Math.sin(p.heading), fz = Math.cos(p.heading);
+    let best: { aspect: Aspect; metres: number } | null = null;
+    for (const node of town.signals.keys()) {
+      const n = town.nodes[node];
+      if (Math.abs(p.x - n.x) > range + STOP_LINE_M || Math.abs(p.z - n.z) > range + STOP_LINE_M) continue;
+      for (const w of town.adj[node]) {
+        const a = this.approach(node, w.to, w.edge), now = a.short(p), lane = a.left(p);
+        if (lane < -1 || lane > ROAD_W / 2 + 1 || a.dx * fx + a.dz * fz < 0.5 || now < STOP_LINE_M - 2 || now > range + STOP_LINE_M) continue;
+        const metres = Math.max(0, now - STOP_LINE_M - p.car.size[0] / 2);
+        if (!best || metres < best.metres) best = { aspect: signalFor(town, node, w.edge, traffic.clock)!, metres };
+      }
+    }
+    for (const z of town.zebras) { // and the pelicans and puffins; a flashing amber shows as amber
+      const light = this.g.walkers.lights.get(z);
+      if (!light) continue;
+      const along = (z.x - p.x) * fx + (z.z - p.z) * fz, across = Math.abs((z.x - p.x) * fz - (z.z - p.z) * fx);
+      if (along < 2 || along > range || across > ROAD_W / 2 + 1) continue;
+      const metres = Math.max(0, along - 2.5 - p.car.size[0] / 2), a = light.traffic;
+      if (!best || metres < best.metres) best = { aspect: a === 'flashingAmber' ? 'amber' : a, metres };
+    }
+    return best;
+  }
+
   /** How far ahead the road says stop, for a driver who keeps the rules. */
   stopAhead(): number | null {
     const { town, player: p, traffic, walkers } = this.g, fx = Math.sin(p.heading), fz = Math.cos(p.heading);
@@ -237,7 +286,9 @@ export class RoadSense {
     }
     for (const z of town.zebras) {
       const along = (z.x - p.x) * fx + (z.z - p.z) * fz, across = Math.abs((z.x - p.x) * fz - (z.z - p.z) * fx);
-      if (along < 3 || along > 45 || across > ROAD_W / 2 + 1 || !walkers.busy(z)) continue;
+      if (along < 3 || along > 45 || across > ROAD_W / 2 + 1) continue;
+      const a = walkers.lights.get(z)?.traffic;
+      if (a ? !(a === 'red' || a === 'redAmber' || a === 'amber' || (a === 'flashingAmber' && walkers.onStripes(z))) : !walkers.busy(z)) continue;
       const gap = along - 3 - p.car.size[0] / 2;
       if (best === null || gap < best) best = gap;
     }

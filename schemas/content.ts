@@ -100,12 +100,21 @@ export const CHATTER_MOMENTS = ['board', 'bump', 'hard_stop', 'smooth', 'nervous
 export type ChatterMoment = (typeof CHATTER_MOMENTS)[number];
 export type ChatterLine = { id: string; moment: ChatterMoment; text: string };
 
+// How people really talk, for lines read aloud. People run words together (I'm, let's, don't), and a line spelt out in
+// full reads stiffly through a speech engine. The town is British, so American words are out.
+const STIFF = /\b(I am|let us|do not|does not|did not|it is|that is|there is|you are|we are|they are|is not|are not|was not|cannot|can not|will not|I will|you will|we will|I have|you have|we have|I would|what is)\b/i;
+const AMERICAN = /\b(gasoline|freeway|highway|trash|garbage|sidewalk|parking lot|vacation|candy|cookies?|mom|awesome|y'?all|buddy|apartment|traffic circle|stoplight|cell ?phone|zip code|downtown|faucet|movie theater)\b/i;
+export const spokenStyle = (id: string, t: string): string[] => [
+  ...(STIFF.test(t) ? [`${id}: say "${t.match(STIFF)![0]}" as people speak it: I'm, let's, don't, it's, you're, isn't, can't, won't, I'll and so on`] : []),
+  ...(AMERICAN.test(t) ? [`${id}: "${t.match(AMERICAN)![0]}" is American; this town is British (petrol, pavement, car park, bin, holiday, sweets, biscuits, mum, town centre, autumn, trousers, tap, cinema)`] : []),
+];
+
 const spoken = (id: string, t: string, words: number): string[] => {
   if (!text(t) || t.split(/\s+/).length > words) return [`${id}: text must be 1-${words} words`];
   const out: string[] = [];
   if (PRICEY.test(t) || EMOJI.test(t) || /[{}]/.test(t)) out.push(`${id}: no slots, digits, prices or emoji, it is read aloud`);
   if (!/[.!?]$/.test(t)) out.push(`${id}: text must end in . ! or ?`);
-  return out;
+  return [...out, ...spokenStyle(id, t)];
 };
 
 export function chatterErrors(c: ChatterLine): string[] {
@@ -113,6 +122,7 @@ export function chatterErrors(c: ChatterLine): string[] {
   const out: string[] = [];
   if (!ID.test(c.id ?? '')) out.push(`id "${c.id}": snake_case`);
   if (!CHATTER_MOMENTS.includes(c.moment)) out.push(`${c.id}: moment must be one of ${CHATTER_MOMENTS.join(', ')}`);
+  if (/\b(morning|afternoon|evening|tonight|night)\b/i.test(c.text ?? '')) out.push(`${c.id}: a lift can be at any time of day, so don't name one`);
   return [...out, ...spoken(c.id, c.text, 12)];
 }
 
@@ -298,24 +308,40 @@ export function skyErrors(s: Sky): string[] {
   return out;
 }
 
-export const RADIO_TOPICS = ['chat', 'ad', 'weather', 'night', 'rain', 'job_done', 'job_lost', 'fuel_low', 'streak'] as const;
+// The DJ is a British local radio presenter. Local commercial radio carries local news, weather, travel at the busy times
+// and adverts for local firms (station formats are set by Ofcom; Smooth's public files list the local inserts), so the
+// ads are for the town's own businesses and travel is about its roads. Forecasts use the Met Office's words: sunny spells,
+// sunny intervals, showers, outbreaks of rain.
+export const RADIO_TOPICS = ['chat', 'ad', 'travel', 'weather', 'night', 'rain', 'job_done', 'job_lost', 'fuel_low', 'streak'] as const;
 export type RadioTopic = (typeof RADIO_TOPICS)[number];
 export type RadioLine = { id: string; topic: RadioTopic; text: string };
-const RADIO_WORD: Partial<Record<RadioTopic, RegExp>> = {
-  fuel_low: /\b(fuel|tank|petrol|pump)\b/i, rain: /\b(rain|rainy|wet|umbrella|drizzle|shower|showers|puddle|puddles)\b/i,
-  night: /\b(night|moon|stars?|dark|evening|tonight)\b/i, streak: /\b(streak|roll|row|shift|another|keep)\b/i,
+const RAIN_WORD = /\b(rain|rainy|wet|umbrellas?|drizzle|showers?|puddles?|downpour|spitting)\b/i;
+export const RADIO_WORD: Partial<Record<RadioTopic, RegExp>> = {
+  fuel_low: /\b(fuel|tank|petrol|pump|forecourt)\b/i, rain: RAIN_WORD,
+  night: /\b(night|moon|stars?|dark|evening|tonight|late)\b/i, streak: /\b(streak|roll|row|shift|another|keep)\b/i,
+  travel: /\b(roadworks|queues?|queuing|traffic|junctions?|roundabouts?|lights|busy|diversion|delays?|lanes?|clear|moving|slow|jams?|school run)\b/i,
+  weather: /\b(sunny spells|sunny intervals|sunshine|sun|cloud|cloudy|bright|dry|breeze|breezy|mild|chilly|fresh|mist|misty|fog|foggy|frost|frosty|overcast|clear|warm|cool|grey)\b/i,
 };
+const RADIO_WORDS = 20;
 
-export function radioErrors(r: RadioLine): string[] {
+/** The town's places that would advertise on local radio: its shops, cafés, markets and depots. */
+export const adPlaces = (places: readonly Place[]) => places.filter((p) => ['shop', 'cafe', 'market', 'depot'].includes(p.kind)).map((p) => p.name);
+
+/** A radio line. `places` are the town's business names: an advert has to be for one of them. */
+export function radioErrors(r: RadioLine, places: readonly string[] = []): string[] {
   if (!r || typeof r !== 'object') return ['radio line is not an object'];
   const out: string[] = [];
   if (!ID.test(r.id ?? '')) out.push(`id "${r.id}": snake_case`);
   if (!RADIO_TOPICS.includes(r.topic)) out.push(`${r.id}: topic must be one of ${RADIO_TOPICS.join(', ')}`);
-  if (!text(r.text) || r.text.split(/\s+/).length > 16) return [...out, `${r.id}: text must be 1-16 words`];
+  if (!text(r.text) || r.text.split(/\s+/).length > RADIO_WORDS) return [...out, `${r.id}: text must be 1-${RADIO_WORDS} words`];
   if (PRICEY.test(r.text) || EMOJI.test(r.text) || /[{}]/.test(r.text)) out.push(`${r.id}: no slots, digits, prices or emoji, it is read aloud`);
   if (!/[.!?]$/.test(r.text)) out.push(`${r.id}: text must end in . ! or ?`);
+  out.push(...spokenStyle(r.id, r.text));
   const word = RADIO_WORD[r.topic];
   if (word && !word.test(r.text)) out.push(`${r.id}: a ${r.topic} line must say something like ${word.source}`);
+  if (r.topic === 'weather' && RAIN_WORD.test(r.text)) out.push(`${r.id}: weather lines play when it's dry; rain has its own topic`);
+  if (r.topic !== 'night' && /\b(morning|afternoon|lunchtime|evening|tonight|night)\b/i.test(r.text)) out.push(`${r.id}: lines play at any time of day, so don't name one (only night lines may): say "today", "now" or nothing`);
+  if (r.topic === 'ad' && places.length && !places.some((p) => r.text.includes(p))) out.push(`${r.id}: an advert is for one of the town's own businesses, named exactly: ${places.join(', ')}`);
   return out;
 }
 

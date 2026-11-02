@@ -1,252 +1,252 @@
 [
   {
-    "id": "board_hello",
-    "moment": "board",
-    "text": "Hello there, ready when you are!"
-  },
-  {
-    "id": "board_wave",
-    "moment": "board",
-    "text": "Hi! I am excited to go."
-  },
-  {
-    "id": "board_seat",
-    "moment": "board",
-    "text": "Ooh, nice seat! Let us go."
-  },
-  {
-    "id": "board_sunny",
-    "moment": "board",
-    "text": "I hope today is sunny!"
-  },
-  {
-    "id": "board_fun",
-    "moment": "board",
-    "text": "This will be a fun ride!"
-  },
-  {
-    "id": "board_buckled",
-    "moment": "board",
-    "text": "Alright, I am buckled and ready!"
-  },
-  {
-    "id": "board_good_day",
-    "moment": "board",
-    "text": "Good day! Let us travel soon."
-  },
-  {
-    "id": "board_enjoy",
-    "moment": "board",
-    "text": "I always enjoy a good drive."
-  },
-  {
-    "id": "bump_hat",
-    "moment": "bump",
-    "text": "Ooh, mind my hat!"
-  },
-  {
-    "id": "bump_wobble",
-    "moment": "bump",
-    "text": "That gave me a wobble!"
-  },
-  {
-    "id": "bump_knees",
-    "moment": "bump",
-    "text": "Ah! My knees got jostled."
-  },
-  {
-    "id": "bump_bag",
-    "moment": "bump",
-    "text": "My bag jumped onto my lap!"
-  },
-  {
-    "id": "bump_whoa",
-    "moment": "bump",
-    "text": "Whoa! Did we just bump?"
-  },
-  {
-    "id": "bump_tea",
-    "moment": "bump",
-    "text": "I nearly spilled my tea!"
-  },
-  {
-    "id": "bump_glasses",
-    "moment": "bump",
-    "text": "Hey, my glasses went crooked!"
-  },
-  {
-    "id": "bump_shoe",
-    "moment": "bump",
-    "text": "Oh dear, my shoe shifted!"
-  },
-  {
-    "id": "hard_stop_nod",
-    "moment": "hard_stop",
-    "text": "Oof, I nearly nodded forward!"
-  },
-  {
-    "id": "hard_stop_arms",
-    "moment": "hard_stop",
-    "text": "Whoa, my arms flew up!"
-  },
-  {
-    "id": "hard_stop_thumbs",
-    "moment": "hard_stop",
-    "text": "Hey! My thumbs got stuck."
-  },
-  {
-    "id": "hard_stop_teeth",
-    "moment": "hard_stop",
-    "text": "Ah, my teeth got chattered!"
-  },
-  {
-    "id": "hard_stop_hat",
-    "moment": "hard_stop",
-    "text": "My hat flew over my eyes!"
-  },
-  {
-    "id": "hard_stop_pockets",
-    "moment": "hard_stop",
-    "text": "My pockets emptied all at once!"
-  },
-  {
-    "id": "smooth_buttering",
+    "id": "smooth_lovely_ride",
     "moment": "smooth",
-    "text": "This is as easy as buttering toast."
+    "text": "Lovely ride, this. Nice and smooth."
   },
   {
-    "id": "smooth_purr",
+    "id": "smooth_quiet_day",
     "moment": "smooth",
-    "text": "Lovely, I can feel the purr."
+    "text": "Quiet day for it, isn't it?"
   },
   {
-    "id": "smooth_gliding",
+    "id": "smooth_no_rush",
     "moment": "smooth",
-    "text": "We are gliding along nicely."
+    "text": "No rush at all, is there?"
   },
   {
-    "id": "smooth_breeze",
+    "id": "smooth_easy_going",
     "moment": "smooth",
-    "text": "This ride feels like a breeze."
+    "text": "Rather easy going, isn't it?"
   },
   {
-    "id": "smooth_cloud",
+    "id": "smooth_good_pace",
     "moment": "smooth",
-    "text": "I feel like a cloud."
+    "text": "Good pace, actually. Very comfortable."
   },
   {
-    "id": "smooth_wobble",
+    "id": "smooth_just_right",
     "moment": "smooth",
-    "text": "A nice little wobble, no problem."
+    "text": "Just right, this. Not bad at all."
   },
   {
-    "id": "smooth_wheels",
+    "id": "smooth_might_warm_up",
     "moment": "smooth",
-    "text": "The wheels are singing softly."
+    "text": "Might warm up a bit, mind."
   },
   {
-    "id": "smooth_toes",
+    "id": "smooth_smooth_as_anything",
     "moment": "smooth",
-    "text": "This ride makes my toes tap."
+    "text": "Smooth as anything, this ride."
   },
   {
-    "id": "nervous_tea",
+    "id": "nervous_gently_now",
     "moment": "nervous",
-    "text": "Oh dear, my tea is wobbling."
+    "text": "Gently now, eh. Gently."
   },
   {
-    "id": "nervous_slower",
+    "id": "nervous_going_tense",
     "moment": "nervous",
-    "text": "Maybe we can go a little slower?"
+    "text": "I'm going a bit tense."
   },
   {
-    "id": "nervous_hat",
+    "id": "nervous_not_ideal",
     "moment": "nervous",
-    "text": "I am holding my hat tight."
+    "text": "Not ideal, that."
   },
   {
-    "id": "nervous_squeak",
+    "id": "nervous_mind_wobble",
     "moment": "nervous",
-    "text": "That squeak sounds very curious."
+    "text": "Mind the wobble, please."
   },
   {
-    "id": "nervous_bushes",
+    "id": "nervous_a_bit_wobbly",
     "moment": "nervous",
-    "text": "Please, those bushes looked close!"
+    "text": "Ah, yes, a bit wobbly."
   },
   {
-    "id": "nervous_belt",
+    "id": "nervous_bit_shaky",
     "moment": "nervous",
-    "text": "I hope this seat belt holds."
+    "text": "A bit shaky, that."
   },
   {
-    "id": "nervous_flips",
+    "id": "nervous_take_gently",
     "moment": "nervous",
-    "text": "My stomach is doing flips!"
+    "text": "Let's take it gently."
   },
   {
-    "id": "nervous_odd",
+    "id": "nervous_steady_on",
     "moment": "nervous",
-    "text": "Whoa, that wobble felt odd!"
+    "text": "Steady on, please."
   },
   {
-    "id": "arrive_happy_delightful",
+    "id": "arrive_happy_liked_it",
     "moment": "arrive_happy",
-    "text": "Thank you, that was delightful."
+    "text": "I liked that. Ta very much."
   },
   {
-    "id": "arrive_happy_refreshed",
+    "id": "arrive_happy_you_star",
     "moment": "arrive_happy",
-    "text": "I feel perfectly refreshed now."
+    "text": "You're a star. Lovely ride."
   },
   {
-    "id": "arrive_happy_lovely",
+    "id": "arrive_happy_cheers_spot_on",
     "moment": "arrive_happy",
-    "text": "What a lovely little ride."
+    "text": "Cheers for that. Spot on."
   },
   {
-    "id": "arrive_happy_easy",
+    "id": "arrive_happy_not_bad_all",
     "moment": "arrive_happy",
-    "text": "You made it look easy."
+    "text": "Not bad at all, that."
   },
   {
-    "id": "arrive_happy_smiling",
+    "id": "arrive_happy_thanks_kindly",
     "moment": "arrive_happy",
-    "text": "I am smiling ear to ear."
+    "text": "Thanks kindly. I'm grateful."
   },
   {
-    "id": "arrive_happy_silk",
+    "id": "arrive_happy_lovely_lift",
     "moment": "arrive_happy",
-    "text": "That was smoother than silk."
+    "text": "Lovely lift. Ta again."
   },
   {
-    "id": "arrive_cross_pancake",
+    "id": "arrive_cross_bit_wild",
     "moment": "arrive_cross",
-    "text": "My hat is now a pancake."
+    "text": "A bit wild, wasn't it?"
   },
   {
-    "id": "arrive_cross_spine",
+    "id": "arrive_cross_lost_sock",
     "moment": "arrive_cross",
-    "text": "I think my spine filed a complaint."
+    "text": "I've lost a sock."
   },
   {
-    "id": "arrive_cross_hug",
+    "id": "arrive_cross_rough_ride",
     "moment": "arrive_cross",
-    "text": "Next time, a gentle hug, please."
+    "text": "Rough ride, that. Still, cheers."
   },
   {
-    "id": "arrive_cross_cart",
+    "id": "arrive_cross_cuppa",
     "moment": "arrive_cross",
-    "text": "I have seen better cart rides."
+    "text": "Need a cuppa after that."
   },
   {
-    "id": "arrive_cross_lunch",
+    "id": "arrive_cross_little_shaken",
     "moment": "arrive_cross",
-    "text": "My lunch is staging a protest."
+    "text": "I'm a little shaken."
   },
   {
-    "id": "arrive_cross_ears",
+    "id": "arrive_cross_not_ideal_ride",
     "moment": "arrive_cross",
-    "text": "That was not very kind to my ears."
+    "text": "Not ideal, that ride."
+  },
+  {
+    "id": "board_ta_lift",
+    "moment": "board",
+    "text": "Ta for this. It's quite bright, isn't it?"
+  },
+  {
+    "id": "board_cheers_mild",
+    "moment": "board",
+    "text": "Cheers! Bit mild for the season, isn't it?"
+  },
+  {
+    "id": "board_morning_not_bad",
+    "moment": "board",
+    "text": "Hi! Not bad outside, all things considered."
+  },
+  {
+    "id": "board_bit_bite",
+    "moment": "board",
+    "text": "Brr! It's got a bit of bite, hasn't it?"
+  },
+  {
+    "id": "board_cant_see",
+    "moment": "board",
+    "text": "Hello! You can't see much today, can you?"
+  },
+  {
+    "id": "board_windy_one",
+    "moment": "board",
+    "text": "Hello! Windy one, this. Hope you're not in a rush."
+  },
+  {
+    "id": "board_out_of_wind",
+    "moment": "board",
+    "text": "Thanks for this. Lovely to get out of the wind."
+  },
+  {
+    "id": "board_drizzle",
+    "moment": "board",
+    "text": "Hey! Nice to meet you. Bit of drizzle, eh?"
+  },
+  {
+    "id": "bump_oof_bump",
+    "moment": "bump",
+    "text": "Oof! That was a bit of a bump."
+  },
+  {
+    "id": "bump_gosh_jolt",
+    "moment": "bump",
+    "text": "Gosh, that jolted me quite nicely."
+  },
+  {
+    "id": "bump_bargained",
+    "moment": "bump",
+    "text": "Cor, that was more than I bargained for."
+  },
+  {
+    "id": "bump_lively",
+    "moment": "bump",
+    "text": "Whoa! That was a bit lively, that."
+  },
+  {
+    "id": "bump_oy",
+    "moment": "bump",
+    "text": "Oy! That was a bit more than I expected."
+  },
+  {
+    "id": "bump_teeth",
+    "moment": "bump",
+    "text": "Blimey, I felt that one in my teeth."
+  },
+  {
+    "id": "bump_proper_knock",
+    "moment": "bump",
+    "text": "Ugh, that was a proper knock, wasn't it?"
+  },
+  {
+    "id": "bump_smooth_sailing",
+    "moment": "bump",
+    "text": "Eh, that wasn't exactly smooth sailing."
+  },
+  {
+    "id": "hard_stop_suddenly",
+    "moment": "hard_stop",
+    "text": "Whoa, that stopped us quite suddenly."
+  },
+  {
+    "id": "hard_stop_chin",
+    "moment": "hard_stop",
+    "text": "Oof, I nearly had my chin in my lap."
+  },
+  {
+    "id": "hard_stop_abrupt",
+    "moment": "hard_stop",
+    "text": "Blimey, that was abrupt, wasn't it?"
+  },
+  {
+    "id": "hard_stop_up_short",
+    "moment": "hard_stop",
+    "text": "Goodness, we've come up short, haven't we?"
+  },
+  {
+    "id": "hard_stop_sudden",
+    "moment": "hard_stop",
+    "text": "Oomph! That was a bit sudden, isn't it?"
+  },
+  {
+    "id": "hard_stop_neighbours",
+    "moment": "hard_stop",
+    "text": "Ah, there. That'll wake the neighbours, that will."
   }
 ]

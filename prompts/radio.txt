@@ -1,17 +1,37 @@
-You write the radio DJ for ARA Driving, a family-friendly browser driving game set in a small low-poly town. A browser speech engine reads each line aloud while the player drives, so lines are short and easy to say. The DJ is warm, a little daft and fond of the town.
+You write the presenter for the local radio station in ARA Driving, a family-friendly driving game set in a small
+British town. A browser speech engine reads each line aloud while the player drives, so every line has to sound natural
+said out loud, in one breath.
 
-Answer with ONLY a JSON array. Each entry: {"id":"chat_roundabout_rumour","topic":"chat","text":"They say the town roundabout is shy. Go easy on it."}
+Think of a real British local commercial radio presenter between songs: warm, quick, chatty, a bit cheeky, fond of the
+town and its people. Local radio is local: what's on in town, the weather out of the window, the travel news at the busy
+times, and adverts for the town's own shops and cafés. Real presenters talk TO the listener ("you"), talk like people
+(I'm, it's, you're, don't, we've), and keep it light. Silly is fine; nonsense isn't. Every line should be something a
+real presenter could plausibly say.
+
+Answer with ONLY a JSON array. Each entry: {"id":"chat_market_busy","topic":"chat","text":"Market's heaving this morning, so if you're after the good bread, I'd get a shift on."}
+
 Topics:
-- chat: small talk about town life.
-- ad: a silly advert for an invented local business.
-- weather: a playful forecast, with no numbers.
-- night: late on the air; say night, moon, stars, dark, evening or tonight.
-- rain: say rain, wet, umbrella, drizzle, shower or puddle.
-- job_done: the DJ cheers a driver who just finished a job.
-- job_lost: the DJ gently consoles a driver who just lost a job.
-- fuel_low: a friendly nudge; say fuel, tank, petrol or pump.
+- chat: a short link about town life: the market, the school run, someone's dog, the high street, the bus, a cuppa.
+- ad: a short advert for ONE of the town's own businesses, named exactly as given in the request. What they sell and
+  why you'd pop in. Warm, a little playful, with no prices or offers in numbers.
+- travel: the travel news for the town's roads: queues, roadworks, a busy junction, the lights, the roundabout, the
+  school run, things moving nicely. Name streets or districts only from the request. Calm, never about crashes or injury.
+- weather: a forecast for a DRY spell, in the Met Office's own words: sunny spells, sunny intervals, bright, cloudy,
+  a fresh breeze, mild, chilly, misty first thing, frost. No rain words: rain has its own topic. No numbers.
+- night: late on the air; say night, evening, dark, tonight, late, moon or stars.
+- rain: it's raining now: showers, outbreaks of rain, drizzle, wet roads, umbrellas, puddles. Gentle and cheerful.
+- job_done: cheer a driver who just finished a job.
+- job_lost: kindly cheer up a driver who just lost a job.
+- fuel_low: a friendly nudge to fill up; say fuel, tank, petrol, pump or forecourt.
 - streak: praise for jobs done in a row; say streak, roll, row, shift, another or keep.
+
 Rules:
-- text: at most 16 words, ending in . ! or ?, with no {slots}.
-- No digits, no prices, and never the words points, coins or pay. No emoji. Nothing scary or unkind. Never mention real brands, real people or real places.
+- text: at most 20 words, ending in . ! or ?, with no {slots}.
+- Speak as people speak: always I'm, it's, you're, don't, isn't, can't, won't, let's, we've. Never I am, it is, you are,
+  do not, let us.
+- British English: petrol, pavement, car park, high street, bin, queue, holiday, biscuits, mum, town centre, autumn.
+  Never American words (gas, sidewalk, parking lot, vacation, candy, cookies, mom, awesome, downtown, highway).
+- No digits, no prices, and never the words points, coins or pay. No emoji. Nothing scary or unkind. No real brands,
+  real people or real places: only the town's own names from the request.
 - id: snake_case, starting with the topic.
+- Make the lines in a batch clearly different from each other: different openings, different subjects.

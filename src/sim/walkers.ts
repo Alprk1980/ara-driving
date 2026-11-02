@@ -7,7 +7,8 @@
 // the car's way gets out of it, so a pedestrian is never hit.
 import type { PlayerCar } from './car.ts';
 import { districtAt, type DistrictId } from './districts.ts';
-import { walkFor } from './signals.ts';
+import { crossTimeFor } from './signals.ts';
+import { CrossingLight } from './crossings.ts';
 import { dist, ROAD_W, type BusStop, type Rng, type Town, type Vec, type Zebra } from './town.ts';
 
 export const WALK_MPS: [number, number] = [1.05, 1.55];
@@ -16,6 +17,10 @@ const PAVEMENT = ROAD_W / 2 + 1.6; // the middle of the 3 m pavement
 export const STRIDE_M = 0.75;
 const NOTICE_M = 9, CLEAR_M = 1.9, STEP_ASIDE_M = 2.6, STEP_ASIDE_MPS = 4; // how far off they see a car coming, and how they get out of the way
 const BUSY: Record<DistrictId, number> = { oldtown: 1, business: 0.8, garden: 0.25, works: 0.08 };
+// At signals they wait just back from the kerb, a little more where the streets don't meet square, and set off on the green
+// man only if what's left of it and the clearance after (signals.ts) gets them over at their own pace, as people judge it.
+const KERB_M = ROAD_W / 2 + 2, CROSS_M = KERB_M + ROAD_W / 2 + 2;
+const SIGNAL_CROSS_M = PAVEMENT - 1 + ROAD_W / 2; // from where they wait at a pelican or puffin to the far kerb
 const CORNER_M = 15, QUEUE_SHARE = 0.3, QUEUE_MAX_S = 150, QUEUE_MAX = 6; // the share who want a bus is judged
 const CROSS_SHARE = 0.4, CALM_MPS2 = 3, STOP_MARGIN_M = 7, KERB_WAIT_S = 12; // the share of people who want the far side is judged; after this long they stop waiting for a gap and just go, as traffic has stopped for them by now
 
@@ -27,10 +32,13 @@ export class Walkers {
   private town: Town;
   private rng: Rng;
   private clock = 0;
+  /** The pelicans' and puffins' signals, which the people waiting at them work by pressing the button. */
+  lights = new Map<Zebra, CrossingLight>();
 
   constructor(town: Town, rng: Rng, near: Vec) {
     this.town = town;
     this.rng = rng;
+    for (const z of town.zebras) if (z.kind !== 'zebra') this.lights.set(z, new CrossingLight(z.kind));
     for (let i = 0; i < COUNT; i++) {
       const w: Walker = { x: 0, z: 0, heading: 0, speed: 0, edge: 0, to: 0, along: 0, side: 1, aside: 0, phase: rng() * 6.28, look: rng(), tall: 0.92 + rng() * 0.16, zebra: null, off: 0, waited: 0, onRoad: false, corner: -1, over: false, queue: null };
       this.place(w, near);
@@ -78,7 +86,7 @@ export class Walkers {
     w.edge = k;
     w.to = this.rng() < 0.5 ? e.a : e.b;
     const from = nodes[e.a === w.to ? e.b : e.a];
-    w.along = Math.min(e.len - 1, dist(spot, from));
+    w.along = Math.min(e.len - KERB_M - 1, Math.max(KERB_M + 1, dist(spot, from))); // on a pavement, not in a junction
     w.side = this.rng() < 0.5 ? 1 : -1;
     w.speed = WALK_MPS[0] + this.rng() * (WALK_MPS[1] - WALK_MPS[0]);
     w.aside = 0;
@@ -125,7 +133,11 @@ export class Walkers {
   private crossing(w: Walker, dt: number, cars: readonly Near[]) {
     if (!w.onRoad) {
       w.waited += dt;
-      if (!this.safe(w.zebra!, cars) && w.waited < KERB_WAIT_S) return;
+      const light = this.lights.get(w.zebra!);
+      if (light) { // press, and wait for a green man with time to get over: never on a flashing one
+        light.press();
+        if (light.man !== 'green' || light.crossTime * w.speed < SIGNAL_CROSS_M) return;
+      } else if (!this.safe(w.zebra!, cars) && w.waited < KERB_WAIT_S) return;
       w.onRoad = true;
     }
     w.off -= w.side * w.speed * dt; // from this kerb to the other
@@ -140,13 +152,14 @@ export class Walkers {
   step(dt: number, player: PlayerCar, traffic: readonly Near[] = []) {
     const eyes: Near[] = [...traffic, { x: player.x, z: player.z, speed: player.speed, heading: player.heading }];
     this.clock += dt;
+    for (const [z, light] of this.lights) light.step(dt, this.onStripes(z));
     for (const w of this.people) {
       const d = dist(w, player);
       if (d > DESPAWN) { this.place(w, player); continue; }
       if (w.zebra) this.crossing(w, dt, eyes);
       else if (w.queue) { if ((w.waited += dt) > QUEUE_MAX_S) w.queue = null; } // given up, and walking instead
       else if (w.corner >= 0 && !w.over) { // at the kerb of a signalled junction
-        if (walkFor(this.town, w.corner, this.clock)) w.over = true;
+        if (crossTimeFor(this.town, w.corner, this.clock) * w.speed >= CROSS_M) w.over = true; // only with time to get over
       } else {
         const coming = d < NOTICE_M && Math.abs(player.speed) > 0.8, want = coming ? STEP_ASIDE_M : 0;
         w.aside += Math.max(-STEP_ASIDE_MPS * dt, Math.min(STEP_ASIDE_MPS * dt, want - w.aside));
@@ -166,12 +179,12 @@ export class Walkers {
         }
         if (w.over) {
           if (w.along >= e.len + CORNER_M) this.turnOver(w); // straight over, and on down the next road
-        } else if (this.town.signals.has(w.to) && w.along >= e.len - CORNER_M && w.along - w.speed * dt < e.len - CORNER_M) w.corner = w.to;
+        } else if (this.town.signals.has(w.to) && w.along >= e.len - KERB_M && w.corner !== w.to) { w.corner = w.to; w.along = e.len - KERB_M; }
         else if (!w.zebra && w.along >= e.len) {
           const on = this.town.adj[w.to].filter((n) => n.edge !== w.edge), next = on.length ? on[Math.floor(this.rng() * on.length)] : { to: e.a === w.to ? e.b : e.a, edge: w.edge };
           w.edge = next.edge;
           w.to = next.to;
-          w.along = 0.5;
+          w.along = KERB_M; // round the corner on the pavement, past the side road's kerb
         }
       }
       this.pose(w);

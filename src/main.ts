@@ -47,6 +47,7 @@ keepDrive(save);
 
 let player = await getPlayer();
 const wallet = new ProfileWallet(player);
+wallet.ledger = save.ledger; // the history lives in this game's save
 await loading(30, 'Laying out the town');
 const town = new Town();
 if (save.start < 0) save.start = dealStart(town, Math.random, save.lastStart);

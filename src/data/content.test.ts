@@ -1,6 +1,6 @@
 // Shipped content stays valid: the same rules the generator enforced.
 import { describe, expect, it } from 'vitest';
-import { carJobErrors, catalogueErrors, CHATTER_MOMENTS, chatterErrors, eventErrors, EVENT_KINDS, GOAL_KINDS, goalErrors, GUIDE_KEYS, guideErrors, RANK_COUNT, rankErrors, storyPlaceErrors, CAR_JOB_TYPES, findErrors, landmarkErrors, PLACE_KINDS, placeErrors, questTextErrors, RADIO_TOPICS, radioErrors, regularErrors, skyErrors, SKY_SLOTS, stationErrors, TWISTS, uniqueIds, VOICE_KEYS, voiceErrors, type CatalogueItem, type ChatterLine, type Goal, type GuideLine, type Rank, type StoryPlace, type TownEventCard, type Find, type Landmark, type Place, type QuestText, type RadioLine, type Regular, type Sky, type Station, type VoiceLine } from '../../schemas/content.ts';
+import { adPlaces, carJobErrors, catalogueErrors, CHATTER_MOMENTS, chatterErrors, eventErrors, EVENT_KINDS, GOAL_KINDS, goalErrors, GUIDE_KEYS, guideErrors, RANK_COUNT, rankErrors, storyPlaceErrors, CAR_JOB_TYPES, findErrors, landmarkErrors, PLACE_KINDS, placeErrors, questTextErrors, RADIO_TOPICS, radioErrors, regularErrors, skyErrors, SKY_SLOTS, stationErrors, TWISTS, uniqueIds, VOICE_KEYS, voiceErrors, type CatalogueItem, type ChatterLine, type Goal, type GuideLine, type Rank, type StoryPlace, type TownEventCard, type Find, type Landmark, type Place, type QuestText, type RadioLine, type Regular, type Sky, type Station, type VoiceLine } from '../../schemas/content.ts';
 import { landmarkFor } from '../sim/quests.ts';
 import { Town } from '../sim/town.ts';
 import catalogue from './catalogue.json';
@@ -64,7 +64,7 @@ describe('shipped content', () => {
     expect(skies.map((s) => s.id).sort()).toEqual(SKY_SLOTS.map((s) => s.id).sort());
   });
   it('radio covers every topic', () => {
-    expect((radio as RadioLine[]).flatMap(radioErrors)).toEqual([]);
+    expect((radio as RadioLine[]).flatMap((r) => radioErrors(r, adPlaces(places as Place[])))).toEqual([]);
     expect(uniqueIds(radio)).toEqual([]);
     for (const t of RADIO_TOPICS) expect(radio.filter((r) => r.topic === t).length, t).toBeGreaterThanOrEqual(3);
   });
