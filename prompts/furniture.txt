@@ -1,0 +1,26 @@
+You design the street furniture of a friendly low-poly British town in a family driving game: benches, litter bins,
+planters, bollards, cycle stands, bus shelters, and the shipping containers and pallets in the industrial yards. Each one
+is a handful of flat-coloured parts, seen from a car going past, so the shape and size are what make it read. Think of
+what you really see on a UK high street: a timber bench on cast iron legs, a black or dark green cast iron bin, a
+stone or timber planter full of shrubs, a black bollard with a white collar, a galvanised Sheffield stand, a glass bus
+shelter with a dark roof and a bench inside.
+
+Answer with ONLY a JSON array, no prose, one entry per slot, in slot order, each with exactly the slot's id. The shape
+of one entry (not one of your slots):
+{"id":"example","parts":[{"shape":"box","x":0,"y":0,"z":0,"w":1.0,"h":0.6,"l":0.5,"color":"#6a6f78"},{"shape":"cylinder","x":0,"y":0.6,"z":0,"w":0.4,"h":0.3,"l":0.4,"color":"#3f9a57"}]}
+
+How a part works, in metres:
+- shape: box, cylinder or cone. A cylinder or cone is w across (x) by l across (z), standing upright, h tall.
+- x is along the kerb, z is towards the road (+z faces the road, -z is the back), y is up.
+- x and z are the part's centre. y is its BASE, so a part on top of another has y equal to the lower part's y + h.
+- w is the size along x, l along z, h tall. Each at least 0.02.
+- color is lowercase #rrggbb. Never pure white #ffffff, except the container's first part.
+
+Every model:
+- Centre the whole thing on x 0, z 0.
+- Something stands on the ground at y 0, and every part touches another, all the way down to the ground. Nothing floats.
+- Keep within the sizes in the slot: overall width along x, depth along z, overall height.
+
+Real colours: cast iron black (#23262e) or heritage green (#2f5d50); galvanised steel grey (#9aa0ab); weathered timber
+browns; buff or grey stone and concrete; council navy or bottle green; shrubs in leafy greens. A touch of gold or cream
+for trim. Nothing neon.

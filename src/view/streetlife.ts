@@ -11,6 +11,8 @@ import { TAIL_BRAKE, TAIL_DIM } from './carmesh.ts';
 import type { Part } from '../../schemas/content.ts';
 import type { TownCar } from '../../schemas/towncars.ts';
 import townCars from '../data/towncars.json';
+import furniture from '../data/furniture.json';
+import type { FurnitureId, FurnitureModel } from '../../schemas/furniture.ts';
 import { LIVERY } from '../../schemas/fleet.ts';
 import { beaconAt, fleetGeometry, FLEET_SHAPES } from './fleet.ts';
 import { paintedMaterial, partsGeometry } from './parts.ts';
@@ -18,17 +20,11 @@ import { figureGeometry, figureMaterial, LOOKS, nextPace, walkPose } from './peo
 
 const part = (shape: Part['shape'], x: number, y: number, z: number, w: number, h: number, l: number, color: string): Part => ({ shape, x, y, z, w, h, l, color });
 
-// White parts take each instance's tint, for hedges and containers.
+// Designed by Qwen, held to real sizes by schemas/furniture.ts. White parts take each instance's tint: the hedge, and the
+// container's box. The hedge is one box stretched to length, with nothing to design.
 export const FURNITURE_PARTS: Record<(typeof FURNITURE_KINDS)[number], Part[]> = {
-  bench: [part('box', 0, 0.42, 0, 1.7, 0.08, 0.45, '#8a5a34'), part('box', 0, 0.62, -0.2, 1.7, 0.42, 0.07, '#8a5a34'), part('box', -0.7, 0, 0, 0.09, 0.44, 0.44, '#33363d'), part('box', 0.7, 0, 0, 0.09, 0.44, 0.44, '#33363d')],
-  bin: [part('cylinder', 0, 0, 0, 0.5, 0.95, 0.5, '#2f5d50'), part('cylinder', 0, 0.95, 0, 0.56, 0.1, 0.56, '#23262e')],
-  planter: [part('box', 0, 0, 0, 1.1, 0.55, 1.1, '#8d8f98'), part('cone', 0, 0.55, 0, 1.15, 1, 1.15, '#3f9a57')],
-  bollard: [part('cylinder', 0, 0, 0, 0.2, 0.95, 0.2, '#23262e'), part('cylinder', 0, 0.75, 0, 0.22, 0.08, 0.22, '#f4efd8')],
-  cycle_rack: [part('box', -0.5, 0.4, 0, 0.06, 0.8, 0.7, '#9aa0ab'), part('box', 0.5, 0.4, 0, 0.06, 0.8, 0.7, '#9aa0ab'), part('box', 0, 0.55, 0, 1.1, 0.06, 0.06, '#9aa0ab')],
-  bus_shelter: [part('box', 0, 2.3, 0, 3.4, 0.1, 1.5, '#3d4a5c'), part('box', 0, 0, -0.65, 3.3, 2.3, 0.05, '#a9d2e4'), part('box', -1.65, 0, 0, 0.06, 2.3, 1.4, '#3d4a5c'), part('box', 1.65, 0, 0, 0.06, 2.3, 1.4, '#3d4a5c'), part('box', 0, 0.45, -0.4, 2.2, 0.08, 0.34, '#8a5a34')],
+  ...Object.fromEntries((furniture as unknown as FurnitureModel[]).map((m) => [m.id, m.parts])) as Record<FurnitureId, Part[]>,
   hedge: [part('box', 0, 0, 0, 1, 0.95, 0.6, '#ffffff')],
-  container: [part('box', 0, 0, 0, 2.44, 2.6, 6.06, '#ffffff'), part('box', 0, 2.6, 0, 2.3, 0.05, 5.9, '#c9ccd2')],
-  pallets: [part('box', 0, 0, 0, 1.2, 0.15, 1.2, '#a9794a'), part('box', 0, 0.15, 0, 1.1, 0.9, 1.1, '#c49a66'), part('box', 1.5, 0, 0.4, 1.2, 0.15, 1.2, '#a9794a'), part('box', 1.5, 0.15, 0.4, 1, 0.6, 1, '#b08a58')],
 };
 
 const PARKED_DRAWN = 90, PARKED_REFRESH_S = 1; // only the parked cars nearest the player are drawn, re-picked now and then
