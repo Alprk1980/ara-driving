@@ -6,7 +6,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { ALARM_HZ, type KerbCar, type ParkedCars } from '../sim/parked.ts';
 import type { Traffic, TrafficCar } from '../sim/traffic.ts';
 import { FURNITURE_KINDS, type Furniture, type Town, type Vec } from '../sim/town.ts';
-import type { Walkers } from '../sim/walkers.ts';
+import type { Walker, Walkers } from '../sim/walkers.ts';
 import { TAIL_BRAKE, TAIL_DIM } from './carmesh.ts';
 import type { Part } from '../../schemas/content.ts';
 import type { TownCar } from '../../schemas/towncars.ts';
@@ -14,6 +14,7 @@ import townCars from '../data/towncars.json';
 import { LIVERY } from '../../schemas/fleet.ts';
 import { beaconAt, fleetGeometry, FLEET_SHAPES } from './fleet.ts';
 import { paintedMaterial, partsGeometry } from './parts.ts';
+import { figureGeometry, figureMaterial, LOOKS, nextPace, walkPose } from './people.ts';
 
 const part = (shape: Part['shape'], x: number, y: number, z: number, w: number, h: number, l: number, color: string): Part => ({ shape, x, y, z, w, h, l, color });
 
@@ -187,9 +188,8 @@ export class StreetLife {
   private tails: THREE.InstancedMesh;
   private heads: THREE.InstancedMesh;
   private dents: THREE.InstancedBufferAttribute[] = [];
-  private torso: THREE.InstancedMesh;
-  private head: THREE.InstancedMesh;
-  private legs: [THREE.InstancedMesh, THREE.InstancedMesh];
+  private crowd: { mesh: THREE.InstancedMesh; strides: THREE.InstancedBufferAttribute; who: Walker[] }[] = [];
+  private pace = new Map<Walker, { pace: number; phase: number }>();
   private clock = 0;
   private blinkers: THREE.InstancedMesh;
   private parked: THREE.InstancedMesh[] = [];
@@ -267,19 +267,19 @@ export class StreetLife {
     });
     for (const mesh of [this.tails, this.heads]) { mesh.frustumCulled = false; group.add(mesh); }
 
-    // A person, about 1.7 m: separate legs so they can swing, tinted per person.
-    const people = walkers.people.length, shirt = new THREE.BoxGeometry(0.44, 0.62, 0.24).translate(0, 1.16, 0), skull = new THREE.SphereGeometry(0.12, 10, 8).translate(0, 1.6, 0), leg = new THREE.BoxGeometry(0.16, 0.84, 0.17).translate(0, -0.42, 0);
-    const skin = new THREE.MeshLambertMaterial({ color: '#ffffff' });
-    this.torso = new THREE.InstancedMesh(shirt, new THREE.MeshLambertMaterial({ color: '#ffffff' }), people);
-    this.head = new THREE.InstancedMesh(skull, skin, people);
-    this.legs = [new THREE.InstancedMesh(leg, new THREE.MeshLambertMaterial({ color: '#ffffff' }), people), new THREE.InstancedMesh(leg, new THREE.MeshLambertMaterial({ color: '#ffffff' }), people)];
-    const skins = ['#f1c7a6', '#e0ac82', '#b67a50', '#8a5636', '#5f3a24'];
-    walkers.people.forEach((w, i) => {
-      this.torso.setColorAt(i, c.setHSL(w.shirt, 0.55, 0.55));
-      this.head.setColorAt(i, c.set(skins[Math.floor(w.legs * 5)]));
-      for (const l of this.legs) l.setColorAt(i, c.setHSL(0.6, 0.25, 0.2 + w.legs * 0.25));
+    // Everyone sharing a look shares a mesh, and each person swings their own limbs.
+    LOOKS.forEach((look, k) => {
+      const who = walkers.people.filter((w) => Math.floor(w.look * LOOKS.length) === k);
+      if (!who.length) return;
+      const g = figureGeometry(look), strides = new THREE.InstancedBufferAttribute(new Float32Array(who.length * 2), 2);
+      strides.setUsage(THREE.DynamicDrawUsage);
+      g.setAttribute('stride', strides);
+      const mesh = new THREE.InstancedMesh(g, figureMaterial(), who.length);
+      mesh.frustumCulled = false;
+      group.add(mesh);
+      this.crowd.push({ mesh, strides, who });
+      for (const w of who) this.pace.set(w, { pace: 0, phase: w.phase });
     });
-    for (const mesh of [this.torso, this.head, ...this.legs]) { mesh.frustumCulled = false; group.add(mesh); }
   }
 
   /** Keep the nearest parked cars drawn. Cheap enough at once a second: a plain scan of a list of hundreds. */
@@ -373,20 +373,16 @@ export class StreetLife {
     this.tails.instanceMatrix.needsUpdate = this.heads.instanceMatrix.needsUpdate = true;
     this.tails.instanceColor!.needsUpdate = this.heads.instanceColor!.needsUpdate = true;
 
-    const q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0), side = new THREE.Vector3(1, 0, 0), swing = new THREE.Quaternion(), s = new THREE.Vector3(), p = new THREE.Vector3();
-    walkers.people.forEach((w, i) => {
-      const bob = Math.abs(Math.sin(w.phase)) * 0.03, sway = Math.sin(w.phase) * 0.5;
-      q.setFromAxisAngle(up, w.heading);
-      s.setScalar(w.tall);
-      this.torso.setMatrixAt(i, m.compose(p.set(w.x, bob, w.z), q, s));
-      this.head.setMatrixAt(i, m);
-      this.legs.forEach((l, k) => {
-        const off = (k ? 0.11 : -0.11) * w.tall;
-        swing.setFromAxisAngle(side, k ? sway : -sway).premultiply(q);
-        p.set(w.x + Math.cos(w.heading) * off, 0.84 * w.tall + bob, w.z - Math.sin(w.heading) * off);
-        l.setMatrixAt(i, m.compose(p, swing, s));
+    const q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0), size = new THREE.Vector3(), p = new THREE.Vector3();
+    for (const { mesh, strides, who } of this.crowd) {
+      who.forEach((w, i) => {
+        const step = this.pace.get(w)!;
+        if (dt > 0) { step.pace = nextPace(step.pace, w.phase !== step.phase, dt); step.phase = w.phase; }
+        const pose = walkPose(w.phase, step.pace, this.clock);
+        mesh.setMatrixAt(i, m.compose(p.set(w.x, -pose.drop * w.tall, w.z), q.setFromAxisAngle(up, w.heading), size.setScalar(w.tall)));
+        strides.setXY(i, pose.hip, pose.arm);
       });
-    });
-    for (const mesh of [this.torso, this.head, ...this.legs]) mesh.instanceMatrix.needsUpdate = true;
+      mesh.instanceMatrix.needsUpdate = strides.needsUpdate = true;
+    }
   }
 }

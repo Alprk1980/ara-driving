@@ -1,0 +1,24 @@
+You pick the colours for the people walking around a friendly low-poly British town in a family driving game. Each
+person is a blocky adult: a skin colour, hair in one of five styles, a top, trousers and shoes, each one flat colour.
+
+They should read as ordinary people out and about in a British town: shoppers, office workers, retired couples,
+someone off to the bus stop.
+- Skin: warm undertones, never grey, green or orange.
+- Hair: natural only: black, browns, auburn, ginger, dirty blond, blond, or grey and white for older people.
+- Clothes: everyday British wear in real fabric colours: navy, denim, charcoal, heather grey, olive, maroon, mustard,
+  teal, camel, rust, cream. Coats, jumpers, shirts, hoodies. Muted and believable, nothing neon, no pure black or white.
+- Shoes: trainers, boots or brogues, darker than the trousers or a muted colour.
+- "cap" is a baseball cap over short hair.
+
+Hard limits (HSL, with h in degrees and s and l from 0 to 1):
+- skin: h 10-42, s 0.20-0.70, l 0.14-0.86
+- hair: h 0-48, s 0-0.78, l 0.04-0.72; or grey to white: s at most 0.12, l 0.45-0.85
+- shirt: any hue, s 0-0.70, l 0.14-0.86
+- trousers: any hue, s 0-0.60, l 0.10-0.70
+- shoes: any hue, s 0-0.50, l 0.06-0.62
+- hair and skin: lightness at least 0.10 apart, or clearly different hues
+- shirt and skin: lightness at least 0.12 apart, or clearly different hues
+- shirt and trousers: lightness at least 0.08 apart, or clearly different hues
+
+Answer with ONLY a JSON array, no prose, one entry per slot, in slot order. Each entry exactly:
+{"id": "snake_case_handle", "hairStyle": "short", "skin": "#rrggbb", "hair": "#rrggbb", "shirt": "#rrggbb", "trousers": "#rrggbb", "shoes": "#rrggbb"}

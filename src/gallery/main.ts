@@ -2,8 +2,10 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { ITEMS, type Item } from './items.ts';
+import { paintedMaterial } from '../view/parts.ts';
+import { figureGeometry, LOOKS } from '../view/people.ts';
 
-const PERSON_M = 1.7, BG = { dark: '#141821', light: '#dfe6ee' };
+const BG = { dark: '#141821', light: '#dfe6ee' };
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const canvas = $<HTMLCanvasElement>('view'), renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
 const scene = new THREE.Scene();
@@ -17,7 +19,7 @@ orbit.enableDamping = true;
 orbit.autoRotateSpeed = 1.4;
 const stand = new THREE.Group(), person = new THREE.Group();
 scene.add(stand, person);
-person.add(new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, PERSON_M - 0.25, 10).translate(0, (PERSON_M - 0.25) / 2, 0), new THREE.MeshLambertMaterial({ color: '#d8dee8' })), new THREE.Mesh(new THREE.SphereGeometry(0.13, 12, 10).translate(0, PERSON_M - 0.12, 0), new THREE.MeshLambertMaterial({ color: '#f1c7a6' })));
+person.add(new THREE.Mesh(figureGeometry(LOOKS[0]), paintedMaterial()));
 let grid = new THREE.GridHelper(20, 20, '#39424f', '#262c36');
 scene.add(grid);
 

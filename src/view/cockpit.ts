@@ -52,9 +52,11 @@ export function buildDriver(driver: Driver, find: Lookup, pose: Pose): THREE.Gro
   upper.add(box(0.44, 0.5, 0.26, top, 0, 0.27, 0));
   if (outfit) upper.add(box(0.46, 0.14, 0.28, new THREE.MeshLambertMaterial({ color: outfit.colors[1] }), 0, 0.32, 0));
   if (outfit?.style === 'costume') upper.add(box(0.7, 0.42, 0.06, new THREE.MeshLambertMaterial({ color: outfit.colors[1] }), 0, 0.3, -0.26));
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.15, 12, 10), skin);
-  head.position.y = 0.68;
-  upper.add(head);
+  // The town's figures' box head, eyes and short hair, at the same size (src/view/people.ts); a cap takes the place of the crown.
+  const hair = new THREE.MeshLambertMaterial({ color: '#4a3222' }), eye = new THREE.MeshLambertMaterial({ color: '#241a14' });
+  upper.add(box(0.31, 0.31, 0.3, skin, 0, 0.68, 0), box(0.33, 0.17, 0.06, hair, 0, 0.74, -0.15));
+  if (!cap) upper.add(box(0.33, 0.08, 0.32, hair, 0, 0.86, 0));
+  for (const s of [-1, 1]) upper.add(box(0.045, 0.045, 0.015, eye, s * 0.068, 0.7, 0.155));
   if (cap) { upper.add(box(0.34, 0.09, 0.34, new THREE.MeshLambertMaterial({ color: cap.colors[0] }), 0, 0.8, 0)); upper.add(box(0.28, 0.04, 0.15, new THREE.MeshLambertMaterial({ color: cap.colors[0] }), 0, 0.76, 0.2)); }
   if (glasses) upper.add(box(0.27, 0.06, 0.04, new THREE.MeshLambertMaterial({ color: glasses.colors[0] }), 0, 0.7, 0.14));
   // Arms from the leaning shoulders to the rim, legs out to the pedals; the wheel is measured from the seat, before the figure's scale.

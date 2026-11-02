@@ -7,6 +7,7 @@ import { CAR_JOB_TYPES, carJobErrors, catalogueErrors, chatterErrors, eventError
 import { buildingSetErrors, buildingStyleErrors, type BuildingStyle } from '../schemas/buildings.ts';
 import { carProfileErrors, profileVsCar, type CarBodyProfile } from '../schemas/carprofiles.ts';
 import { FLEET_RULES, fleetErrors } from '../schemas/fleet.ts';
+import { greyHaired, HAIR_STYLES, personErrors, SKIN_TONES, skinTone, type PersonLook, type SkinTone } from '../schemas/people.ts';
 import { ROAD_MOMENTS, roadLineErrors, SERVICE_RULES, serviceErrors, type RoadLine } from '../schemas/services.ts';
 import { townCarErrors, townCarKindErrors, type TownCar } from '../schemas/towncars.ts';
 import { CARS, type CarId } from '../src/sim/economy.ts';
@@ -34,6 +35,9 @@ const BUILDING_SLOTS = [
   ['old_mill', 'works', 'brick', 'arched', 'loading', 'parapet'],
   ['concrete_depot', 'works', 'panel', 'punched', 'loading', 'flat'],
   ['cold_store', 'works', 'cladding', 'ribbon', 'loading', 'plant'],] as const;
+
+// The mix of ages and skin tones is set here, near the census shares in schemas/people.ts, so Qwen's job is to dress each one.
+const PERSON_SLOTS: [SkinTone, boolean][] = [...Array(8).fill(['fair', false]), ...Array(2).fill(['fair', true]), ...Array(8).fill(['light', false]), ...Array(1).fill(['light', true]), ['medium', false], ['brown', false], ['medium', true], ['brown', true], ['deep', false]].map(([tone, older]) => [tone, older] as [SkinTone, boolean]);
 
 type Entry = Record<string, unknown>;
 type Batch = { ask: string; fits?: (e: Entry, i: number) => string[] };
@@ -205,6 +209,22 @@ const KINDS: Record<string, Kind> = {
           const clash = Array.isArray(q.walls) ? buildingSetErrors([...others, q]).filter((m) => m.includes(`${q.id} `)) : [];
           if (clash.length) return clash;
           return q.id === id && q.district === district && q.finish === finish && q.window?.form === form && q.ground?.kind === ground && q.roof?.kind === roof ? [] : [`entry ${i + 1} must keep slot ${id}: district ${district}, finish ${finish}, window form ${form}, ground ${ground}, roof ${roof}`];
+        },
+      }));
+    },
+  },
+  people: {
+    file: 'src/data/people.json', prompt: 'prompts/people.txt', errors: personErrors as Kind['errors'], key: 'id',
+    checker: 'These are the colours of ordinary adults in a British town, one flat colour per body part. Flag a look with an implausible outfit, hair that is not a natural colour, or one that looks too like another in the list.',
+    batches: () => {
+      const slots = PERSON_SLOTS.map(([tone, older], i) => ({ id: `person_${i + 1}`, tone, older, style: HAIR_STYLES[i % HAIR_STYLES.length] })).filter((s) => replace.has(s.id) || !existing('src/data/people.json').has(s.id));
+      return Array.from({ length: Math.ceil(slots.length / 6) }, (_, b) => slots.slice(b * 6, b * 6 + 6)).map((part) => ({
+        ask: `Slots:\n${part.map((s, n) => `${n + 1}. id ${s.id}: ${s.tone} skin (lightness ${SKIN_TONES[s.tone].join('-')}), hairStyle ${s.style}, ${s.older ? 'an older person with grey or white hair' : 'natural hair colour, not grey'}`).join('\n')}`,
+        fits: (e: Entry, i: number) => {
+          const s = part[i], q = e as unknown as PersonLook;
+          if (!s) return ['more entries than slots'];
+          if (q.id !== s.id || q.hairStyle !== s.style) return [`entry ${i + 1} must keep id ${s.id} and hairStyle ${s.style}`];
+          return [...(skinTone(q.skin) === s.tone ? [] : [`${s.id}: skin must be ${s.tone}, lightness ${SKIN_TONES[s.tone].join('-')}`]), ...(greyHaired(q.hair) === s.older ? [] : [`${s.id}: hair must ${s.older ? 'be grey or white: s at most 0.12, l 0.45-0.85' : 'not be grey'}`])];
         },
       }));
     },

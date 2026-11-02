@@ -20,7 +20,7 @@ const CORNER_M = 15, QUEUE_SHARE = 0.3, QUEUE_MAX_S = 150, QUEUE_MAX = 6; // the
 const CROSS_SHARE = 0.4, CALM_MPS2 = 3, STOP_MARGIN_M = 7, KERB_WAIT_S = 12; // the share of people who want the far side is judged; after this long they stop waiting for a gap and just go, as traffic has stopped for them by now
 
 type Near = { x: number; z: number; speed: number; heading: number };
-export type Walker = { x: number; z: number; heading: number; speed: number; edge: number; to: number; along: number; side: 1 | -1; aside: number; phase: number; shirt: number; legs: number; tall: number; zebra: Zebra | null; off: number; waited: number; onRoad: boolean; corner: number; over: boolean; queue: BusStop | null };
+export type Walker = { x: number; z: number; heading: number; speed: number; edge: number; to: number; along: number; side: 1 | -1; aside: number; phase: number; look: number; tall: number; zebra: Zebra | null; off: number; waited: number; onRoad: boolean; corner: number; over: boolean; queue: BusStop | null };
 
 export class Walkers {
   people: Walker[] = [];
@@ -32,7 +32,7 @@ export class Walkers {
     this.town = town;
     this.rng = rng;
     for (let i = 0; i < COUNT; i++) {
-      const w: Walker = { x: 0, z: 0, heading: 0, speed: 0, edge: 0, to: 0, along: 0, side: 1, aside: 0, phase: rng() * 6.28, shirt: rng(), legs: rng(), tall: 0.92 + rng() * 0.16, zebra: null, off: 0, waited: 0, onRoad: false, corner: -1, over: false, queue: null };
+      const w: Walker = { x: 0, z: 0, heading: 0, speed: 0, edge: 0, to: 0, along: 0, side: 1, aside: 0, phase: rng() * 6.28, look: rng(), tall: 0.92 + rng() * 0.16, zebra: null, off: 0, waited: 0, onRoad: false, corner: -1, over: false, queue: null };
       this.place(w, near);
       this.people.push(w);
     }

@@ -1,0 +1,218 @@
+[
+  {
+    "id": "person_7",
+    "hairStyle": "long",
+    "skin": "#eed0b4",
+    "hair": "#3c2a22",
+    "shirt": "#2f4858",
+    "trousers": "#8c9096",
+    "shoes": "#45403b"
+  },
+  {
+    "id": "person_8",
+    "hairStyle": "ponytail",
+    "skin": "#f0d2b8",
+    "hair": "#6b3a26",
+    "shirt": "#3a6a6b",
+    "trousers": "#6a7784",
+    "shoes": "#33383a"
+  },
+  {
+    "id": "person_9",
+    "hairStyle": "curly",
+    "skin": "#eed1b5",
+    "hair": "#999999",
+    "shirt": "#6a3b42",
+    "trousers": "#68686e",
+    "shoes": "#3a3532"
+  },
+  {
+    "id": "person_10",
+    "hairStyle": "cap",
+    "skin": "#f1d3b9",
+    "hair": "#8a8a8a",
+    "shirt": "#3b5b66",
+    "trousers": "#74736e",
+    "shoes": "#4b423b"
+  },
+  {
+    "id": "person_11",
+    "hairStyle": "short",
+    "skin": "#d9a788",
+    "hair": "#2f2520",
+    "shirt": "#4a5b4e",
+    "trousers": "#7a7066",
+    "shoes": "#3c352f"
+  },
+  {
+    "id": "person_12",
+    "hairStyle": "long",
+    "skin": "#dca88a",
+    "hair": "#5e3a2e",
+    "shirt": "#704046",
+    "trousers": "#68737c",
+    "shoes": "#36312c"
+  },
+  {
+    "id": "person_19",
+    "hairStyle": "curly",
+    "skin": "#CBA386",
+    "hair": "#C9C9C9",
+    "shirt": "#2E4A66",
+    "trousers": "#A8885F",
+    "shoes": "#5A4632"
+  },
+  {
+    "id": "person_20",
+    "hairStyle": "cap",
+    "skin": "#A87A5E",
+    "hair": "#3C2C20",
+    "shirt": "#475B78",
+    "trousers": "#404040",
+    "shoes": "#2E2E2E"
+  },
+  {
+    "id": "person_21",
+    "hairStyle": "short",
+    "skin": "#7A4F38",
+    "hair": "#241B12",
+    "shirt": "#61938A",
+    "trousers": "#555555",
+    "shoes": "#4E3F2E"
+  },
+  {
+    "id": "person_22",
+    "hairStyle": "long",
+    "skin": "#A87E62",
+    "hair": "#B5B5B5",
+    "shirt": "#6E3138",
+    "trousers": "#8E7358",
+    "shoes": "#332A23"
+  },
+  {
+    "id": "person_23",
+    "hairStyle": "ponytail",
+    "skin": "#6F4A34",
+    "hair": "#8A8A8A",
+    "shirt": "#B08A46",
+    "trousers": "#5C584C",
+    "shoes": "#322A22"
+  },
+  {
+    "id": "person_24",
+    "hairStyle": "curly",
+    "skin": "#5A3928",
+    "hair": "#1C1712",
+    "shirt": "#8D939A",
+    "trousers": "#3F4246",
+    "shoes": "#292929"
+  },
+  {
+    "id": "person_1",
+    "hairStyle": "short",
+    "skin": "#e9c7a5",
+    "hair": "#3b2a20",
+    "shirt": "#2b3a55",
+    "trousers": "#7a7f86",
+    "shoes": "#3a2e28"
+  },
+  {
+    "id": "person_2",
+    "hairStyle": "long",
+    "skin": "#e8b89a",
+    "hair": "#6e3b2a",
+    "shirt": "#355d5e",
+    "trousers": "#6b6b6b",
+    "shoes": "#2c2624"
+  },
+  {
+    "id": "person_3",
+    "hairStyle": "ponytail",
+    "skin": "#eac5a4",
+    "hair": "#5a3b28",
+    "shirt": "#6e2f34",
+    "trousers": "#8a8a8f",
+    "shoes": "#352b28"
+  },
+  {
+    "id": "person_4",
+    "hairStyle": "curly",
+    "skin": "#e4b58f",
+    "hair": "#2b231f",
+    "shirt": "#6f7344",
+    "trousers": "#3d3d42",
+    "shoes": "#2a2422"
+  },
+  {
+    "id": "person_5",
+    "hairStyle": "cap",
+    "skin": "#e8ceb0",
+    "hair": "#b4653b",
+    "shirt": "#a65a3c",
+    "trousers": "#2d3d54",
+    "shoes": "#35353a"
+  },
+  {
+    "id": "person_6",
+    "hairStyle": "short",
+    "skin": "#e6caa2",
+    "hair": "#9a7a57",
+    "shirt": "#b58a3a",
+    "trousers": "#435163",
+    "shoes": "#2f2620"
+  },
+  {
+    "id": "person_13",
+    "hairStyle": "ponytail",
+    "skin": "#d8a57d",
+    "hair": "#2b241f",
+    "shirt": "#1f3a5f",
+    "trousers": "#6e6e6e",
+    "shoes": "#3e2e26"
+  },
+  {
+    "id": "person_14",
+    "hairStyle": "curly",
+    "skin": "#d4a077",
+    "hair": "#5a2e27",
+    "shirt": "#6b2b32",
+    "trousers": "#a87c55",
+    "shoes": "#33241f"
+  },
+  {
+    "id": "person_15",
+    "hairStyle": "cap",
+    "skin": "#cfa07e",
+    "hair": "#3a2e25",
+    "shirt": "#2d5c5c",
+    "trousers": "#6e809a",
+    "shoes": "#33241f"
+  },
+  {
+    "id": "person_16",
+    "hairStyle": "short",
+    "skin": "#d9ac85",
+    "hair": "#7a3b24",
+    "shirt": "#b07b2a",
+    "trousers": "#2b3e57",
+    "shoes": "#2f2f2f"
+  },
+  {
+    "id": "person_17",
+    "hairStyle": "long",
+    "skin": "#d6a98c",
+    "hair": "#6a5842",
+    "shirt": "#3e3e3e",
+    "trousers": "#4a6382",
+    "shoes": "#2f2f2f"
+  },
+  {
+    "id": "person_18",
+    "hairStyle": "ponytail",
+    "skin": "#d2a17b",
+    "hair": "#3e2a1d",
+    "shirt": "#8c4a34",
+    "trousers": "#c7b39a",
+    "shoes": "#4e3a2c"
+  }
+]
