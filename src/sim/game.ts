@@ -1,11 +1,11 @@
 // The game director: owns the simulation, runs it in fixed steps and emits events. It knows nothing about
 // screens or sound, so tests and headless reviews run the same rules the player gets.
-import { contactAt, crushLevel, NEUTRAL, PlayerCar, sideOf, type DriveIntent, type DriveState } from './car.ts';
+import { contactAt, crushLevel, NEUTRAL, PlayerCar, sideOf, type DriveIntent, type DriveState, type Mark, type Side } from './car.ts';
 import type { Find, Goal, GoalKind, TownEventCard } from '../../schemas/content.ts';
 import { carById, RECOVERY_FEE, FIND_ALL_REWARD, FIND_REWARD, FUEL_PRICE, GOAL_REWARD, HOME_TOPUP_PCT, rankOf, rankPay, REGULAR_FINALE, REP_FINALE, REP_GOAL, REP_JOB, REP_SPOTLESS, streakBonus } from './economy.ts';
 import { FuelManager } from './fuel.ts';
 import { advance, freshDaily, goalsFor } from './goals.ts';
-import { ActiveQuest, freshProgress, GHOST_KEEP, placeAt, QuestGenerator, storyPlot, type Ghost, type Offer, type Progress, type QuestContent } from './quests.ts';
+import { ActiveQuest, freshProgress, GHOST_KEEP, placeAt, QuestGenerator, storyPlot, type Ghost, type Offer, type Progress, type QuestContent, type QuestState } from './quests.ts';
 import { Navigator, route, routeVia, type Cue } from './route.ts';
 import { dist, makeRng, Town, type Plot, type Vec } from './town.ts';
 import { Traffic } from './traffic.ts';
@@ -50,6 +50,15 @@ export type GameEvent =
   | { type: 'event'; card: TownEventCard | null; edge: number }
   | { type: 'road'; moment: RoadMoment; pay: number; points: number; score: number };
 
+/** Where the drive was left: the car on the road, the clock, the job and the sat nav. Saved beside the progress, so a
+ * reload carries on where it stopped. A job's places are kept as indexes into the town's plots, which a fixed seed rebuilds the same. */
+export type Trip = {
+  car: string; x: number; z: number; heading: number; time: number; streak: number;
+  waypoint: Vec | null; dest: string | null;
+  dents: Record<Side, number>; marks: Mark[];
+  quest: { offer: Omit<Offer, 'start' | 'end'> & { start: number; end: number }; at: QuestState } | null;
+};
+
 /** Where Points live. The app backs this with the shared profile; tests use a number. */
 export type Wallet = { points(): number; spend(n: number): boolean; earn(n: number): void };
 
@@ -61,6 +70,7 @@ export class Game {
   offers: Offer[] = [];
   nav: Navigator | null = null;
   waypoint: Vec | null = null;
+  dest: string | null = null; // what the sat nav calls the waypoint
   time = 0;
   traffic: Traffic;
   walkers: Walkers;
@@ -83,7 +93,7 @@ export class Game {
   private lastSpeed = 0;
   private wallet: Wallet;
 
-  constructor(content: QuestContent, wallet: Wallet, opts: { carId?: string; fuel?: number; damage?: number; seed?: number; town?: Town; start?: number; progress?: Progress; day?: string; events?: TownEventCard[] } = {}) {
+  constructor(content: QuestContent, wallet: Wallet, opts: { carId?: string; fuel?: number; damage?: number; seed?: number; town?: Town; start?: number; progress?: Progress; day?: string; events?: TownEventCard[]; trip?: Trip | null } = {}) {
     this.wallet = wallet;
     this.content = content;
     this.town = opts.town ?? new Town();
@@ -100,6 +110,7 @@ export class Game {
     this.gen = new QuestGenerator(this.town, content, makeRng(seed), this.progress);
     this.goHome();
     if (opts.start !== undefined && this.town.plots[opts.start]) this.parkAt(this.town.plots[opts.start]); // a game opens wherever it was dealt; home is still where a tow goes
+    if (opts.trip) this.resume(opts.trip); // before the traffic, which fills the streets round the car
     this.traffic = new Traffic(this.town, makeRng(seed + 7), this.player);
     this.walkers = new Walkers(this.town, makeRng(seed + 11), this.player);
     this.parked = new ParkedCars(this.town);
@@ -183,13 +194,43 @@ export class Game {
     this.nav = target ? new Navigator(route(this.town, this.player, target, this.player.dir)) : null;
   }
 
-  setWaypoint(p: Vec | null) {
+  setWaypoint(p: Vec | null, name = 'Waypoint') {
     this.waypoint = p ? this.town.snap(p).point : null;
+    this.dest = p ? name : null;
     if (!this.quest) this.setNav(this.waypoint);
   }
 
   routeToStation() {
-    this.waypoint = { ...this.town.nearestStation(this.player).road };
+    this.setWaypoint(this.town.nearestStation(this.player).road, 'Petrol station');
+  }
+
+  /** Every place a job, a tow or the sat nav can name: home, the petrol stations, then the town's plots. */
+  private get allPlots(): Plot[] { return [this.town.home, ...this.town.stations, ...this.town.plots]; }
+
+  snapshot(): Trip {
+    const p = this.player, q = this.quest, all = this.allPlots;
+    return {
+      car: p.car.id, x: p.x, z: p.z, heading: p.heading, time: this.time, streak: this.streak,
+      waypoint: this.waypoint, dest: this.dest, dents: { ...p.dents }, marks: p.marks.map((m) => ({ ...m })),
+      quest: q ? { offer: { ...q.offer, start: all.indexOf(q.offer.start), end: all.indexOf(q.offer.end) }, at: q.state } : null,
+    };
+  }
+
+  /** Pick a saved drive up again. A job whose places can't be found any more is dropped, not half-restored. */
+  private resume(t: Trip) {
+    const p = this.player, all = this.allPlots;
+    p.place(t.x, t.z, t.heading);
+    p.state = 'Parked';
+    this.time = t.time;
+    this.streak = t.streak;
+    if (t.car === p.car.id) { p.dents = { ...t.dents }; p.marks = t.marks.map((m) => ({ ...m })); }
+    const start = t.quest ? all[t.quest.offer.start] : undefined, end = t.quest ? all[t.quest.offer.end] : undefined;
+    if (t.quest && start && end) {
+      this.quest = ActiveQuest.resume({ ...t.quest.offer, start, end }, t.quest.at);
+      this.setNav(this.quest.target);
+    }
+    this.waypoint = t.waypoint;
+    this.dest = t.waypoint ? t.dest : null;
     if (!this.quest) this.setNav(this.waypoint);
   }
 
@@ -198,6 +239,7 @@ export class Game {
     if (!offer || this.quest) return;
     this.quest = new ActiveQuest(offer);
     this.waypoint = null;
+    this.dest = null;
     this.setNav(offer.start.road);
     this.emit({ type: 'questStarted', offer });
   }
@@ -406,8 +448,7 @@ export class Game {
       else this.setNav(nav.route.points.at(-1)!);
       this.emit({ type: 'recalculating' });
     }
-    if (!this.quest && this.waypoint && nav.next() === null) { this.waypoint = null; this.nav = null; }
-    else if (!this.quest && this.waypoint && dist(this.waypoint, player) < 15) { this.waypoint = null; this.nav = null; }
+    if (!this.quest && this.waypoint && (nav.next() === null || dist(this.waypoint, player) < 15)) { this.waypoint = null; this.dest = null; this.nav = null; }
   }
 
   private stepQuest() {

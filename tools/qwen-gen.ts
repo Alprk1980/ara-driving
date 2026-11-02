@@ -7,6 +7,7 @@ import { CAR_JOB_TYPES, carJobErrors, catalogueErrors, chatterErrors, eventError
 import { buildingSetErrors, buildingStyleErrors, type BuildingStyle } from '../schemas/buildings.ts';
 import { carProfileErrors, profileVsCar, type CarBodyProfile } from '../schemas/carprofiles.ts';
 import { FLEET_RULES, fleetErrors } from '../schemas/fleet.ts';
+import { BACK_ABOVE_SEAT_M, FURNITURE_IDS, FURNITURE_RULES, furnitureErrors, PALLET, SEAT_M, type FurnitureId } from '../schemas/furniture.ts';
 import { greyHaired, HAIR_STYLES, personErrors, SKIN_TONES, skinTone, type PersonLook, type SkinTone } from '../schemas/people.ts';
 import { ROAD_MOMENTS, roadLineErrors, SERVICE_RULES, serviceErrors, type RoadLine } from '../schemas/services.ts';
 import { townCarErrors, townCarKindErrors, type TownCar } from '../schemas/towncars.ts';
@@ -35,6 +36,18 @@ const BUILDING_SLOTS = [
   ['old_mill', 'works', 'brick', 'arched', 'loading', 'parapet'],
   ['concrete_depot', 'works', 'panel', 'punched', 'loading', 'flat'],
   ['cold_store', 'works', 'cladding', 'ribbon', 'loading', 'plant'],] as const;
+
+// What each piece of furniture is, and the features schemas/furniture.ts checks for, in words.
+const FURNITURE_LOOK: Record<FurnitureId, string> = {
+  bench: `a public bench: a seat slab at least 1.3 m long and 0.25 deep, at most 0.15 thick, its top ${SEAT_M.join('-')} m up, on legs or end frames; a back behind it (lower z) at least 1.2 m long rising ${BACK_ABOVE_SEAT_M} m or more above the seat. Armrests at the ends are welcome.`,
+  bin: 'a cast iron litter bin on the pavement: a body with a lid or domed top, maybe a band of trim or a posting slot.',
+  planter: 'a town centre planter: a box or tub on the ground 0.35-1 m tall and at least 0.6 m each way, with green shrubs on top (green parts 0.3 m up or more).',
+  bollard: 'a street bollard: one post from the ground, with a collar band at least 0.06 m tall in its top 0.45 m, in a colour much lighter or darker than the post, like a white band on a black post.',
+  cycle_rack: 'one Sheffield cycle stand: an upside-down U of round steel tube about 0.05 m thick, so exactly 2 legs from the ground, each at least 0.5 m tall, joined by a bar across the top. Every part at most 0.08 m across.',
+  bus_shelter: 'a glass bus shelter: a roof over it all, at least 2.8 m long and 1.1 deep; a glass back wall on the far side from the road (z below 0), at least 2.5 m long, 1.8 tall and at most 0.1 thick; glass ends; a seat or perch inside, its top 0.45-0.8 m up. The front (+z) is open to the road, with no wall more than 1.2 m long.',
+  container: `a 20 ft ISO shipping container standing in a works yard, its length along z. Part 1 is the box itself, exactly #ffffff, about 2.44 by 2.59 by 6.06 m, as each container is painted its own colour. Add doors, corner posts or ribs in other colours.`,
+  pallets: `goods on pallets in a works yard: at least one standard UK pallet on the ground, a box ${PALLET.a} by ${PALLET.b} m and ${PALLET.h.join('-')} m tall at y 0, with a load stacked on it (sacks, boxes, a shrink-wrapped stack). A second pallet beside it is welcome.`,
+};
 
 // The mix of ages and skin tones is set here, near the census shares in schemas/people.ts, so Qwen's job is to dress each one.
 const PERSON_SLOTS: [SkinTone, boolean][] = [...Array(8).fill(['fair', false]), ...Array(2).fill(['fair', true]), ...Array(8).fill(['light', false]), ...Array(1).fill(['light', true]), ['medium', false], ['brown', false], ['medium', true], ['brown', true], ['deep', false]].map(([tone, older]) => [tone, older] as [SkinTone, boolean]);
@@ -228,6 +241,17 @@ const KINDS: Record<string, Kind> = {
         },
       }));
     },
+  },
+  furniture: {
+    file: 'src/data/furniture.json', prompt: 'prompts/furniture.txt', errors: furnitureErrors as Kind['errors'], key: 'id',
+    checker: 'These are low-poly British street furniture, as JSON parts in metres: x along the kerb, z towards the road, y the base of each part. Picture each one from a passing car. Flag one that would not read as what it is, whose parts overlap oddly or leave gaps, or whose colours look wrong for the real thing.',
+    batches: () => FURNITURE_IDS.filter((id) => replace.has(id) || !existing('src/data/furniture.json').has(id)).map((id) => {
+      const r = FURNITURE_RULES[id];
+      return {
+        ask: `Slots:\nid ${id}: ${FURNITURE_LOOK[id]}\nOverall ${r.w.join('-')} m wide along x, ${r.l.join('-')} m deep along z, ${r.top.join('-')} m tall, in ${r.parts.join('-')} parts.\nWrite one entry.`,
+        fits: (e: Entry) => (e.id !== id ? [`the entry must have id ${id}`] : []),
+      };
+    }),
   },
   towncars: {
     file: 'src/data/towncars.json', prompt: 'prompts/towncars.txt', errors: townCarErrors as Kind['errors'], key: 'id',

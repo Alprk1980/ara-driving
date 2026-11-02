@@ -40,6 +40,14 @@
   #compass { width: 40px; height: 40px; display: none; }
   #tracker { background: var(--panel); border-radius: 12px; padding: 6px 12px; text-align: center; display: none; }
   #tracker small { display: block; font-weight: 500; opacity: .75; }
+  #tracker .turn { display: block; font-size: 17px; font-weight: 800; }
+  .navquick { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+  .navquick button small, .navrow small { display: block; font-weight: 500; opacity: .72; }
+  .navgroups { display: flex; flex-wrap: wrap; gap: 5px; margin: 6px 0; }
+  .navgroups button { padding: 5px 10px; font-size: 13px; }
+  .navgroups button.on { background: var(--accent); color: #fff; }
+  .navlist { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px; max-height: min(48vh, 420px); overflow-y: auto; touch-action: pan-y; }
+  .navrow { border: 2px solid #e6eaf2; border-radius: 12px; padding: 7px 9px; text-align: left; background: #fff; }
   #ticker { color: #fff; background: rgba(16,24,40,.55); border-radius: 10px; padding: 4px 10px; font-size: 12px; font-weight: 500; text-align: center; display: none; }
   #streak { background: #ffd23e; }
   .card .warn { color: #c02a22; font-weight: 600; }
@@ -199,6 +207,7 @@
 </div>
 <div class="sheet" id="jobs"><div class="card"></div></div>
 <div class="sheet" id="mapsheet"><div class="card"></div></div>
+<div class="sheet" id="satnav"><div class="card"></div></div>
 <div class="sheet" id="pause"><div class="card"></div></div>
 <div class="sheet" id="fuelshop"><div class="card"></div></div>
 <div class="sheet" id="dialog"><div class="card"></div></div>

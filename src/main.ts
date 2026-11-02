@@ -19,7 +19,7 @@ import stations from './data/stations.json';
 import stories from './data/stories.json';
 import voiceLines from './data/voice.json';
 import { InputRouter, FloatingJoystick, freshHeld, PadWatch } from './input/schemes.ts';
-import { emptySave, GAME_ID, SAVE_KEY, saveErrors, type DriveSave } from './save.ts';
+import { emptySave, GAME_ID, keepDrive, SAVE_KEY, saveErrors, type DriveSave } from './save.ts';
 import { DISTRICTS, DISTRICT_IDS } from './sim/districts.ts';
 import { carById } from './sim/economy.ts';
 import { Game, STEP } from './sim/game.ts';
@@ -43,13 +43,14 @@ await loading(12, 'Finding your save');
 const stored = await getGameSave<DriveSave>(SAVE_KEY);
 const merged = stored ? { ...emptySave(touchDevice), ...stored } : null; // a save from before a field existed takes its default
 const save = merged && !saveErrors(merged).length ? merged : emptySave(touchDevice);
+keepDrive(save);
 
 let player = await getPlayer();
 const wallet = new ProfileWallet(player);
 await loading(30, 'Laying out the town');
 const town = new Town();
 if (save.start < 0) save.start = dealStart(town, Math.random, save.lastStart);
-const game = new Game({ places: places as Place[], quests: quests as QuestText[], regulars: regulars as Regular[], finds: finds as Find[], goals: goals as Goal[] }, wallet, { town, start: save.start, carId: save.car, fuel: save.fuel[save.car], damage: save.dmg[save.car], progress: save.progress, day: new Date().toLocaleDateString('en-CA'), events: events as TownEventCard[] });
+const game = new Game({ places: places as Place[], quests: quests as QuestText[], regulars: regulars as Regular[], finds: finds as Find[], goals: goals as Goal[] }, wallet, { town, start: save.start, carId: save.car, fuel: save.fuel[save.car], damage: save.dmg[save.car], progress: save.progress, day: new Date().toLocaleDateString('en-CA'), events: events as TownEventCard[], trip: save.trip?.car === save.car ? save.trip : null });
 
 const sound = new Sound();
 const canvas = document.getElementById('scene') as HTMLCanvasElement;
@@ -61,6 +62,7 @@ view.setQuality(save.graphics);
 view.bodyStyle = save.body;
 await loading(82, 'Fetching your car');
 view.setCar(save.designs[save.car] ?? {}, save.driver);
+view.replayWalls(save.walls);
 
 const speech = new SpeechBackend();
 let app: App;

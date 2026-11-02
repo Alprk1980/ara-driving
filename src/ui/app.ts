@@ -20,12 +20,14 @@ const ROAD_NAMES: Record<RoadMoment, string> = { red_stop: 'Waited at a red', ze
 import { CAMERA_NAMES, type View } from '../view/scene.ts';
 import { DISTRICTS, DISTRICT_IDS, type DistrictId } from '../sim/districts.ts';
 import { drawMini, drawWorld, townImage } from './map.ts';
+import { destinations, distanceText, etaText, GROUP_ORDER, nearestIn, turnText, type Dest, type DestGroup } from '../sim/satnav.ts';
 import { cueKey, type VoiceGuide } from './voice.ts';
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const $svg = (id: string) => document.getElementById(id) as unknown as SVGElement; // the bodywork outline's rects
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
 const HUB_URL = '../ara-games/';
+const AUTOSAVE_S = 15; // seconds between saves while driving
 const TIER_LABEL = { common: 'Common', rare: 'Rare', epic: 'Epic', legendary: 'Legendary' };
 
 type Tab = 'cars' | 'paint' | 'pattern' | 'decal' | 'body' | 'outfit' | 'accessory';
@@ -80,6 +82,7 @@ export class App {
   private bannerClock = 0;
   private toastClock = 0;
   private miniClock = 0;
+  private saveClock = AUTOSAVE_S;
   private actionsKey = '';
   private trackerKey = '';
   private bodyKey = '';
@@ -109,6 +112,8 @@ export class App {
     if (this.dead) return;
     this.save.fuel[this.save.car] = this.game.player.fuel;
     this.save.dmg[this.save.car] = this.game.player.damage;
+    this.save.trip = this.game.snapshot();
+    this.save.walls = this.view.wallLog;
     void putGameSave(SAVE_KEY, this.save);
   }
 
@@ -331,6 +336,7 @@ export class App {
     $('fuelchip').className = pct < WARN_CRITICAL_PCT ? 'chip crit' : pct < WARN_LOW_PCT ? 'chip low' : 'chip';
     this.bodywork();
 
+    if ((this.saveClock -= dt) <= 0) { this.saveClock = AUTOSAVE_S; this.store(); } // a closed tab or a crash loses a few seconds at most
     if ((this.miniClock -= dt) <= 0) { this.miniClock = 1 / 15; drawMini(this.mini, g, this.img); }
     this.compass();
     this.tracker();
@@ -396,9 +402,14 @@ export class App {
       key = `${q.offer.title}|${sub}|${Math.round(left / 10)}|${twist}`;
       html = `${esc(q.offer.title)}<small>${esc(sub)}, ${left} m</small>${twist ? `<small>${esc(twist)}</small>` : ''}`;
     } else if (g.nav) {
-      const left = Math.round(g.nav.route.length - g.nav.travelled);
-      key = `way|${Math.round(left / 10)}`;
-      html = `Waypoint<small>${left} m to go</small>`;
+      const left = g.nav.route.length - g.nav.travelled;
+      key = `way|${g.dest}|${distanceText(left)}|${etaText(left)}`;
+      html = `${esc(g.dest ?? 'Waypoint')}<small>${distanceText(left)}, about ${etaText(left)}</small>`;
+    }
+    if (g.nav) { // the next instruction, on top, as a sat nav shows it
+      const next = g.nav.next(), turn = turnText(next, next ? next.at - g.nav.travelled : 0);
+      key = `${turn}|${key}`;
+      html = `<span class="turn">${esc(turn)}</span>${html}`;
     }
     if (key === this.trackerKey) return;
     this.trackerKey = key;
@@ -532,7 +543,8 @@ export class App {
     const of = g.content.finds?.length ?? 0, clues = g.unfound.slice(0, 3).map((f) => `<li>${esc(f.clue)}</li>`).join('');
     const c = this.sheet('mapsheet', `<div id="worldwrap"><canvas id="world" width="1000" height="1000"></canvas><div id="mapside">
       <h2>Map</h2>
-      <p>Tap a road to set a waypoint. H is home, F is a petrol station.</p>
+      <button class="primary" id="satnav-open">Sat nav: go to a place</button>
+      <p>Or tap a road to set a waypoint. H is home, F is a petrol station.</p>
       <p>Fast travel</p>
       <button class="ghost" id="ft-home">Home</button>
       <button class="ghost" id="ft-station">Nearest station</button>
@@ -551,11 +563,37 @@ export class App {
       draw();
     };
     c.querySelector<HTMLElement>('#x')!.onclick = () => this.close('mapsheet');
+    c.querySelector<HTMLElement>('#satnav-open')!.onclick = () => { this.close('mapsheet'); this.openSatnav(); };
     c.querySelector<HTMLElement>('#clear')!.onclick = () => { g.setWaypoint(null); draw(); };
     const travel = (to: 'home' | 'station' | DistrictId) => this.confirmForfeit(() => { g.fastTravel(to); this.close('mapsheet'); this.store(); });
     c.querySelector<HTMLElement>('#ft-home')!.onclick = () => travel('home');
     c.querySelector<HTMLElement>('#ft-station')!.onclick = () => travel('station');
     for (const b of c.querySelectorAll<HTMLElement>('[data-go]')) b.onclick = () => travel(b.dataset.go as DistrictId);
+  }
+
+  /** The sat nav: quick routes to the nearest fuel, home and the services, then everywhere else by group, all measured by road. */
+  openSatnav(group: DestGroup | 'Nearby' = 'Nearby') {
+    const g = this.game, all = destinations(g), quick = (['Fuel and repairs', 'Home', 'Emergency services'] as const).flatMap((k) => (k === 'Emergency services' ? all.filter((d) => d.group === k) : [nearestIn(all, k)!]));
+    const groups = GROUP_ORDER.filter((k) => all.some((d) => d.group === k));
+    const shown = group === 'Nearby' ? [...all].sort((a, b) => a.metres - b.metres).slice(0, 12) : all.filter((d) => d.group === group);
+    const row = (d: Dest, cls: string, label = d.name) => `<button class="${cls}" data-key="${d.key}">${esc(label)}<small>${distanceText(d.metres)}, about ${etaText(d.metres)}</small></button>`;
+    const c = this.sheet('satnav', `<h2>Sat nav</h2>
+      ${g.quest ? `<p class="warn">You're on a job, so its route comes first. A place picked here is where the sat nav takes you after.</p>` : ''}
+      <div class="navquick">${quick.map((d) => (d.group === 'Fuel and repairs' ? row(d, 'primary', 'Nearest petrol station') : row(d, 'ghost'))).join('')}</div>
+      <div class="navgroups">${['Nearby', ...groups].map((k) => `<button class="ghost ${k === group ? 'on' : ''}" data-group="${k}">${k}</button>`).join('')}</div>
+      <div class="navlist">${shown.map((d) => row(d, 'navrow')).join('')}</div>
+      <div class="row end">${g.waypoint ? '<button class="ghost" id="cancel">Cancel route</button>' : ''}<button class="ghost" id="map">Map</button><button class="primary" id="x">Back to the road</button></div>`);
+    for (const b of c.querySelectorAll<HTMLElement>('[data-group]')) b.onclick = () => this.openSatnav(b.dataset.group as DestGroup | 'Nearby');
+    for (const b of c.querySelectorAll<HTMLElement>('[data-key]')) b.onclick = () => {
+      const d = all.find((x) => x.key === b.dataset.key)!, name = d.group === 'Fuel and repairs' ? 'Petrol station' : d.name;
+      g.setWaypoint(d.at, name);
+      this.close('satnav');
+      this.toast(`Route set: ${name}, ${distanceText(d.metres)}, about ${etaText(d.metres)}`);
+      this.store();
+    };
+    c.querySelector<HTMLElement>('#cancel')?.addEventListener('click', () => { g.setWaypoint(null); this.close('satnav'); this.toast('Route cancelled'); this.store(); });
+    c.querySelector<HTMLElement>('#map')!.onclick = () => { this.close('satnav'); this.openMap(); };
+    c.querySelector<HTMLElement>('#x')!.onclick = () => this.close('satnav');
   }
 
   private confirmForfeit(go: () => void) {

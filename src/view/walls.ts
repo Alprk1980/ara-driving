@@ -49,14 +49,14 @@ export class WallDamage {
     return { buildings: this.damaged.length, tiles, voxels, pool: POOL_TILES * TILE_VOXELS };
   }
 
-  /** A car hit a building here. `y` is how far up the wall, for the bench; on the road it's the car's nose. */
-  hit(b: Box, nx: number, nz: number, x: number, z: number, speed: number, y = HIT_HEIGHT, now = performance.now() / 1000) {
-    if (now - this.last < OUTER_GAP) return;
+  /** A car hit a building here. `y` is how far up the wall, for the bench; on the road it's the car's nose. False if the blow didn't land. */
+  hit(b: Box, nx: number, nz: number, x: number, z: number, speed: number, y = HIT_HEIGHT, now = performance.now() / 1000): boolean {
+    if (now - this.last < OUTER_GAP) return false;
     this.last = now;
     const wall = wallOf(b, nx, nz, x, z), along = alongOf(b, wall, x, z), radius = craterRadius(speed);
     const near = tilesNear(b, wall, along, y, radius);
     const d = this.buildingFor(b, near.length);
-    if (!d) return;
+    if (!d) return false;
     const entry = d.walls.get(wallKey(wall)) ?? { wall, tiles: new Map<string, Opened>() };
     d.walls.set(wallKey(wall), entry);
     for (const { col: c, row } of near) {
@@ -69,7 +69,11 @@ export class WallDamage {
     for (const t of tiles) this.drawTile(d.index, b, wall, t);
     this.rebuild(d);
     this.touch();
+    return true;
   }
+
+  /** Whether this building still shows damage: the oldest is put right when the pool runs out. */
+  holds(b: Box) { return this.damaged.some((d) => d.b === b); }
 
   /** Put every wall right. */
   mendAll() {

@@ -26,6 +26,7 @@ import { StreetLife } from './streetlife.ts';
 import { TownBuildings } from './townblocks.ts';
 import { DrawnBuildings } from './drawn.ts';
 import { WallDamage } from './walls.ts';
+import type { WallHit } from '../save.ts';
 import buildingStyles from '../data/buildingstyles.json';
 import type { BuildingStyle } from '../../schemas/buildings.ts';
 
@@ -352,6 +353,7 @@ export class View {
   private debris: Debris;
   private walls: WallDamage;
   drawnWalls: WallDamage;
+  private wallHits: WallHit[] = [];
   drawn: DrawnBuildings;
   private dmg: DamageRig | null = null;
   private paint = DEFAULT_PAINT;
@@ -430,9 +432,7 @@ export class View {
         this.fx.sparks(cx, cz, e.speed);
         this.debris.burst(cx, cz, nx, nz, e.speed, this.paint);
         if (h?.box) {
-          const drawn = this.drawn.boxAt(h.x, h.z); // the stations and big places stand on solids of their own, so go by where it landed
-          if (drawn) this.drawnWalls.hit(drawn, h.nx, h.nz, h.x, h.z, e.speed);
-          else this.walls.hit(h.box, h.nx, h.nz, h.x, h.z, e.speed);
+          this.hitWall({ box: game.town.boxes.indexOf(h.box), nx: h.nx, nz: h.nz, x: h.x, z: h.z, speed: e.speed });
           const i = this.look3.buildings.indexOf(h.box);
           if (i >= 0) this.debris.burst(cx, cz, nx, nz, e.speed, this.look3.buildings.plans[i].wall);
         }
@@ -747,7 +747,43 @@ export class View {
     this.camera.fov = this.index === 3 ? 72 : this.index < 2 && !this.inGarage ? 60 + Math.min(1, p.kmh / 150) * 12 : 62;
     if (this.attract) this.tour(dt);
     this.camera.updateProjectionMatrix();
+    if (this.index === 3 && !this.inGarage && !this.attract) this.drawMirror();
     this.renderer.render(this.scene, this.camera);
+  }
+
+  /** The interior mirror's picture, drawn before the frame with the cockpit hidden, so it shows the road behind and not the car's insides. It reuses the frame's shadows rather than drawing them twice. */
+  private drawMirror() {
+    const { cam, target } = this.rig.mirror, r = this.renderer;
+    this.rig.dash.visible = false;
+    r.shadowMap.autoUpdate = false;
+    r.setRenderTarget(target);
+    r.render(this.scene, cam);
+    r.setRenderTarget(null);
+    r.shadowMap.autoUpdate = true;
+    this.rig.dash.visible = true;
+  }
+
+  /** Knock a hole in a building, and keep the hit so a save can put the hole back. */
+  private hitWall(w: WallHit, now?: number) {
+    const box = this.game.town.boxes[w.box];
+    if (!box) return;
+    const drawn = this.drawn.boxAt(w.x, w.z); // the stations and big places stand on solids of their own, so go by where it landed
+    const landed = drawn ? this.drawnWalls.hit(drawn, w.nx, w.nz, w.x, w.z, w.speed, undefined, now) : this.walls.hit(box, w.nx, w.nz, w.x, w.z, w.speed, undefined, now);
+    if (landed) this.wallHits.push(w);
+  }
+
+  /** The hits behind every hole still showing, oldest first: the damage is worked out the same way each time, so replaying them rebuilds it. */
+  get wallLog(): WallHit[] {
+    this.wallHits = this.wallHits.filter((w) => {
+      const drawn = this.drawn.boxAt(w.x, w.z), box = this.game.town.boxes[w.box];
+      return drawn ? this.drawnWalls.holds(drawn) : !!box && this.walls.holds(box);
+    });
+    return this.wallHits;
+  }
+
+  /** Put a saved game's holes back. Each hit is spaced a second apart, past the gap that merges a scrape into one blow. */
+  replayWalls(log: readonly WallHit[]) {
+    log.forEach((w, i) => this.hitWall(w, i - log.length - 10));
   }
 
   /** Drag with the mouse to look round, in any camera: chase views swing round the car, the cockpit turns your head. Let go and it settles back. */

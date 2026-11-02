@@ -19,6 +19,7 @@ export type Offer = {
   market?: boolean; // ends at the kind of place today's market day pays extra for
 };
 export type QuestPhase = 'HeadingToStart' | 'Active';
+export type QuestState = { phase: QuestPhase; care: number; elapsed: number; gate: number; bumps: number; track: number[] };
 
 /** A best trial run: its course as plot indexes, the time, and x, z, heading every GHOST_S seconds. */
 export type Ghost = { s: number; e: number; time: number; track: number[] };
@@ -229,6 +230,16 @@ export class ActiveQuest {
   offer: Offer;
   private sampled = 0;
   constructor(offer: Offer) { this.offer = offer; }
+
+  /** A job picked up again from a save, where it was left. */
+  static resume(offer: Offer, at: QuestState): ActiveQuest {
+    const q = new ActiveQuest(offer);
+    Object.assign(q, at);
+    q.sampled = (at.track.length / 3) * GHOST_S;
+    return q;
+  }
+
+  get state(): QuestState { return { phase: this.phase, care: this.care, elapsed: this.elapsed, gate: this.gate, bumps: this.bumps, track: [...this.track] }; }
 
   /** One step of the job proper: runs the clock, drains a clock twist and records a trial for its ghost. */
   tick(dt: number, p: { x: number; z: number; heading: number }) {
