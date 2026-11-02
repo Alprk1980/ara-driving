@@ -24,7 +24,12 @@ export function addLamps(body: THREE.Group, len: number, wide: number, y: number
 }
 export const LAMP_OFF = '#55504a', LAMP_REVERSE = '#fff8e8', BLINK_OFF = '#6b4a1e', BLINK_ON = '#ffa21f';
 
-const INTERIOR = { pad: '#565b67', lower: '#6d727e', frame: '#454a55', lining: '#b9b6ad', seat: '#2b2f39', legs: '#2c3442', glass: '#b9cedd', screen: '#2c5580', rim: '#2a2d34' };
+const INTERIOR = { pad: '#565b67', lower: '#6d727e', frame: '#454a55', lining: '#b9b6ad', seat: '#2b2f39', legs: '#2c3442', screen: '#2c5580', rim: '#2a2d34' };
+// The interior mirror. R46 Class I: at least a 20 m wide strip of road seen from 60 m behind the eyes, so 2 atan(10/60),
+// about 19 degrees across. The glass size is judged from typical cars (about 250 by 65 mm), as R46's own minimum wasn't found.
+const MIRROR_W = 0.25, MIRROR_H = 0.065, R46_ACROSS = 2 * Math.atan(10 / 60);
+const MIRROR_PX = 512, MIRROR_FAR_M = 400, MIRROR_DIP = 0.03; // a small picture, drawn only so far back, tipped down a little toward the road
+export type Mirror = { cam: THREE.PerspectiveCamera; target: THREE.WebGLRenderTarget };
 export const STEER_TURN = 1.7; // radians the wheel turns at full lock: well short of the 2-3 real turns, so the hands stay on it
 
 /** A straight limb or strut between two points. */
@@ -79,7 +84,7 @@ export function buildDriver(driver: Driver, find: Lookup, pose: Pose): THREE.Gro
 export type Cabin = { floor: number; deck: number; roof: number; cabZ: number; cabLen: number; pose: Pose };
 
 /** The cockpit view: the inside of the car around the driver's eye, seen only from the cockpit camera (the body hides itself there). */
-export function buildCockpit(size: readonly [number, number, number], cab: Cabin, skin: THREE.Material, dark: THREE.Material, driver: Driver, find: Lookup): { dash: THREE.Group; dashCanvas: HTMLCanvasElement; dashTex: THREE.CanvasTexture; hands: THREE.Group; eye: { x: number; y: number; z: number } } {
+export function buildCockpit(size: readonly [number, number, number], cab: Cabin, skin: THREE.Material, dark: THREE.Material, driver: Driver, find: Lookup): { dash: THREE.Group; dashCanvas: HTMLCanvasElement; dashTex: THREE.CanvasTexture; hands: THREE.Group; eye: { x: number; y: number; z: number }; mirror: Mirror } {
   const [len, , wide] = size, { eye, wheel } = cab.pose;
   const dash = new THREE.Group(), mat = (color: string) => new THREE.MeshLambertMaterial({ color });
   const pad = mat(INTERIOR.pad), lower = mat(INTERIOR.lower), frame = mat(INTERIOR.frame), lining = new THREE.MeshBasicMaterial({ color: INTERIOR.lining }), rim = mat(INTERIOR.rim);
@@ -117,8 +122,22 @@ export function buildCockpit(size: readonly [number, number, number], cab: Cabin
   }
   dash.add(box(inner * 2 - 0.2, 0.07, 0.12, frame, 0, cab.roof - 0.02, screenTop));
   dash.add(box(inner * 2, 0.02, 1.4, lining, 0, cab.roof + 0.02, screenTop - 0.7));
-  dash.add(box(0.21, 0.06, 0.02, frame, 0, cab.roof - 0.11, screenTop - 0.06));
-  dash.add(box(0.19, 0.045, 0.01, new THREE.MeshBasicMaterial({ color: INTERIOR.glass }), 0, cab.roof - 0.11, screenTop - 0.075));
+  // The interior mirror: its glass shows a camera looking straight back from it, flipped as a mirror is. A flat mirror's
+  // view is the angle the glass fills from the eye, kept at least as wide as UN R46 asks of a Class I mirror.
+  const mirrorY = cab.roof - 0.11, mirrorZ = screenTop - 0.06;
+  dash.add(box(MIRROR_W + 0.02, MIRROR_H + 0.015, 0.02, frame, 0, mirrorY, mirrorZ));
+  const target = new THREE.WebGLRenderTarget(MIRROR_PX, Math.round(MIRROR_PX * MIRROR_H / MIRROR_W));
+  target.texture.repeat.x = -1;
+  target.texture.offset.x = 1;
+  const glass = new THREE.Mesh(new THREE.PlaneGeometry(MIRROR_W, MIRROR_H), new THREE.MeshBasicMaterial({ map: target.texture }));
+  glass.rotation.y = Math.PI;
+  glass.position.set(0, mirrorY, mirrorZ - 0.011);
+  dash.add(glass);
+  const reach = Math.hypot(eye.x, mirrorY - eye.y, mirrorZ - eye.z), across = Math.max(2 * Math.atan(MIRROR_W / 2 / reach), R46_ACROSS);
+  const cam = new THREE.PerspectiveCamera(THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(across / 2) * MIRROR_H / MIRROR_W)), MIRROR_W / MIRROR_H, 0.12, MIRROR_FAR_M);
+  cam.position.set(0, mirrorY, mirrorZ);
+  cam.rotation.x = -MIRROR_DIP; // a camera looks down its -z, which is the car's back
+  dash.add(cam);
 
   // The wheel, raked toward the dash: a rim, three spokes, a boss, and hands at 9 and 3, all turning together.
   const column = new THREE.Group(), hands = new THREE.Group();
@@ -134,5 +153,5 @@ export function buildCockpit(size: readonly [number, number, number], cab: Cabin
   }
   dash.add(column);
   dash.visible = false;
-  return { dash, dashCanvas, dashTex, hands, eye };
+  return { dash, dashCanvas, dashTex, hands, eye, mirror: { cam, target } };
 }

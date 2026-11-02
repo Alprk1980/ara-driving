@@ -161,7 +161,7 @@ export function buildVoxelCar(car: Car, design: Design, driver: Driver, find: Lo
 
   // Seen only from the cockpit camera, which hides the body. Everything sits below the sightline.
   const paintSkin = new THREE.MeshLambertMaterial({ color: basePaint });
-  const { dash, dashCanvas, dashTex, hands, eye } = buildCockpit(car.size, { floor: p.sill, deck: belt - p.sill, roof, cabZ, cabLen, pose: fit.pose }, paintSkin, dark, driver, find);
+  const { dash, dashCanvas, dashTex, hands, eye, mirror } = buildCockpit(car.size, { floor: p.sill, deck: belt - p.sill, roof, cabZ, cabLen, pose: fit.pose }, paintSkin, dark, driver, find);
 
   // The crash: fold the skin where the marks are, and take the normals with it so the light shows the dents.
   const crumple = (levels: Record<Side, number>, marks: readonly Mark[]) => {
@@ -172,5 +172,5 @@ export function buildVoxelCar(car: Car, design: Design, driver: Driver, find: Lo
   };
 
   root.add(dash);
-  return { root, body, wheels, front, dash, dashCanvas, dashTex, hands, eye, tails, heads, crush: null, ...lamps, fragile, crumple };
+  return { root, body, wheels, front, dash, dashCanvas, dashTex, hands, eye, mirror, tails, heads, crush: null, ...lamps, fragile, crumple };
 }
