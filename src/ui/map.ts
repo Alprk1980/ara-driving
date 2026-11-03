@@ -84,7 +84,7 @@ function marks(x: CanvasRenderingContext2D, g: Game, r: number) {
 }
 
 function car(x: CanvasRenderingContext2D, g: Game, r: number) {
-  const p = g.player;
+  const p = g.foot ?? g.player;
   x.save();
   x.translate(p.x, p.z);
   x.rotate(Math.PI - p.heading);
@@ -104,7 +104,7 @@ function car(x: CanvasRenderingContext2D, g: Game, r: number) {
 
 /** Heading-up mini-map: the car stays centred and the town turns around it. */
 export function drawMini(c: HTMLCanvasElement, g: Game, img: HTMLCanvasElement) {
-  const x = c.getContext('2d')!, w = c.width, p = g.player;
+  const x = c.getContext('2d')!, w = c.width, p = g.foot ?? g.player; // on foot it follows you, and the car shows where you left it
   x.setTransform(1, 0, 0, 1, 0, 0);
   x.fillStyle = '#b9dfae';
   x.fillRect(0, 0, w, w);
@@ -115,7 +115,8 @@ export function drawMini(c: HTMLCanvasElement, g: Game, img: HTMLCanvasElement) 
   x.translate(-p.x, -p.z);
   x.drawImage(img, 0, 0, SIZE, SIZE);
   marks(x, g, 7);
-  car(x, g, 6);
+  if (g.foot) { x.beginPath(); x.arc(g.player.x, g.player.z, 5, 0, 7); x.fillStyle = '#3d6fd1'; x.fill(); x.lineWidth = 2; x.strokeStyle = '#fff'; x.stroke(); }
+  car(x, g, g.foot ? 4 : 6);
 }
 
 export function drawWorld(c: HTMLCanvasElement, g: Game, img: HTMLCanvasElement) {

@@ -26,12 +26,18 @@ import { StreetLife } from './streetlife.ts';
 import { TownBuildings } from './townblocks.ts';
 import { DrawnBuildings } from './drawn.ts';
 import { WallDamage } from './walls.ts';
+import { YouFigure } from './you.ts';
+import { PERSON_M } from './people.ts';
+import type { OnFoot } from '../sim/onfoot.ts';
 import type { WallHit } from '../save.ts';
 import buildingStyles from '../data/buildingstyles.json';
 import type { BuildingStyle } from '../../schemas/buildings.ts';
 
 export const CAMERA_NAMES = ['Chase near', 'Chase far', 'Side', 'Cockpit'] as const;
 const BLEND_S = 0.25;
+// On foot the camera sits close over your shoulder, much as third-person games do; the distances are judged. The
+// first-person eye is at 93% of standing height, about where adult eyes sit in body-size surveys.
+const FOOT_BACK_M = 3.4, FOOT_UP_M = 2.1, FOOT_FAR_BACK_M = 7.5, FOOT_FAR_UP_M = 4.2, EYE_SHARE = 0.93, FOOT_FOV = 60;
 const CAM_LAG = 6, ROLL = 0.08, PITCH = 0.009, BODY_EASE = 7; // how the chase camera and body follow the car
 const SLIDE_START = 0.45, HARD_BRAKE = 9;
 const GLOW = '#ffcf7a', LIGHTS_ON = 0.3; // headlights come on past this much night
@@ -366,6 +372,7 @@ export class View {
   drawn: DrawnBuildings;
   private dmg: DamageRig | null = null;
   private paint = DEFAULT_PAINT;
+  you: YouFigure;
 
   constructor(canvas: HTMLCanvasElement, game: Game, find: Lookup, scenery: Scenery) {
     this.game = game;
@@ -420,6 +427,7 @@ export class View {
     for (const id of game.progress.found) this.hideFind(id);
 
     this.life = new StreetLife(this.scene, game.town, game.traffic, game.walkers, game.parked);
+    this.you = new YouFigure(this.scene, 0);
     this.control = new RoadControl(this.scene, game.town);
     const body = partsGeometry(TRAFFIC_PARTS);
     this.ghost =new THREE.Mesh(body, new THREE.MeshBasicMaterial({ color: '#35e0c2', transparent: true, opacity: 0.4, depthWrite: false }));
@@ -520,8 +528,14 @@ export class View {
     this.applyRig();
   }
 
+  /** You got out or back in: the camera glides across to its new place. */
+  footChanged() {
+    this.setCamera(this.index);
+  }
+
   private applyRig() {
-    const cockpit = this.index === 3 && !this.inGarage;
+    const cockpit = this.index === 3 && !this.inGarage && !this.game.foot;
+    if (this.rig.seat) this.rig.seat.visible = !this.game.foot;
     this.rig.body.visible = !cockpit;
     for (const w of this.rig.wheels) w.visible = !cockpit;
     this.rig.dash.visible = cockpit;
@@ -554,6 +568,7 @@ export class View {
   /** Each rig's camera position and look target for this frame. */
   private rigPose(pos: THREE.Vector3, look: THREE.Vector3) {
     const p = this.game.player, town = this.game.town;
+    if (this.game.foot && !this.inGarage) return this.footPose(pos, look, this.game.foot);
     const f = p.dir, r = { x: -f.z, z: f.x };
     const speedK = Math.min(1, Math.abs(p.speed) / p.vMax);
     if (this.inGarage) {
@@ -576,6 +591,22 @@ export class View {
       pos.set(p.x - r.x * e.x + f.x * e.z, e.y, p.z - r.z * e.x + f.z * e.z);
       look.set(pos.x + f.x * 20, e.y - 0.7, pos.z + f.z * 20);
     }
+  }
+
+  /** Over your shoulder, further back, or through your own eyes. */
+  private footPose(pos: THREE.Vector3, look: THREE.Vector3, foot: OnFoot) {
+    const f = foot.dir, town = this.game.town;
+    if (this.index === 3) {
+      const eye = PERSON_M * EYE_SHARE;
+      pos.set(foot.x + f.x * 0.15, eye, foot.z + f.z * 0.15);
+      look.set(pos.x + f.x * 20, eye - 0.6, pos.z + f.z * 20);
+      return;
+    }
+    const far = this.index === 1, c = { x: Math.sin(this.yaw), z: Math.cos(this.yaw) };
+    let back = far ? FOOT_FAR_BACK_M : FOOT_BACK_M;
+    for (let d = 0.8; d <= back; d += 0.4) if (town.boxAt(foot.x - c.x * d, foot.z - c.z * d, 0.4) !== null) { back = Math.max(1, d - 0.4); break; } // pull in when a wall is behind
+    pos.set(foot.x - c.x * back, far ? FOOT_FAR_UP_M : FOOT_UP_M, foot.z - c.z * back);
+    look.set(foot.x + f.x * 2, PERSON_M * 0.85, foot.z + f.z * 2);
   }
 
   private drawDash() {
@@ -624,7 +655,7 @@ export class View {
     rig.blinkLeft.color.set(stalk < 0 && flash ? BLINK_ON : BLINK_OFF);
     rig.blinkRight.color.set(stalk > 0 && flash ? BLINK_ON : BLINK_OFF);
 
-    let turn = p.heading - this.yaw;
+    let turn = (this.game.foot?.heading ?? p.heading) - this.yaw; // on foot, it trails you
     while (turn > Math.PI) turn -= 2 * Math.PI;
     while (turn < -Math.PI) turn += 2 * Math.PI;
     this.yaw += turn * Math.min(1, dt * CAM_LAG);
@@ -649,7 +680,7 @@ export class View {
   }
 
   private drawTraffic(dt: number) {
-    this.life.draw(dt, this.game.traffic, this.game.walkers, this.game.parked, this.attract ? this.stand : this.game.player);
+    this.life.draw(dt, this.game.traffic, this.game.walkers, this.game.parked, this.attract ? this.stand : this.game.here);
     this.control.draw(dt, this.game.traffic.clock, this.game.walkers.lights);
     for (const c of this.game.traffic.cars) { // a car that's taken a real hit smokes where it stands
       if (c.damage < 0.3 || Math.random() > dt * (1 + c.damage * 5)) continue;
@@ -696,7 +727,7 @@ export class View {
     this.sunDir.set(Math.cos(a), Math.sin(a), 0.3).normalize();
     const tint = new THREE.Color(...now.tint); // a plain multiplier, so 0.4 on the sky's scale reads as 0.4 on screen
     this.hemi.groundColor.set('#88a080').multiply(tint); // light bounced up off the ground
-    const sx = Math.round(p.x / SHADOW_SNAP) * SHADOW_SNAP, sz = Math.round(p.z / SHADOW_SNAP) * SHADOW_SNAP; // keeps shadow edges from crawling
+    const here = g.here, sx = Math.round(here.x / SHADOW_SNAP) * SHADOW_SNAP, sz = Math.round(here.z / SHADOW_SNAP) * SHADOW_SNAP; // keeps shadow edges from crawling
     this.sun.target.position.set(sx, 0, sz);
     this.sun.position.set(sx + this.sunDir.x * 140, Math.max(35, this.sunDir.y * 140), sz + this.sunDir.z * 140); // never so low that it stretches across the town
     const wet = g.rain * 0.5;
@@ -723,6 +754,7 @@ export class View {
     this.carFeel(dt, steer, brake);
     this.drawTraffic(dt);
     this.drawGhost();
+    this.you.draw(dt, g.foot);
     this.drawSky(dt);
     rig.root.position.set(p.x, 0, p.z);
     rig.root.rotation.y = p.heading;
@@ -748,7 +780,7 @@ export class View {
       });
       this.crumbs.instanceMatrix.needsUpdate = true;
     }
-    if (this.index === 3 && (this.dashClock -= dt) <= 0) { this.dashClock = 0.15; this.drawDash(); }
+    if (this.index === 3 && !g.foot && (this.dashClock -= dt) <= 0) { this.dashClock = 0.15; this.drawDash(); }
 
     const pos = new THREE.Vector3(), look = new THREE.Vector3();
     this.rigPose(pos, look);
@@ -762,10 +794,10 @@ export class View {
     }
     this.freeLook(dt);
     this.camera.lookAt(this.look);
-    this.camera.fov = this.index === 3 ? COCKPIT_FOV : this.index < 2 && !this.inGarage ? 60 + Math.min(1, p.kmh / 150) * 12 : 62;
+    this.camera.fov = g.foot && !this.inGarage ? FOOT_FOV : this.index === 3 ? COCKPIT_FOV : this.index < 2 && !this.inGarage ? 60 + Math.min(1, p.kmh / 150) * 12 : 62;
     if (this.attract) this.tour(dt);
     this.camera.updateProjectionMatrix();
-    if (this.index === 3 && !this.inGarage && !this.attract) this.drawMirror();
+    if (this.index === 3 && !this.inGarage && !this.attract && !g.foot) this.drawMirror();
     this.renderer.render(this.scene, this.camera);
   }
 
@@ -788,7 +820,7 @@ export class View {
   /** Where the interior mirror's glass is on screen, in CSS pixels, in the cockpit view; null in any other. */
   mirrorRect(): { left: number; right: number; bottom: number } | null {
     const glass = this.rig.mirror.glass;
-    if (this.index !== 3 || this.inGarage || !glass) return null;
+    if (this.index !== 3 || this.inGarage || !glass || this.game.foot) return null;
     const box = new THREE.Box3().setFromObject(glass), w = this.renderer.domElement.clientWidth, h = this.renderer.domElement.clientHeight;
     let left = Infinity, right = -Infinity, bottom = -Infinity;
     for (const x of [box.min.x, box.max.x]) for (const y of [box.min.y, box.max.y]) for (const z of [box.min.z, box.max.z]) {

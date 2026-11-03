@@ -81,6 +81,10 @@ export class Traffic {
   private nextCall: number;
   private nextCollect = COLLECT_EVERY_S;
   private seen: Vec = { x: 0, z: 0 }; // where the player was, for putting a car back in play
+  /** The player out of the car. Anyone in the road ahead gets a stop: Highway Code rule H2 asks drivers to give way to
+   * people crossing, and this town never hits a pedestrian. */
+  you: Vec | null = null;
+  private inRoad: Vec | null = null;
   onRecovered: (() => void) | null = null; // the truck has the player's car
   private held = new Map<number, TrafficCar>(); // junction -> the car crossing it
 
@@ -214,7 +218,7 @@ export class Traffic {
       const stop = light ? a === 'red' || a === 'redAmber' || (a === 'amber' && gap > (c.speed * c.speed) / (2 * CALM_MPS2)) || (a === 'flashingAmber' && this.walkers!.onStripes(z)) : this.walkers?.busy(z);
       if (stop) want = Math.min(want, c.blue ? RED_CROSS_MPS : brakeFor(gap));
     }
-    if (c.role === 'bus' && c.plan) want = this.busStop(c, want, dt, player);
+    if (c.role === 'bus' && c.plan) want = this.busStop(c, want, dt, this.seen);
     if (c.chase) {
       if ((c.replan -= dt) <= 0) { // the road to wherever they've got to now
         c.replan = REPLAN_S;
@@ -284,6 +288,13 @@ export class Traffic {
       if (c.blue && !c.chase && player.speed > BLOCK_MPS) { this.stuck += dt; this.holding = true; } // driving on in front of a crew. Sitting at a red isn't blocking: rule 219 says not to break the law to clear the way, and a crew goes round
     }
 
+    const toYou = this.inRoad ? ahead(this.inRoad) : -1;
+    if (toYou >= 0) {
+      want = Math.min(want, toYou - c.halfL < QUEUE_GAP_M + 1 ? 0 : Math.min(want, (toYou - c.halfL) * 0.5)); // eases down, and stops short of you
+      blocked = true;
+      inWay = (this.inRoad!.x - c.x) * fz - (this.inRoad!.z - c.z) * fx;
+    }
+
     // Left waiting behind a stopped player, a driver eventually pulls out and goes round.
     c.waiting = blocked && c.speed < 1 ? c.waiting + dt : c.want > 0 ? 0 : c.waiting;
     // A crew runs down the crown of the road, with both sides pulled in, and only leans away from what's still in the gap.
@@ -296,11 +307,11 @@ export class Traffic {
 
     c.want = want;
     c.braking = want < c.speed - 0.5;
-    if (c.role === 'recovery' && !c.job && dist(c, player) > GONE_M) this.standDown(c); // job done and out of sight, it's back at the yard
-    else if (dist(c, player) > DESPAWN && !c.job && !c.returning) { // a crew on a job carries on to it
-      if (c.role === 'bus') this.placeBus(c, player);
+    if (c.role === 'recovery' && !c.job && dist(c, this.seen) > GONE_M) this.standDown(c); // job done and out of sight, it's back at the yard
+    else if (dist(c, this.seen) > DESPAWN && !c.job && !c.returning) { // a crew on a job carries on to it
+      if (c.role === 'bus') this.placeBus(c, this.seen);
       else if (c.fleet && c.fleet !== 'police_car') this.standDown(c);
-      else this.place(c, player);
+      else this.place(c, this.seen);
     }
   }
 
@@ -466,12 +477,14 @@ export class Traffic {
   }
 
   /** Moves every car and returns the speed of any impact with the player this step. */
-  step(dt: number, player: PlayerCar): number {
+  /** `focus`: where cars are kept around, which is you when you're on foot and the car otherwise. */
+  step(dt: number, player: PlayerCar, focus: Vec = player): number {
     const thinking = this.ticks++ % THINK_STEPS === 0;
     let impact = 0;
     this.lastCrash = null;
     this.clock += dt;
-    this.seen = { x: player.x, z: player.z };
+    this.seen = { x: focus.x, z: focus.z };
+    this.inRoad = this.you && !this.town.offRoad(this.you) ? this.you : null;
     if ((this.nextCollect -= dt) <= 0) { // anything left bent at the kerb gets picked up
       this.nextCollect = COLLECT_EVERY_S;
       const left = this.kerb?.wrecked();
@@ -480,12 +493,12 @@ export class Traffic {
     if ((this.nextCall -= dt) <= 0) { // somewhere else in town there's a shout on: a crew goes through, past the player
       this.nextCall = CALLOUT_S[0] + this.rng() * (CALLOUT_S[1] - CALLOUT_S[0]);
       const a = this.rng() * Math.PI * 2, roles = ['police', 'ambulance', 'fire'] as const;
-      this.call(roles[Math.floor(this.rng() * 3)], this.town.snap({ x: player.x + Math.sin(a) * CROSS_M, z: player.z + Math.cos(a) * CROSS_M }).point, { x: player.x - Math.sin(a) * 300, z: player.z - Math.cos(a) * 300 });
+      this.call(roles[Math.floor(this.rng() * 3)], this.town.snap({ x: focus.x + Math.sin(a) * CROSS_M, z: focus.z + Math.cos(a) * CROSS_M }).point, { x: focus.x - Math.sin(a) * 300, z: focus.z - Math.cos(a) * 300 });
     }
     for (const c of this.cars) {
       if (c.dormant || c.riding) continue;
       c.cool -= dt;
-      if (c.wreck > 0 && (c.wreck -= dt) <= 0) this.place(c, player);
+      if (c.wreck > 0 && (c.wreck -= dt) <= 0) this.place(c, focus);
       if (Math.abs(c.vx) + Math.abs(c.vz) > 0.25 || Math.abs(c.spin) > 0.1) this.roll(c, dt);
       else this.drive(c, dt, thinking, player);
       if (c.load) this.ride(c, dt);

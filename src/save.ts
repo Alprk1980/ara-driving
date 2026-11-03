@@ -39,10 +39,11 @@ export type DriveSave = {
   trip: Trip | null; // where the drive was left: the car, the clock, the job and the sat nav
   walls: WallHit[]; // the holes still showing in buildings
   ledger: LedgerLine[]; // the latest Points changes, newest first
+  look: number; // which of the town's people you are when you get out of the car
 };
 
 export const emptySave = (touch: boolean): DriveSave => ({
-  v: 1, car: 'hatchback', fuel: {}, dmg: {}, designs: {}, driver: {}, input: touch ? 'joystick' : 'keyboard', hand: 'right', camera: 0, muted: false, radio: 0, progress: freshProgress(), guide: [], graphics: 'auto', body: 'voxel', picked: false, debug: false, start: -1, lastStart: -1, trip: null, walls: [], ledger: [],
+  v: 1, car: 'hatchback', fuel: {}, dmg: {}, designs: {}, driver: {}, input: touch ? 'joystick' : 'keyboard', hand: 'right', camera: 0, muted: false, radio: 0, progress: freshProgress(), guide: [], graphics: 'auto', body: 'voxel', picked: false, debug: false, start: -1, lastStart: -1, trip: null, walls: [], ledger: [], look: 0,
 });
 
 export function saveErrors(s: DriveSave): string[] {
@@ -66,6 +67,7 @@ export function saveErrors(s: DriveSave): string[] {
   if (typeof s.picked !== 'boolean') out.push('picked must be true or false');
   if (typeof s.debug !== 'boolean') out.push('debug must be true or false');
   if (!Number.isInteger(s.start) || !Number.isInteger(s.lastStart)) out.push('start must be a plot or -1');
+  if (!Number.isInteger(s.look) || s.look < 0) out.push('look must be a whole number from 0');
   return out;
 }
 
@@ -86,6 +88,7 @@ export function tripErrors(t: Trip | null): string[] {
   if (!finite(t.x, t.z, t.heading, t.time, t.streak)) out.push('trip needs a place, heading, time and streak');
   if (t.waypoint !== null && !finite(t.waypoint?.x, t.waypoint?.z)) out.push('trip waypoint must be a point or null');
   if (!t.dents || !finite(...Object.values(t.dents)) || !Array.isArray(t.marks)) out.push('trip dents and marks are malformed');
+  if (t.foot != null && !finite(t.foot.x, t.foot.z, t.foot.heading)) out.push('trip foot must be a place and heading, or null');
   if (t.quest !== null && (!t.quest?.offer || !Number.isInteger(t.quest.offer.start) || !Number.isInteger(t.quest.offer.end) || !t.quest.at)) out.push('trip quest is malformed');
   return out;
 }

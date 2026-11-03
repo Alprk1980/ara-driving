@@ -172,5 +172,5 @@ export function buildVoxelCar(car: Car, design: Design, driver: Driver, find: Lo
   };
 
   root.add(dash);
-  return { root, body, wheels, front, dash, dashCanvas, dashTex, hands, eye, mirror, back, tails, heads, crush: null, ...lamps, fragile, crumple };
+  return { root, body, wheels, front, dash, dashCanvas, dashTex, hands, eye, mirror, back, tails, heads, crush: null, ...lamps, fragile, crumple, seat };
 }

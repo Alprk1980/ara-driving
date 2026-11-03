@@ -74,7 +74,7 @@ export function paintTexture(design: Design, find: Lookup): THREE.CanvasTexture 
 
 import type { Mark, Side } from '../sim/car.ts';
 
-export type CarRig = { root: THREE.Group; body: THREE.Group; wheels: THREE.Object3D[]; front: THREE.Object3D[]; dash: THREE.Group; dashCanvas: HTMLCanvasElement; dashTex: THREE.CanvasTexture; hands: THREE.Group; eye: { x: number; y: number; z: number }; mirror: Mirror; back: BackCamera; tails: THREE.MeshBasicMaterial; heads: THREE.MeshBasicMaterial; crush: Record<Side, THREE.Mesh> | null; reverse: THREE.MeshBasicMaterial; blinkLeft: THREE.MeshBasicMaterial; blinkRight: THREE.MeshBasicMaterial; fragile: { mesh: THREE.Object3D; side: Side }[]; crumple?: (levels: Record<Side, number>, marks: readonly Mark[]) => void };
+export type CarRig = { root: THREE.Group; body: THREE.Group; wheels: THREE.Object3D[]; front: THREE.Object3D[]; dash: THREE.Group; dashCanvas: HTMLCanvasElement; dashTex: THREE.CanvasTexture; hands: THREE.Group; eye: { x: number; y: number; z: number }; mirror: Mirror; back: BackCamera; tails: THREE.MeshBasicMaterial; heads: THREE.MeshBasicMaterial; crush: Record<Side, THREE.Mesh> | null; reverse: THREE.MeshBasicMaterial; blinkLeft: THREE.MeshBasicMaterial; blinkRight: THREE.MeshBasicMaterial; fragile: { mesh: THREE.Object3D; side: Side }[]; crumple?: (levels: Record<Side, number>, marks: readonly Mark[]) => void; seat?: THREE.Object3D }; // seat: the driver, who isn't there while you're out walking
 
 /** Forward is +z. Proportions come from the car's size, with a few parts per model. */
 export function buildCar(car: Car, design: Design, driver: Driver, find: Lookup): CarRig {
@@ -166,7 +166,7 @@ export function buildCar(car: Car, design: Design, driver: Driver, find: Lookup)
   // Seen only from the cockpit camera, which hides the body. Everything sits below the sightline.
   const { dash, dashCanvas, dashTex, hands, eye, mirror, back } = buildCockpit(car.size, { floor, deck, roof: tall, cabZ, cabLen, pose }, skin, dark, driver, find);
   root.add(dash);
-  return { root, body, wheels, front, dash, dashCanvas, dashTex, hands, eye, mirror, back, tails, heads, crush, ...lamps, fragile };
+  return { root, body, wheels, front, dash, dashCanvas, dashTex, hands, eye, mirror, back, tails, heads, crush, ...lamps, fragile, seat };
 }
 
 export function disposeCar(rig: CarRig) {

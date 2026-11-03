@@ -61,6 +61,7 @@ const view = new View(canvas, game, (id) => items.find((c) => c.id === id), { la
 view.index = save.camera;
 view.setQuality(save.graphics);
 view.bodyStyle = save.body;
+view.you.setLook(save.look);
 await loading(82, 'Fetching your car');
 view.setCar(save.designs[save.car] ?? {}, save.driver);
 view.replayWalls(save.walls);
@@ -72,6 +73,7 @@ voice.muted = sound.muted = save.muted;
 const router = new InputRouter(new FloatingJoystick(freshHeld()), (id) => app?.toast(`${id === 'tilt' ? 'Tilt' : id} is not available here`));
 app = new App(game, view, wallet, save, router, voice, sound, items, new RadioHost(radioLines as RadioLine[]), stations as Station[], { guide: guideLines as GuideLine[], chatter: chatter as ChatterLine[], ranks: ranks as Rank[], stories: stories as StoryPlace[] });
 
+app.padLabels(); // a save left on foot opens on foot
 let running = false;
 const enter = async () => {
   await app.applyScheme(save.input);

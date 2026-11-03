@@ -22,6 +22,7 @@ const BUSY: Record<DistrictId, number> = { oldtown: 1, business: 0.8, garden: 0.
 const KERB_M = ROAD_W / 2 + 2, CROSS_M = KERB_M + ROAD_W / 2 + 2;
 const SIGNAL_CROSS_M = PAVEMENT - 1 + ROAD_W / 2; // from where they wait at a pelican or puffin to the far kerb
 const CORNER_M = 15, QUEUE_SHARE = 0.3, QUEUE_MAX_S = 150, QUEUE_MAX = 6; // the share who want a bus is judged
+const YOU_STRIPES_M = 2.5, YOU_CLEAR_M = 0.7; // half a zebra's width, give or take, and how much room people leave you
 const CROSS_SHARE = 0.4, CALM_MPS2 = 3, STOP_MARGIN_M = 7, KERB_WAIT_S = 12; // the share of people who want the far side is judged; after this long they stop waiting for a gap and just go, as traffic has stopped for them by now
 
 type Near = { x: number; z: number; speed: number; heading: number };
@@ -34,6 +35,8 @@ export class Walkers {
   private clock = 0;
   /** The pelicans' and puffins' signals, which the people waiting at them work by pressing the button. */
   lights = new Map<Zebra, CrossingLight>();
+  /** The player, when out of the car: a zebra is busy while you're at it, and you press the button at a pelican or puffin. */
+  you: Vec | null = null;
 
   constructor(town: Town, rng: Rng, near: Vec) {
     this.town = town;
@@ -48,12 +51,20 @@ export class Walkers {
 
   /** Someone is on these stripes or waiting at them, so a driver gives way. */
   busy(z: Zebra): boolean {
-    return this.people.some((w) => w.zebra === z);
+    return this.youAt(z, KERB_M + 1) || this.people.some((w) => w.zebra === z);
   }
 
   /** Someone is actually on the stripes, not just waiting at them. */
   onStripes(z: Zebra): boolean {
-    return this.people.some((w) => w.zebra === z && w.onRoad);
+    return this.youAt(z, ROAD_W / 2) || this.people.some((w) => w.zebra === z && w.onRoad);
+  }
+
+  /** You're within `across` of the crossing's middle, and on its stripes along the road. */
+  private youAt(z: Zebra, across: number): boolean {
+    const y = this.you;
+    if (!y) return false;
+    const dx = y.x - z.x, dz = y.z - z.z;
+    return Math.abs(dx * z.ux + dz * z.uz) < YOU_STRIPES_M && Math.abs(dx * z.uz - dz * z.ux) < across;
   }
 
   /** A bus has pulled in: everyone queueing gets on, and a few get off who were somewhere else. Returns how many got on and off. */
@@ -149,13 +160,17 @@ export class Walkers {
     }
   }
 
-  step(dt: number, player: PlayerCar, traffic: readonly Near[] = []) {
+  /** `focus`: where people are kept around, which is you when you're on foot and the car otherwise. */
+  step(dt: number, player: PlayerCar, traffic: readonly Near[] = [], focus: Vec = player) {
     const eyes: Near[] = [...traffic, { x: player.x, z: player.z, speed: player.speed, heading: player.heading }];
     this.clock += dt;
-    for (const [z, light] of this.lights) light.step(dt, this.onStripes(z));
+    for (const [z, light] of this.lights) {
+      if (this.youAt(z, KERB_M + 1)) light.press();
+      light.step(dt, this.onStripes(z));
+    }
     for (const w of this.people) {
       const d = dist(w, player);
-      if (d > DESPAWN) { this.place(w, player); continue; }
+      if (dist(w, focus) > DESPAWN) { this.place(w, focus); continue; }
       if (w.zebra) this.crossing(w, dt, eyes);
       else if (w.queue) { if ((w.waited += dt) > QUEUE_MAX_S) w.queue = null; } // given up, and walking instead
       else if (w.corner >= 0 && !w.over) { // at the kerb of a signalled junction
@@ -192,6 +207,11 @@ export class Walkers {
       if (near < CLEAR_M && near > 0) { // a car on the pavement: they're always quicker than it
         w.x = player.x + ((w.x - player.x) / near) * CLEAR_M;
         w.z = player.z + ((w.z - player.z) / near) * CLEAR_M;
+      }
+      const y = this.you, gap = y ? dist(w, y) : Infinity;
+      if (y && gap < YOU_CLEAR_M && gap > 0) { // they step round you
+        w.x = y.x + ((w.x - y.x) / gap) * YOU_CLEAR_M;
+        w.z = y.z + ((w.z - y.z) / gap) * YOU_CLEAR_M;
       }
     }
   }

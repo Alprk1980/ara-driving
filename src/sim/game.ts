@@ -14,6 +14,8 @@ import { ParkedCars } from './parked.ts';
 import { freshRoad, RoadSense } from './roadsense.ts';
 import type { RoadMoment } from '../../schemas/services.ts';
 import { Walkers } from './walkers.ts';
+import { doorBlocked, doorOf, OnFoot, STILL_MPS } from './onfoot.ts';
+import type { CarBox } from './collide.ts';
 
 export const STEP = 1 / 60;
 export const DAY_S = 480; // one day and night
@@ -25,6 +27,7 @@ const OFF_ROUTE_M = 25, OFF_ROUTE_S = 2, REROUTE_COOLDOWN_S = 10;
 const HARD_STOP_MPS2 = 11, BUMP_MPS = 4, REPAIR_S = 6; // a stop at the pump mends a dented car in about this long
 const PHONE_STILL_MPS = 2, EMERGENCY_M = 200, HURT = 0.3; // parked up enough to use a phone, and how close or bad things must be for 999 to be genuine
 const ROAD_STEPS = 6; // the driving record looks ten times a second, enough to catch a car crossing a line
+const SOLID_NEAR_M = 9; // the cars close enough to bump into on foot
 const FIRE_CALL_MPS = 18; // a hit on a building this hard brings the fire service: about 40 mph, where a car stops being repairable, judged
 
 export type GameEvent =
@@ -49,7 +52,8 @@ export type GameEvent =
   | { type: 'goal'; goal: Goal; pay: number }
   | { type: 'event'; card: TownEventCard | null; edge: number }
   | { type: 'road'; moment: RoadMoment; pay: number; points: number; score: number }
-  | { type: 'goodDriving'; pay: number };
+  | { type: 'goodDriving'; pay: number }
+  | { type: 'foot'; out: boolean };
 
 /** Where the drive was left: the car on the road, the clock, the job and the sat nav. Saved beside the progress, so a
  * reload carries on where it stopped. A job's places are kept as indexes into the town's plots, which a fixed seed rebuilds the same. */
@@ -58,6 +62,7 @@ export type Trip = {
   waypoint: Vec | null; dest: string | null;
   dents: Record<Side, number>; marks: Mark[];
   quest: { offer: Omit<Offer, 'start' | 'end'> & { start: number; end: number }; at: QuestState } | null;
+  foot?: { x: number; z: number; heading: number } | null; // out of the car, and where; saves from before walking have none
 };
 
 /** Where Points live. The app backs this with the shared profile; tests use a number. `why` is what the history shows. */
@@ -85,6 +90,7 @@ export class Game {
   content: QuestContent;
   goals: Goal[]; // today's
   event: TownEventCard | null = null;
+  foot: OnFoot | null = null; // out of the car and walking; the car stays where it was left
   private eventBlock = 0;
   private events: TownEventCard[];
   private kmDriven = 0;
@@ -127,6 +133,45 @@ export class Game {
   }
 
   get rank() { return rankOf(this.progress.rep); }
+
+  /** Where you are: on foot, or in the car. The town keeps its traffic and people round this. */
+  get here(): Vec { return this.foot ?? this.player; }
+
+  /** Why the door won't open just now, or null if you can get out. */
+  get cantGetOut(): string | null {
+    const p = this.player;
+    if (this.foot) return 'You are already out';
+    if (Math.abs(p.speed) > STILL_MPS) return 'Stop the car first';
+    if (p.state === 'Refuelling') return 'Finish at the pump first';
+    if (doorBlocked(doorOf(p, this.town), p, this.traffic.cars)) return 'Car coming: wait for it to pass';
+    return null;
+  }
+
+  /** Out of the car by its door, which stays parked where it is with the engine off. */
+  getOut(): boolean {
+    if (this.cantGetOut) return false;
+    const p = this.player;
+    p.speed = 0;
+    p.indicator = 0;
+    if (p.state !== 'Stranded') p.state = 'Parked';
+    this.foot = new OnFoot(doorOf(p, this.town));
+    this.emit({ type: 'foot', out: true });
+    return true;
+  }
+
+  /** Back in, if you're near enough to the car. */
+  getIn(): boolean {
+    if (!this.foot || !this.foot.canReach(this.player)) return false;
+    this.backIn();
+    return true;
+  }
+
+  /** Into the car wherever it is: a tow or fast travel takes it, and you with it. */
+  private backIn() {
+    if (!this.foot) return;
+    this.foot = null;
+    this.emit({ type: 'foot', out: false });
+  }
 
   /** Something the driving record has to say, with its reward or its fine. */
   roadEvent(e: { moment: RoadMoment; pay: number; points: number }) {
@@ -225,6 +270,7 @@ export class Game {
       car: p.car.id, x: p.x, z: p.z, heading: p.heading, time: this.time, streak: this.streak,
       waypoint: this.waypoint, dest: this.dest, dents: { ...p.dents }, marks: p.marks.map((m) => ({ ...m })),
       quest: q ? { offer: { ...q.offer, start: all.indexOf(q.offer.start), end: all.indexOf(q.offer.end) }, at: q.state } : null,
+      foot: this.foot ? { x: this.foot.x, z: this.foot.z, heading: this.foot.heading } : null,
     };
   }
 
@@ -241,6 +287,7 @@ export class Game {
       this.quest = ActiveQuest.resume({ ...t.quest.offer, start, end }, t.quest.at);
       this.setNav(this.quest.target);
     }
+    if (t.foot) this.foot = new OnFoot(t.foot);
     this.waypoint = t.waypoint;
     this.dest = t.waypoint ? t.dest : null;
     if (!this.quest) this.setNav(this.waypoint);
@@ -273,6 +320,7 @@ export class Game {
   /** Free and burns nothing. Any active quest is forfeited; the app confirms that first. It also ends a streak. */
   fastTravel(to: 'home' | 'station' | DistrictId) {
     this.failQuest('You fast travelled');
+    this.backIn();
     this.streak = 0;
     this.road.reset();
     if (to === 'home') this.goHome();
@@ -306,6 +354,7 @@ export class Game {
 
   private towHome() {
     this.failQuest('The tow ended the job');
+    this.backIn();
     this.streak = 0;
     this.road.reset();
     this.goHome();
@@ -346,10 +395,12 @@ export class Game {
 
   step(intent: DriveIntent = NEUTRAL) {
     this.time += STEP;
-    const p = this.player;
+    const p = this.player, foot = this.foot, here = this.here;
     this.lastSpeed = p.speed;
-    const wall = p.step(STEP, intent, this.town), moving = this.traffic.step(STEP, p), kerb = this.parked.step(STEP, p, this.traffic.cars), crash = Math.max(moving, kerb), impact = Math.max(wall, crash);
-    this.walkers.step(STEP, p, this.traffic.cars);
+    this.traffic.you = this.walkers.you = foot;
+    const wall = p.step(STEP, foot ? NEUTRAL : intent, this.town), moving = this.traffic.step(STEP, p, here), kerb = this.parked.step(STEP, p, this.traffic.cars), crash = Math.max(moving, kerb), impact = Math.max(wall, crash);
+    this.walkers.step(STEP, p, this.traffic.cars, here);
+    if (foot) foot.step(STEP, intent, this.town, this.solidNear(foot));
     const n = kerb > moving ? this.parked.crash : this.traffic.lastCrash;
     if (crash > 0 && crash >= wall && n) {
       p.hit = { x: p.x, z: p.z, nx: n.nx, nz: n.nz, speed: crash };
@@ -358,7 +409,7 @@ export class Game {
     if (wall > FIRE_CALL_MPS) this.traffic.call('fire', p, p);
     if (impact > BUMP_MPS) { this.quest?.onBump(); this.emit({ type: 'bump', speed: impact, by: crash > wall ? 'car' : 'wall' }); if (crash > wall) this.road.knocked(crash); else this.road.scraped(); }
     else if ((this.lastSpeed - p.speed) / STEP > HARD_STOP_MPS2 + 3) { this.road.hardStop(); if (this.quest) { this.quest.onHardStop(); this.emit({ type: 'hardStop' }); } }
-    if (++this.roadTick % ROAD_STEPS === 0) this.road.step(ROAD_STEPS * STEP);
+    if (++this.roadTick % ROAD_STEPS === 0 && !foot) this.road.step(ROAD_STEPS * STEP); // the driving record rests while you walk
     if (p.state === 'Refuelling') p.mend(p.damage - STEP / REPAIR_S);
 
     for (const e of this.fuel.tick(STEP, p, intent, dist(this.town.nearestStation(p), p) / 1000)) this.emit(e);
@@ -370,6 +421,13 @@ export class Game {
     this.stepFinds();
     this.stepEvent();
     if ((this.kmDriven += (Math.abs(p.speed) * STEP) / 1000) >= 0.1) { this.road.smooth(0.1); if (this.goals.length) this.goalStep('km', 0.1); this.kmDriven = 0; }
+  }
+
+  /** The cars you could walk into: your own, the traffic and those parked at the kerb. */
+  private solidNear(at: Vec): CarBox[] {
+    const p = this.player, out: CarBox[] = [{ x: p.x, z: p.z, heading: p.heading, halfL: p.car.size[0] / 2, halfW: p.car.size[2] / 2 }];
+    for (const c of [...this.traffic.cars, ...this.parked.cars]) if (!('dormant' in c && c.dormant) && dist(c, at) < SOLID_NEAR_M) out.push(c);
+    return out;
   }
 
   // One event at most in each stretch, chosen from the clock so a replay of the same session sees the same town.
@@ -401,7 +459,7 @@ export class Game {
   private stepFinds() {
     if (Math.round(this.time / STEP) % 20 !== 0) return; // a car takes a good second to cross a zone
     for (const f of this.unfound) {
-      if (dist(this.town.spots[f.spot], this.player) > FIND_ZONE) continue;
+      if (dist(this.town.spots[f.spot], this.here) > FIND_ZONE) continue; // on foot counts: you can walk to one
       this.progress.found.push(f.id);
       const of = this.content.finds!.length, total = this.progress.found.length;
       const pay = FIND_REWARD + (total === of ? FIND_ALL_REWARD : 0);

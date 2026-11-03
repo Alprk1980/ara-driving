@@ -12,8 +12,10 @@ Get out of the car, live in the town on foot, ride the buses, work real jobs for
 Each stage needs its own research pass first: how each job really runs, and the real numbers behind it.
 
 ### Stage A: on foot
-- [ ] Get out of the car wherever it's parked, and back in. The car stays where you left it, and the save keeps it.
-- [ ] Walk the pavements as one of the town's figures, with a camera that follows; cross at zebras and green men.
+- [x] Get out of the car wherever it's parked, and back in. The car stays where you left it, and the save keeps it.
+- [x] Walk the pavements as one of the town's figures, with a camera that follows; cross at zebras and green men.
+- [ ] A button on the controller to get out and back in (F, the Get out button and a tap work now).
+- [ ] Choose which figure you are (the save keeps a look; there's no picker yet).
 - [ ] Doors on the shops and places you can walk up to.
 
 ### Stage B: buses as a passenger

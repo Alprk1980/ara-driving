@@ -9,6 +9,7 @@ import { CAR_JOBS, carById, CARS, MARKET_BOOST, RANK_REP, RANK_UNLOCKS, REPAIR_R
 import { isNight, type Game, type GameEvent, type Wallet } from '../sim/game.ts';
 import { Guide, Passengers } from './coach.ts';
 import { dist } from '../sim/town.ts';
+import { STILL_MPS } from '../sim/onfoot.ts';
 import type { RadioHost } from './radio.ts';
 import type { Sound } from './sound.ts';
 import type { RoadLine } from '../../schemas/services.ts';
@@ -220,6 +221,7 @@ export class App {
       if (e.key.toLowerCase() === 'c') $('btn-cam').click();
       if (e.key.toLowerCase() === 'm') this.openMap();
       if (e.key.toLowerCase() === 'j') this.openJobs();
+      if (e.key.toLowerCase() === 'f') this.door();
     });
   }
 
@@ -228,6 +230,11 @@ export class App {
     switch (e.type) {
       case 'cue': this.voice.say(cueKey(e.cue)); break;
       case 'recalculating': this.voice.say('recalculating'); break;
+      case 'foot':
+        this.view.footChanged();
+        this.padLabels();
+        this.store();
+        break;
       case 'fuelLow':
         this.voice.say(e.level === 'red' ? 'fuel_critical' : 'fuel_low');
         this.djReacts('fuel_low');
@@ -340,7 +347,7 @@ export class App {
     if ((this.bannerClock -= dt) <= 0) $('banner').style.display = 'none';
     if ((this.toastClock -= dt) <= 0) $('toast').style.display = 'none';
     if ((this.tickerClock -= dt) <= 0) $('ticker').style.display = 'none';
-    $('speed').textContent = `${Math.round(p.kmh)} km/h`;
+    $('speed').textContent = g.foot ? `On foot${g.foot.running ? ', running' : ''}` : `${Math.round(p.kmh)} km/h`;
     const pct = p.fuel / p.car.tank;
     $('fuelfill').style.width = `${pct * 100}%`;
     $('fueltext').textContent = `Fuel ${Math.round(p.fuel)} L`;
@@ -371,7 +378,7 @@ export class App {
       const line = this.riders.tick(dt, q.care);
       if (line) { this.voice.chatter(line); this.ticker(line); }
     }
-    if (p.state === 'Parked' && !g.quest && !g.nav && this.hintClock < 0) { this.hintClock = 9; this.banner(this.hint()); }
+    if (p.state === 'Parked' && !g.foot && !g.quest && !g.nav && this.hintClock < 0) { this.hintClock = 9; this.banner(this.hint()); }
     this.hintClock -= dt;
   }
 
@@ -429,14 +436,29 @@ export class App {
     el.style.display = key ? 'block' : 'none';
   }
 
+  /** The touch pedals walk you when you're out of the car. */
+  padLabels() {
+    $('pad-go').textContent = this.game.foot ? 'Walk' : 'Go';
+    $('pad-brake').textContent = this.game.foot ? 'Back' : 'Brake';
+  }
+
+  /** Out of the car, or back in: the action button and F. */
+  private door() {
+    const g = this.game;
+    if (g.foot) { if (!g.getIn()) this.toast('Walk back to your car to get in'); return; }
+    const why = g.cantGetOut;
+    if (why) this.toast(why); else g.getOut();
+  }
+
   /** Buttons that only make sense where the car is right now. */
   private actions() {
-    const g = this.game, p = g.player;
-    const atHome = dist(g.town.home.road, p) < 20 && Math.abs(p.speed) < 3 && !g.quest;
-    const pump = g.canRefuel;
-    const low = p.fuel / p.car.tank < WARN_LOW_PCT && !pump;
+    const g = this.game, p = g.player, foot = g.foot;
+    const atHome = !foot && dist(g.town.home.road, p) < 20 && Math.abs(p.speed) < 3 && !g.quest;
+    const pump = !foot && g.canRefuel;
+    const low = !foot && p.fuel / p.car.tank < WARN_LOW_PCT && !pump;
     const bent = p.damage > 0.02;
-    const key = [atHome, pump, low, p.state === 'Stranded', bent].join();
+    const out = !foot && Math.abs(p.speed) <= STILL_MPS && p.state !== 'Refuelling', back = !!foot && foot.canReach(p);
+    const key = [atHome, pump, low, p.state === 'Stranded', bent, out, back].join();
     if (key === this.actionsKey) return;
     this.actionsKey = key;
     const box = $('actions');
@@ -452,6 +474,8 @@ export class App {
     if (atHome && bent) add('Repair', () => this.repair());
     if (pump) add('Refuel', () => this.openFuel(), atHome ? '' : 'primary');
     if (low) add('Route to station', () => { g.routeToStation(); this.banner('Routing to the nearest station'); });
+    if (out) add('Get out', () => this.door());
+    if (back) add('Get in', () => this.door(), 'primary');
   }
 
   /** Straighten the bodywork at home: a flat rate per percent of damage, free in debug. */
@@ -792,6 +816,7 @@ export class App {
       <p>How you steer</p><div class="row">${opt('input:keyboard', 'Keyboard', s.input === 'keyboard')}${opt('input:joystick', 'Joystick', s.input === 'joystick')}${opt('input:dpad', 'D-pad', s.input === 'dpad')}${opt('input:tilt', 'Tilt', s.input === 'tilt')}${opt('input:gamepad', 'Controller', s.input === 'gamepad')}</div>
       <p>Layout</p><div class="row">${opt('hand:right', 'Right-handed', s.hand === 'right')}${opt('hand:left', 'Left-handed', s.hand === 'left')}</div>
       <p>Keyboard: WASD or arrows to drive, Space handbrake, Q and E indicators. Controller: left stick steers, right trigger go, left trigger brake, A handbrake, bumpers indicators.</p>
+      <p>On foot: F or the Get out button leaves the car and gets back in. Forward walks and steering turns you; hold Space or A to run, or keep holding forward and you break into a run.</p>
       <div class="row end"><button class="primary" id="x">Keep driving</button></div>`);
     c.querySelector<HTMLElement>('#x')!.onclick = () => this.close('dialog');
     for (const b of c.querySelectorAll<HTMLElement>('[data-v]')) b.onclick = async () => {
