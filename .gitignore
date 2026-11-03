@@ -11,3 +11,5 @@ out.log
 drawings/contact-*.png
 drawings/all-buildings.png
 .voice-runs
+.shadow/
+.shadow-start.log

@@ -4,5 +4,5 @@ import { defineConfig } from 'vite';
 export default defineConfig({
   base: './',
   build: { rollupOptions: { input: { game: 'index.html', labs: 'labs.html', photovox: 'photovox.html', gallery: 'gallery.html' } } }, // the labs bench ships beside the game, linked from its title screen and Menu
-  test: { include: ['schemas/**/*.test.ts', 'src/**/*.test.ts'] },
+  test: { include: ['schemas/**/*.test.ts', 'src/**/*.test.ts', 'tools/shadow_daemon.test.mjs'] }, // the daemon's own tests guard that it only writes to .shadow/
 });
