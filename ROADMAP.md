@@ -1,7 +1,9 @@
 # ARA Driving roadmap
 
 ## Next
-- [ ] Check performance on a real phone (the readout is on screen). A PC holds 60 fps at about 430,000 triangles.
+- [x] Check performance on a real phone (the readout is on screen). A PC holds 60 fps at about 430,000 triangles.
+      Done 2026-11-03: the phone stayed above 60 fps (green band) driving the production build over the LAN. The
+      map-edge gate in TEEN_SCOPE.md (P4 marina/beach/lake) is open.
 - [ ] Hand more to Qwen: street furniture models and cockpit colours, through the generate, check and review loop.
 - [ ] Drive into the holes you make in buildings, and save that damage.
 - [ ] Finish the research pass: prices, pay, weather and day length.
@@ -25,8 +27,9 @@ Each stage needs its own research pass first: how each job really runs, and the 
 - [ ] The fare cap drops to £2 on 1 January 2027. At a Point to about £1.40 that's 1.4 Points, so `BUS_FARE` should
       go down to 1 then (confirm the new cap has started first).
 - [ ] Which bus is which: route numbers on the buses and stops, and when the next one is due.
-- [ ] Junction gridlock: now and then a bus and the cars round it stop at a junction and never clear. Driving you leave it
-      behind; riding the bus you sit in it. Found by `tools/footreview.ts` (sessions 6 and 8).
+- [x] Junction gridlock: now and then a bus and the cars round it stopped at a junction and never cleared. Fixed: a car
+      held up behind another lets the junction go, and a ring of cars each waiting on the next has one go first. Found by
+      `tools/footreview.ts`; `src/sim/gridlock.test.ts` replays the sessions that jammed.
 
 ### Stage C: shops and a shopping centre
 - [ ] Go into a shop and buy things with the Points jobs earn: clothes for your figure, food, parts and paint.

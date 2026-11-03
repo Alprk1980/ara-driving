@@ -1,8 +1,9 @@
 # ARA Driving: young-teen edition — design notes
 
 A young-teen version of this game for roughly ages 10 to 13, built on the same town and the same code. This
-page holds the research and the decisions drawn from it. It changes no game code yet; proposed numbers are
-written as constants with their source, ready to go into `src/sim/` when the work starts.
+page holds the research and the decisions drawn from it. The buildable detail — files, values, content lists
+and phases — is in TEEN_SCOPE.md. Proposed numbers are written as constants with their source, ready to go
+into `src/sim/` when the work starts.
 
 Ages matter here: this is not a little-kids edition. Ten to thirteen is the age that wants the GTA-shaped thing
 — an open city, chases, money, fast cars, a reputation — and it is also, per the safety research below, the age
@@ -121,7 +122,7 @@ crude humour allowed (it's the E10+ descriptor LEGO carries), Green Cross Code w
 step list. Prompts under `prompts/`; regenerate with `npm run gen -- quests --replace …`. `src/data/` is never
 hand-edited; the validator holds the rating rules so generated content cannot drift past PEGI 7.
 
-## Shape in the code (proposal, not built)
+## Shape in the code (decided as a mode; not built yet)
 
 - One game, a **teen mode flag** on the shared profile (`kit/` change first — the hub owns it): switches content
   validators, rank voices, school-zone rules and peak-hour director, and unlocks the new job types. Points and
@@ -129,13 +130,17 @@ hand-edited; the validator holds the rating rules so generated content cannot dr
 - The current game and the teen edition share `src/sim/roadsense.ts` as-is — the offences half, dropped for
   little kids, is *kept* here, which is why this edition is a thin overlay, not a fork.
 
-## Open questions (ask the owner)
-
-- Mode of this game (recommended — the systems barely change) or a separate store title with its own PEGI story?
-- How far does role-play go: helper jobs only (safe at PEGI 7), or mild rogue jobs (unlicensed getaway driver,
-  as cartoon mishap) like LEGO's criminals that you then catch?
-- How dark may the weather and night get? PEGI 7 allows "frightening to younger children" content, but the
-  town's tone may prefer "dramatic" over "scary".
+## Decided
+Approved by the owner on 2026-11-03, so leave them unless asked.
+- The edition is a **mode of this game**, switched by a teen flag on the shared hub profile (`kit/` change
+  first). The systems barely change, and Points and the ARA World bridge keep working.
+- **Mild rogue jobs are in**: unlicensed getaway runs, speeding courier jobs and the like, always played as
+  cartoon mishap that ends in comedy and a fine — the crime is something you do and pay for, never a story you
+  rise through. Still implied, non-detailed, and never at a person; that keeps it inside PEGI 7. The `TeenTone`
+  validator must reject any job text where crime pays overall.
+- **Night and weather may have a real edge**: dark alleys, tense storms, a spooky radio voice, fog that hides
+  the road. PEGI 7 allows content "frightening to younger children", and this age likes the edge. The lines that
+  do not move: no gore, no horror sound stingers, no swearing, and a crash still never hurts anyone.
 
 ## Sources
 

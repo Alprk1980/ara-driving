@@ -11,6 +11,12 @@ const page = await ctx.newPage();
 const errors: string[] = [];
 page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
 page.on('console', (m) => { if (m.type() === 'error') errors.push(`console: ${m.text()}`); });
+page.on('crash', () => errors.push('crash: the renderer died'));
+page.on('framenavigated', (f) => { if (f === page.mainFrame()) step('nav', f.url()); }); // catches silent reloads
+await page.addInitScript(() => { // name the caller if game code reloads, instead of guessing
+  const l = window.location, r = l.reload.bind(l);
+  l.reload = (...a: unknown[]) => { console.error('location.reload called: ' + new Error().stack); return r(...a as []); };
+});
 const shot = (n: string) => page.screenshot({ path: `out/${n}.png` });
 const wait = (ms: number) => page.waitForTimeout(ms);
 const state = () => page.evaluate(() => { const a = (window as any).ara; const p = a.game.player; return { x: Math.round(p.x), z: Math.round(p.z), kmh: Math.round(p.kmh), fuel: +p.fuel.toFixed(1), state: p.state, quest: a.game.quest?.offer.title ?? null, points: a.wallet.points(), cam: a.view.index }; });
@@ -104,10 +110,12 @@ await page.click('#pause #x');
 await wait(300);
 await shot('13-left-dpad');
 
-await page.evaluate(() => { const a = (window as any).ara; a.game.player.fuel = 0.3; a.app.held.go = true; });
-await wait(4000);
+// Fuel low enough to burn while moving (~1 s at 30 km/h, not 2 min at idle as an old 0.3 fixture did): an empty
+// tank coasts, stops, and only then goes Stranded (car.ts), which is what opens the tow sheet.
+await page.evaluate(() => { const a = (window as any).ara; a.game.player.fuel = 0.03; a.app.held.go = true; });
+await wait(6000);
 await page.evaluate(() => { (window as any).ara.app.held.go = false; });
-await wait(9000);
+await wait(8000);
 await shot('14-stranded');
 step('out of fuel', await state());
 await page.click('#tow');
@@ -134,8 +142,8 @@ await shot('18-station');
 await page.evaluate(() => (window as any).ara.app.store());
 await wait(300);
 await page.reload();
-await page.waitForSelector('#start');
-await wait(500);
+await page.waitForSelector('#start'); // static markup; the boot script may still be running
+await page.waitForFunction(() => !!(window as any).ara?.app, null, { timeout: 30000 }); // the real ready signal
 step('reloaded', await page.evaluate(() => { const a = (window as any).ara; const s = a.app.save; return { car: s.car, hand: s.hand, input: s.input, points: a.wallet.points(), design: s.designs.hatchback, owns: a.wallet.player.games.ara_driving }; }));
 
 console.log(errors.length ? `ERRORS\n${errors.join('\n')}` : 'no console errors');

@@ -16,9 +16,10 @@ async function fresh() {
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto('http://localhost:4179/');
   await page.waitForSelector('#start');
-  await page.waitForTimeout(500);
+  await page.waitForFunction(() => !!(window as any).ara?.app, null, { timeout: 30000 }); // boot first, or the tap hits dead markup
   await page.tap('#start');
-  await page.waitForTimeout(400);
+  if (await page.locator('#picker [data-car]').count()) await page.tap('#picker [data-car]'); // a fresh save picks its car
+  await page.waitForSelector('#pad-go'); // the pad means the game itself has started
   return { page, cdp: await ctx.newCDPSession(page) };
 }
 
