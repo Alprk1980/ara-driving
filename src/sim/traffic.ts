@@ -12,7 +12,7 @@ import { KERB_KG } from './economy.ts';
 import type { KerbCar, ParkedCars } from './parked.ts';
 import { signalFor, STOP_LINE_M } from './signals.ts';
 import type { CrossingLight } from './crossings.ts';
-import { dist, type BusRoute, type BusStop, type Leg, type Rng, type Town, type Vec, type Zebra } from './town.ts';
+import { dist, ROAD_W, type BusRoute, type BusStop, type Leg, type Rng, type Town, type Vec, type Zebra } from './town.ts';
 
 const COUNT = 16;
 const SPAWN_MIN = 220, SPAWN_MAX = 380, DESPAWN = 460;
@@ -26,6 +26,12 @@ const WRECK_AT = 0.45, WRECK_S = 150; // this bent and a car can't drive on: it 
 const JUNCTION_M = 16, CLEAR_M = 14, TURN_MPS = 6.5, GIVE_UP_S = 4, PASS_AFTER_S = 3, PASS_HOLD_S = 3;
 export const TRAFFIC_LENGTH = 4.1;
 const CALM_MPS2 = 3, ZEBRA_STOP_M = 2.5, SIGNAL_LOOK_M = 45; // a driver's calm stop is about 3 m/s²
+// Most stops are request stops: a bus pulls in only for someone waiting, who holds out an arm, or for someone aboard,
+// who rings the bell once before their stop (operators' guides, such as East Yorkshire's and Reliance's). How often a
+// passenger wants a given stop is judged.
+const ALIGHT_ODDS = 0.5;
+const STOP_BLOCKED_S = 2; // held this long short of the stop, it lets people on and off where it is; judged, and under PASS_AFTER_S, which restarts the wait
+export const HAIL_M = 4; // close enough to the stop's pole for the driver to see you waiting
 const DOORS_S = 7, PER_PERSON_S = 3.5, STOP_LANE = 4.4, STOP_LOOK_M = 34, AT_STOP_M = 1.5; // doors and pulling away, plus 3-5 s for each contactless tap: TfL's average dwell is 10.5-14.5 s. The lane puts a bus's flank at the kerb
 const CREEP_MPS = 2.5, BLUE_MPS = 16, BLUE_LANE = 0, BLUE_DODGE = 1.8, BLUE_GAP = 2.15, PULL_IN_MPS = 3, YIELD_LANE = 3.6, GIVE_WAY_M = 70, GIVE_WAY_SIDE_M = 9, RED_CROSS_MPS = 5, BLUE_PASS_S = 1, ON_SCENE_M = 11; // UK blue-light drivers may treat a red as a give way, so they slow and cross; about 58 km/h in town, judged
 const BLOCK_MPS = 2, STATION_RANGE_M = 800, HOME_M = 18, CHASE_MPS = 24, REPLAN_S = 3, TAIL_M = 14; // a crew comes from its own station if that's near enough; a pursuit runs at about 55 mph in town, judged
@@ -48,6 +54,7 @@ export type TrafficCar = {
   role: Role | 'car'; fleet: FleetId | null; kg: number;
   plan: Leg[] | null; leg: number; route: number; // a bus's route, or a crew's way to a job
   dwell: number; served: number; // seconds left at a stop, and the last stop's index on the route
+  callAt: number; calling: boolean; // the stop it last looked at, and whether someone aboard wants it
   blue: boolean; scene: number; job: Job | null; dormant: boolean; // dormant: an off-duty crew, off the map until called
   chase: boolean; replan: number; returning: boolean; // following the player; heading back to the station
   amber: boolean; load: Rider | null; loading: number; // a recovery truck's beacons, what's on its bed, and the seconds left winching it up
@@ -76,7 +83,7 @@ export class Traffic {
   clock = 0; // the signal plans run from this
   stuck = 0; // seconds the player has driven on, holding up a crew on blue lights
   private holding = false;
-  walkers: { busy(z: Zebra): boolean; onStripes(z: Zebra): boolean; lights: ReadonlyMap<Zebra, CrossingLight>; board(s: BusStop, player: Vec): number } | null = null;
+  walkers: { busy(z: Zebra): boolean; onStripes(z: Zebra): boolean; lights: ReadonlyMap<Zebra, CrossingLight>; board(s: BusStop, player: Vec): number; queued?(s: BusStop): number } | null = null;
   kerb: ParkedCars | null = null;
   private nextCall: number;
   private nextCollect = COLLECT_EVERY_S;
@@ -85,6 +92,9 @@ export class Traffic {
    * people crossing, and this town never hits a pedestrian. */
   you: Vec | null = null;
   private inRoad: Vec | null = null;
+  /** Where you're waiting at a stop, so the bus pulls in for you; and the bus you're riding, once you've rung the bell. */
+  hailing: Vec | null = null;
+  rider: { bus: TrafficCar; rang: boolean } | null = null;
   onRecovered: (() => void) | null = null; // the truck has the player's car
   private held = new Map<number, TrafficCar>(); // junction -> the car crossing it
 
@@ -111,7 +121,7 @@ export class Traffic {
   }
 
   private blank(colour: number, size: { halfL: number; halfW: number }, id: FleetId | null = null): TrafficCar {
-    return { x: -1000, z: -1000, heading: 0, speed: 0, cruise: 0, want: 0, colour, edge: 0, to: 0, along: 0, nextEdge: 0, nextTo: 0, lane: LANE, laneGoal: LANE, waiting: 0, passing: 0, holding: -1, cool: 0, braking: false, vx: 0, vz: 0, spin: 0, dents: { front: 0, back: 0, left: 0, right: 0 }, damage: 0, wreck: 0, ...size, signal: 0, role: id ? FLEET_RULES[id].role : 'car', fleet: id, kg: id ? FLEET_RULES[id].kg : CAR_KG, plan: null, leg: 0, route: 0, dwell: 0, served: -1, blue: false, scene: 0, job: null, dormant: false, chase: false, replan: 0, returning: false, amber: false, load: null, loading: 0, riding: false, lift: 0 };
+    return { x: -1000, z: -1000, heading: 0, speed: 0, cruise: 0, want: 0, colour, edge: 0, to: 0, along: 0, nextEdge: 0, nextTo: 0, lane: LANE, laneGoal: LANE, waiting: 0, passing: 0, holding: -1, cool: 0, braking: false, vx: 0, vz: 0, spin: 0, dents: { front: 0, back: 0, left: 0, right: 0 }, damage: 0, wreck: 0, ...size, signal: 0, role: id ? FLEET_RULES[id].role : 'car', fleet: id, kg: id ? FLEET_RULES[id].kg : CAR_KG, plan: null, leg: 0, route: 0, dwell: 0, served: -1, callAt: -1, calling: false, blue: false, scene: 0, job: null, dormant: false, chase: false, replan: 0, returning: false, amber: false, load: null, loading: 0, riding: false, lift: 0 };
   }
 
   /** Puts a bus on its route somewhere in the ring round the player, or at the nearest point of the route if none is. */
@@ -124,7 +134,7 @@ export class Traffic {
     c.vx = c.vz = c.spin = 0;
     c.dents = { front: 0, back: 0, left: 0, right: 0 };
     c.damage = c.wreck = c.dwell = 0;
-    c.served = -1;
+    c.served = c.callAt = -1;
     c.plan = legs;
     c.leg = (leg + legs.length - 1) % legs.length;
     c.edge = legs[leg].edge;
@@ -288,6 +298,10 @@ export class Traffic {
       if (c.blue && !c.chase && player.speed > BLOCK_MPS) { this.stuck += dt; this.holding = true; } // driving on in front of a crew. Sitting at a red isn't blocking: rule 219 says not to break the law to clear the way, and a crew goes round
     }
 
+    // Nose up against the player's car, stopped where it isn't squarely in the lane ahead, such as one left parked while
+    // you walk: that's blocked too, so the driver pulls out and goes round rather than waiting behind it for ever.
+    const reach = { x: c.x + fx * 1.5, z: c.z + fz * 1.5, heading: c.heading, halfL: c.halfL, halfW: c.halfW };
+    if (toPlayer < 0 && Math.abs(player.speed) < 1 && carsOverlap(reach, asBox(player))) { blocked = true; inWay = (player.x - c.x) * fz - (player.z - c.z) * fx; }
     const toYou = this.inRoad ? ahead(this.inRoad) : -1;
     if (toYou >= 0) {
       want = Math.min(want, toYou - c.halfL < QUEUE_GAP_M + 1 ? 0 : Math.min(want, (toYou - c.halfL) * 0.5)); // eases down, and stops short of you
@@ -298,10 +312,17 @@ export class Traffic {
     // Left waiting behind a stopped player, a driver eventually pulls out and goes round.
     c.waiting = blocked && c.speed < 1 ? c.waiting + dt : c.want > 0 ? 0 : c.waiting;
     // A crew runs down the crown of the road, with both sides pulled in, and only leans away from what's still in the gap.
-    if (c.waiting > (c.blue ? BLUE_PASS_S : PASS_AFTER_S) && blocked) { c.laneGoal = c.blue ? (inWay > 0 ? -BLUE_DODGE : BLUE_DODGE) : PASS_LANE; c.passing = PASS_HOLD_S; c.waiting = 0; }
+    // Going round, it swings out as far as what's in the way needs, if that's further than the usual line, but stays on the road.
+    const roundIt = Math.max(-(ROAD_W / 2 - c.halfW - 0.3), Math.min(PASS_LANE, c.lane + inWay - SIDE_GAP - 0.4));
+    if (c.waiting > (c.blue ? BLUE_PASS_S : PASS_AFTER_S) && blocked) { c.laneGoal = c.blue ? (inWay > 0 ? -BLUE_DODGE : BLUE_DODGE) : roundIt; c.passing = PASS_HOLD_S; c.waiting = 0; }
+    // Going round the player's stopped car, it stays out until its tail is past, as a long bus needs longer than the hold.
+    if (!c.blue && c.laneGoal <= PASS_LANE && Math.abs(player.speed) < 1) {
+      const dx = player.x - c.x, dz = player.z - c.z, along = dx * fx + dz * fz;
+      if (along > -(c.halfL + player.car.size[0] / 2 + 2) && along < gap + c.halfL && Math.abs(dx * fz - dz * fx) < LANE + 2) c.passing = Math.max(c.passing, 0.5);
+    }
     const rest = c.blue ? BLUE_LANE : LANE;
     if ((c.passing -= dt) <= 0 && c.laneGoal !== rest && !(c.role === 'bus' && c.laneGoal === STOP_LANE) && c.scene <= 0) c.laneGoal = rest;
-    if ((c.laneGoal === PASS_LANE || (c.blue && c.laneGoal !== BLUE_LANE)) && !blocked && c.scene <= 0) want = Math.max(want, 6);
+    if (((!c.blue && c.laneGoal <= PASS_LANE) || (c.blue && c.laneGoal !== BLUE_LANE)) && !blocked && c.scene <= 0) want = Math.max(want, 6);
     if (c.blue && c.laneGoal !== BLUE_LANE && blocked && c.scene <= 0) want = Math.max(want, CREEP_MPS); // a car at a standstill can't change lane, so a crew edges forward as it leans round
     if (yielding) { want = c.lane < YIELD_LANE - 0.3 ? Math.min(want, PULL_IN_MPS) : 0; c.laneGoal = YIELD_LANE; } // still rolling while they move over: a stopped car can't
 
@@ -327,9 +348,13 @@ export class Traffic {
     if (!s || k === c.served) return want;
     const gap = s.along - c.along;
     if (gap > STOP_LOOK_M) return want;
+    if (c.callAt !== k) { c.callAt = k; c.calling = this.rng() < ALIGHT_ODDS; }
+    const wanted = c.calling || (this.walkers?.queued?.(s) ?? 0) > 0 || (this.hailing !== null && dist(this.hailing, s) < HAIL_M) || (this.rider?.bus === c && this.rider.rang);
+    if (!wanted) return want; // nobody to set down or pick up: it carries on past
     c.laneGoal = STOP_LANE;
     c.signal = -1;
-    if (gap < AT_STOP_M && c.speed < 1.5) { c.dwell = DOORS_S + PER_PERSON_S * (this.walkers?.board(s, player) ?? 0); c.served = k; return 0; }
+    // At the pole, or held short of a stop someone has parked in, where a driver opens the doors anyway.
+    if ((gap < AT_STOP_M && c.speed < 1.5) || (c.waiting > STOP_BLOCKED_S && c.speed < 0.5)) { c.dwell = DOORS_S + PER_PERSON_S * (this.walkers?.board(s, player) ?? 0); c.served = k; return 0; }
     return Math.min(want, Math.max(1.2, brakeFor(gap)));
   }
 
@@ -484,7 +509,8 @@ export class Traffic {
     this.lastCrash = null;
     this.clock += dt;
     this.seen = { x: focus.x, z: focus.z };
-    this.inRoad = this.you && !this.town.offRoad(this.you) ? this.you : null;
+    const you = this.you; // on the carriageway itself: someone at the kerb, waiting for a bus, is not in the way
+    this.inRoad = you && this.town.edges.some((e) => this.town.segDist(you, e) < ROAD_W / 2) ? you : null;
     if ((this.nextCollect -= dt) <= 0) { // anything left bent at the kerb gets picked up
       this.nextCollect = COLLECT_EVERY_S;
       const left = this.kerb?.wrecked();

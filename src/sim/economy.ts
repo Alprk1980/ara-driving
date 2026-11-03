@@ -5,6 +5,10 @@ import type { JobCar, QuestType, Twist } from '../../schemas/content.ts';
 export const RECOVERY_FEE = 15; // a truck home when you could have driven; free if you're out of fuel, as the tow always was
 export const KERB_KG = 1400; // a typical UK family car, 1200-1500 kg, from general knowledge: no published average turned up
 export const FUEL_PRICE = 1; // Points per litre
+// A single bus fare in England outside London is capped at £3 until 31 December 2026, and at £2 from 1 January 2027
+// (the national fare cap, from operators' and councils' notices). Fuel here is a Point a litre, against roughly £1.40
+// at the pump, so a Point is worth about £1.40 and the £3 fare comes to 2 Points. London's own single is £1.75.
+export const BUS_FARE = 2;
 export const REPAIR_RATE = 1; // Points per 1% of bodywork damage at the garage
 // Fuel runs well above a real car's 6 L/100 km on purpose: the town is 3 km across, so the bill has to mean something, but
 // this was cut to a third after play (2026-10-30) so a tank lasts about 20 km, or 25 minutes of driving for fun.

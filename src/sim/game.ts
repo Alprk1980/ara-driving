@@ -2,13 +2,14 @@
 // screens or sound, so tests and headless reviews run the same rules the player gets.
 import { contactAt, crushLevel, NEUTRAL, PlayerCar, sideOf, type DriveIntent, type DriveState, type Mark, type Side } from './car.ts';
 import type { Find, Goal, GoalKind, TownEventCard } from '../../schemas/content.ts';
-import { carById, RECOVERY_FEE, FIND_ALL_REWARD, FIND_REWARD, FUEL_PRICE, GOAL_REWARD, HOME_TOPUP_PCT, rankOf, rankPay, REGULAR_FINALE, REP_FINALE, REP_GOAL, REP_JOB, REP_SPOTLESS, streakBonus } from './economy.ts';
+import { BUS_FARE, carById, RECOVERY_FEE, FIND_ALL_REWARD, FIND_REWARD, FUEL_PRICE, GOAL_REWARD, HOME_TOPUP_PCT, rankOf, rankPay, REGULAR_FINALE, REP_FINALE, REP_GOAL, REP_JOB, REP_SPOTLESS, streakBonus } from './economy.ts';
 import { FuelManager } from './fuel.ts';
 import { advance, freshDaily, goalsFor } from './goals.ts';
 import { ActiveQuest, freshProgress, GHOST_KEEP, placeAt, QuestGenerator, storyPlot, type Ghost, type Offer, type Progress, type QuestContent, type QuestState } from './quests.ts';
 import { Navigator, route, routeVia, type Cue } from './route.ts';
-import { dist, makeRng, Town, type Plot, type Vec } from './town.ts';
-import { Traffic } from './traffic.ts';
+import { dist, makeRng, Town, type BusStop, type Plot, type Vec } from './town.ts';
+import { HAIL_M, Traffic, type TrafficCar } from './traffic.ts';
+import { doorNear, findDoors, type Door } from './doors.ts';
 import type { DistrictId } from './districts.ts';
 import { ParkedCars } from './parked.ts';
 import { freshRoad, RoadSense } from './roadsense.ts';
@@ -27,7 +28,7 @@ const OFF_ROUTE_M = 25, OFF_ROUTE_S = 2, REROUTE_COOLDOWN_S = 10;
 const HARD_STOP_MPS2 = 11, BUMP_MPS = 4, REPAIR_S = 6; // a stop at the pump mends a dented car in about this long
 const PHONE_STILL_MPS = 2, EMERGENCY_M = 200, HURT = 0.3; // parked up enough to use a phone, and how close or bad things must be for 999 to be genuine
 const ROAD_STEPS = 6; // the driving record looks ten times a second, enough to catch a car crossing a line
-const SOLID_NEAR_M = 9; // the cars close enough to bump into on foot
+const SOLID_NEAR_M = 9, BOARD_M = 15; // a bus's doors are at its front, up to about 6 m from the pole, or further when it stopped short of a blocked stop
 const FIRE_CALL_MPS = 18; // a hit on a building this hard brings the fire service: about 40 mph, where a car stops being repairable, judged
 
 export type GameEvent =
@@ -53,7 +54,8 @@ export type GameEvent =
   | { type: 'event'; card: TownEventCard | null; edge: number }
   | { type: 'road'; moment: RoadMoment; pay: number; points: number; score: number }
   | { type: 'goodDriving'; pay: number }
-  | { type: 'foot'; out: boolean };
+  | { type: 'foot'; out: boolean }
+  | { type: 'bus'; what: 'on' | 'bell' | 'off'; fare: number };
 
 /** Where the drive was left: the car on the road, the clock, the job and the sat nav. Saved beside the progress, so a
  * reload carries on where it stopped. A job's places are kept as indexes into the town's plots, which a fixed seed rebuilds the same. */
@@ -91,6 +93,8 @@ export class Game {
   goals: Goal[]; // today's
   event: TownEventCard | null = null;
   foot: OnFoot | null = null; // out of the car and walking; the car stays where it was left
+  ride: { bus: TrafficCar; rang: boolean } | null = null; // on a bus, and whether you've rung for the next stop
+  private doorList: Door[] | null = null;
   private eventBlock = 0;
   private events: TownEventCard[];
   private kmDriven = 0;
@@ -159,9 +163,70 @@ export class Game {
     return true;
   }
 
+  /** The named places' front doors. */
+  get doors(): Door[] { return (this.doorList ??= findDoors(this.town, (this.content.regulars ?? []).map((_, i) => storyPlot(this.town, i)))); }
+
+  /** The door you're standing at, on foot. */
+  get atDoor(): Door | null { return this.foot && !this.ride ? doorNear(this.doors, this.foot) : null; }
+
+  /** The stop you're waiting at, on foot: the driver sees you and pulls in. */
+  get atStop(): BusStop | null {
+    const f = this.foot;
+    if (!f || this.ride) return null;
+    for (const r of this.town.routes) for (const s of r.stops) if (dist(s, f) < HAIL_M) return s;
+    return null;
+  }
+
+  /** A bus stopped at your stop with its doors open. */
+  get busHere(): TrafficCar | null {
+    const s = this.atStop;
+    return s ? this.traffic.cars.find((c) => c.role === 'bus' && c.dwell > 0 && dist(c, s) < BOARD_M) ?? null : null;
+  }
+
+  /** On, and pay the driver. False if there's no bus or not enough Points. */
+  board(fare = BUS_FARE): boolean {
+    const bus = this.busHere;
+    if (!bus || (fare > 0 && !this.wallet.spend(fare, 'Bus fare'))) return false;
+    this.ride = { bus, rang: false };
+    bus.dwell = Math.max(bus.dwell, 3.5); // time to tap a card and find a seat, as each passenger gets
+    this.emit({ type: 'bus', what: 'on', fare });
+    if (fare) this.emit({ type: 'points', points: this.wallet.points() });
+    return true;
+  }
+
+  /** Ring once for the next stop. */
+  ringBell(): boolean {
+    if (!this.ride || this.ride.rang) return false;
+    this.ride.rang = true;
+    this.emit({ type: 'bus', what: 'bell', fare: 0 });
+    return true;
+  }
+
+  /** Off the bus by its doors, onto the pavement, once it's stopped. */
+  getOff(): boolean {
+    const r = this.ride;
+    if (!r || (r.bus.dwell <= 0 && r.bus.wreck <= 0 && !r.bus.dormant)) return false;
+    this.alight();
+    return true;
+  }
+
+  /** Where you step off: the front doors on the nearside, the left, as on UK buses. */
+  private alightAt(bus: TrafficCar): Vec & { heading: number } {
+    const fx = Math.sin(bus.heading), fz = Math.cos(bus.heading), out = bus.halfW + 1.2, fwd = bus.halfL - 2;
+    const spot = { x: bus.x + fx * fwd + fz * out, z: bus.z + fz * fwd - fx * out, heading: bus.heading };
+    return this.town.boxAt(spot.x, spot.z, 0.3) ? { x: bus.x + fx * (bus.halfL + 1), z: bus.z + fz * (bus.halfL + 1), heading: bus.heading } : spot;
+  }
+
+  private alight() {
+    const r = this.ride!, f = this.foot!, at = this.alightAt(r.bus);
+    Object.assign(f, { x: at.x, z: at.z, heading: at.heading, speed: 0 });
+    this.ride = null;
+    this.emit({ type: 'bus', what: 'off', fare: 0 });
+  }
+
   /** Back in, if you're near enough to the car. */
   getIn(): boolean {
-    if (!this.foot || !this.foot.canReach(this.player)) return false;
+    if (!this.foot || this.ride || !this.foot.canReach(this.player)) return false;
     this.backIn();
     return true;
   }
@@ -170,6 +235,7 @@ export class Game {
   private backIn() {
     if (!this.foot) return;
     this.foot = null;
+    this.ride = null;
     this.emit({ type: 'foot', out: false });
   }
 
@@ -270,7 +336,7 @@ export class Game {
       car: p.car.id, x: p.x, z: p.z, heading: p.heading, time: this.time, streak: this.streak,
       waypoint: this.waypoint, dest: this.dest, dents: { ...p.dents }, marks: p.marks.map((m) => ({ ...m })),
       quest: q ? { offer: { ...q.offer, start: all.indexOf(q.offer.start), end: all.indexOf(q.offer.end) }, at: q.state } : null,
-      foot: this.foot ? { x: this.foot.x, z: this.foot.z, heading: this.foot.heading } : null,
+      foot: this.ride ? this.alightAt(this.ride.bus) : this.foot ? { x: this.foot.x, z: this.foot.z, heading: this.foot.heading } : null, // a reload puts you off the bus at the kerb
     };
   }
 
@@ -397,10 +463,14 @@ export class Game {
     this.time += STEP;
     const p = this.player, foot = this.foot, here = this.here;
     this.lastSpeed = p.speed;
-    this.traffic.you = this.walkers.you = foot;
+    const walking = this.ride ? null : foot; // on a bus you're not in anyone's way
+    this.traffic.you = this.walkers.you = walking;
+    this.traffic.hailing = this.atStop;
+    this.traffic.rider = this.ride;
     const wall = p.step(STEP, foot ? NEUTRAL : intent, this.town), moving = this.traffic.step(STEP, p, here), kerb = this.parked.step(STEP, p, this.traffic.cars), crash = Math.max(moving, kerb), impact = Math.max(wall, crash);
     this.walkers.step(STEP, p, this.traffic.cars, here);
-    if (foot) foot.step(STEP, intent, this.town, this.solidNear(foot));
+    if (walking) walking.step(STEP, intent, this.town, this.solidNear(walking));
+    else if (foot) this.stepRide(foot);
     const n = kerb > moving ? this.parked.crash : this.traffic.lastCrash;
     if (crash > 0 && crash >= wall && n) {
       p.hit = { x: p.x, z: p.z, nx: n.nx, nz: n.nz, speed: crash };
@@ -421,6 +491,13 @@ export class Game {
     this.stepFinds();
     this.stepEvent();
     if ((this.kmDriven += (Math.abs(p.speed) * STEP) / 1000) >= 0.1) { this.road.smooth(0.1); if (this.goals.length) this.goalStep('km', 0.1); this.kmDriven = 0; }
+  }
+
+  /** Carried along in your seat. The bus pulls in where you rang, and you get off; one taken off the road puts you off where it is. */
+  private stepRide(foot: OnFoot) {
+    const r = this.ride!, b = r.bus;
+    Object.assign(foot, { x: b.x, z: b.z, heading: b.heading, speed: 0 });
+    if (b.dormant || b.wreck > 0 || (r.rang && b.dwell > 0)) this.alight();
   }
 
   /** The cars you could walk into: your own, the traffic and those parked at the kerb. */

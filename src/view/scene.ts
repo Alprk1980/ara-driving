@@ -29,6 +29,8 @@ import { WallDamage } from './walls.ts';
 import { YouFigure } from './you.ts';
 import { PERSON_M } from './people.ts';
 import type { OnFoot } from '../sim/onfoot.ts';
+import type { TrafficCar } from '../sim/traffic.ts';
+import { DOOR_H_M, DOOR_W_M, type Door } from '../sim/doors.ts';
 import type { WallHit } from '../save.ts';
 import buildingStyles from '../data/buildingstyles.json';
 import type { BuildingStyle } from '../../schemas/buildings.ts';
@@ -37,6 +39,8 @@ export const CAMERA_NAMES = ['Chase near', 'Chase far', 'Side', 'Cockpit'] as co
 const BLEND_S = 0.25;
 // On foot the camera sits close over your shoulder, much as third-person games do; the distances are judged. The
 // first-person eye is at 93% of standing height, about where adult eyes sit in body-size surveys.
+// On a bus: behind it as you would follow one, or from a front seat. A single-decker's seated eye is about 2 m up, judged.
+const BUS_BACK_M = 15, BUS_UP_M = 5.5, BUS_EYE_M = 2.1;
 const FOOT_BACK_M = 3.4, FOOT_UP_M = 2.1, FOOT_FAR_BACK_M = 7.5, FOOT_FAR_UP_M = 4.2, EYE_SHARE = 0.93, FOOT_FOV = 60;
 const CAM_LAG = 6, ROLL = 0.08, PITCH = 0.009, BODY_EASE = 7; // how the chase camera and body follow the car
 const SLIDE_START = 0.45, HARD_BRAKE = 9;
@@ -310,6 +314,23 @@ function buildTown(scene: THREE.Scene, game: Game, landmarks: Landmark[], held: 
   return { road: asphalt, shade: buildContactShade(scene, game), buildings, lamps, pools };
 }
 
+/** The named places' front doors, a painted door in a white frame with a fascia above, one instanced mesh each. */
+function buildDoors(scene: THREE.Scene, doors: readonly Door[]) {
+  const frame = 0.08, parts = [
+    { g: new THREE.BoxGeometry(DOOR_W_M + frame * 2, DOOR_H_M + frame, 0.06).translate(0, (DOOR_H_M + frame) / 2, 0.03), color: '#f2efe6' },
+    { g: new THREE.BoxGeometry(DOOR_W_M, DOOR_H_M, 0.05).translate(0, DOOR_H_M / 2, 0.07), color: '#1f4f46' },
+    { g: new THREE.BoxGeometry(0.08, 0.08, 0.06).translate(DOOR_W_M * 0.36, DOOR_H_M * 0.48, 0.12), color: '#d8b24a' }, // the handle
+    { g: new THREE.BoxGeometry(DOOR_W_M * 2.2, 0.42, 0.1).translate(0, DOOR_H_M + 0.5, 0.05), color: '#2c3b5a' }, // the fascia a sign would go on
+  ];
+  const m = new THREE.Matrix4();
+  for (const { g, color } of parts) {
+    const mesh = new THREE.InstancedMesh(g, new THREE.MeshLambertMaterial({ color }), doors.length);
+    doors.forEach((d, i) => mesh.setMatrixAt(i, m.makeRotationY(d.heading).setPosition(d.x, 0, d.z)));
+    mesh.instanceMatrix.needsUpdate = true;
+    scene.add(mesh);
+  }
+}
+
 export class View {
   renderer: THREE.WebGLRenderer;
   scene = new THREE.Scene();
@@ -428,6 +449,7 @@ export class View {
 
     this.life = new StreetLife(this.scene, game.town, game.traffic, game.walkers, game.parked);
     this.you = new YouFigure(this.scene, 0);
+    buildDoors(this.scene, game.doors);
     this.control = new RoadControl(this.scene, game.town);
     const body = partsGeometry(TRAFFIC_PARTS);
     this.ghost =new THREE.Mesh(body, new THREE.MeshBasicMaterial({ color: '#35e0c2', transparent: true, opacity: 0.4, depthWrite: false }));
@@ -568,6 +590,7 @@ export class View {
   /** Each rig's camera position and look target for this frame. */
   private rigPose(pos: THREE.Vector3, look: THREE.Vector3) {
     const p = this.game.player, town = this.game.town;
+    if (this.game.ride && !this.inGarage) return this.ridePose(pos, look, this.game.ride.bus);
     if (this.game.foot && !this.inGarage) return this.footPose(pos, look, this.game.foot);
     const f = p.dir, r = { x: -f.z, z: f.x };
     const speedK = Math.min(1, Math.abs(p.speed) / p.vMax);
@@ -591,6 +614,20 @@ export class View {
       pos.set(p.x - r.x * e.x + f.x * e.z, e.y, p.z - r.z * e.x + f.z * e.z);
       look.set(pos.x + f.x * 20, e.y - 0.7, pos.z + f.z * 20);
     }
+  }
+
+  /** Following the bus you're on, or looking out from the seat behind the driver. */
+  private ridePose(pos: THREE.Vector3, look: THREE.Vector3, bus: TrafficCar) {
+    const f = { x: Math.sin(bus.heading), z: Math.cos(bus.heading) };
+    if (this.index === 3) {
+      const at = bus.halfL - 2.2; // just behind the cab, on the nearside
+      pos.set(bus.x + f.x * at + f.z * 0.5, BUS_EYE_M, bus.z + f.z * at - f.x * 0.5);
+      look.set(pos.x + f.x * 20, BUS_EYE_M - 0.5, pos.z + f.z * 20);
+      return;
+    }
+    const c = { x: Math.sin(this.yaw), z: Math.cos(this.yaw) }, back = BUS_BACK_M * (this.index === 1 ? 1.5 : 1);
+    pos.set(bus.x - c.x * back, BUS_UP_M * (this.index === 1 ? 1.4 : 1), bus.z - c.z * back);
+    look.set(bus.x + f.x * 8, 2, bus.z + f.z * 8);
   }
 
   /** Over your shoulder, further back, or through your own eyes. */
@@ -655,7 +692,7 @@ export class View {
     rig.blinkLeft.color.set(stalk < 0 && flash ? BLINK_ON : BLINK_OFF);
     rig.blinkRight.color.set(stalk > 0 && flash ? BLINK_ON : BLINK_OFF);
 
-    let turn = (this.game.foot?.heading ?? p.heading) - this.yaw; // on foot, it trails you
+    let turn = (this.game.ride?.bus.heading ?? this.game.foot?.heading ?? p.heading) - this.yaw; // on foot or on a bus, it trails you
     while (turn > Math.PI) turn -= 2 * Math.PI;
     while (turn < -Math.PI) turn += 2 * Math.PI;
     this.yaw += turn * Math.min(1, dt * CAM_LAG);
@@ -754,7 +791,7 @@ export class View {
     this.carFeel(dt, steer, brake);
     this.drawTraffic(dt);
     this.drawGhost();
-    this.you.draw(dt, g.foot);
+    this.you.draw(dt, g.ride ? null : g.foot); // sat on a bus, you're inside it
     this.drawSky(dt);
     rig.root.position.set(p.x, 0, p.z);
     rig.root.rotation.y = p.heading;

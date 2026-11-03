@@ -10,6 +10,12 @@ import { isNight, type Game, type GameEvent, type Wallet } from '../sim/game.ts'
 import { Guide, Passengers } from './coach.ts';
 import { dist } from '../sim/town.ts';
 import { STILL_MPS } from '../sim/onfoot.ts';
+import { BUS_FARE as FARE } from '../sim/economy.ts';
+import { PAD_ACTION, PadButton } from '../input/schemes.ts';
+import { LOOKS } from '../view/people.ts';
+import type { Door } from '../sim/doors.ts';
+import { placeAt } from '../sim/quests.ts';
+import type { BusStop } from '../sim/town.ts';
 import type { RadioHost } from './radio.ts';
 import type { Sound } from './sound.ts';
 import type { RoadLine } from '../../schemas/services.ts';
@@ -94,6 +100,8 @@ export class App {
   private miniClock = 0;
   private saveClock = AUTOSAVE_S;
   private actionsKey = '';
+  private padAction = new PadButton(PAD_ACTION);
+  private lastStop: BusStop | null = null;
   private trackerKey = '';
   private bodyKey = '';
   private hintClock = 1;
@@ -235,6 +243,13 @@ export class App {
         this.padLabels();
         this.store();
         break;
+      case 'bus':
+        if (e.what === 'bell') { this.sound.chime(1180); this.banner('Bus stopping'); break; }
+        this.view.footChanged();
+        if (e.what === 'on') this.toast(e.fare ? `Fare paid, ${e.fare} Points. Ring the bell before your stop` : 'On the bus. Ring the bell before your stop');
+        else this.toast('Off the bus');
+        this.store();
+        break;
       case 'fuelLow':
         this.voice.say(e.level === 'red' ? 'fuel_critical' : 'fuel_low');
         this.djReacts('fuel_low');
@@ -347,7 +362,10 @@ export class App {
     if ((this.bannerClock -= dt) <= 0) $('banner').style.display = 'none';
     if ((this.toastClock -= dt) <= 0) $('toast').style.display = 'none';
     if ((this.tickerClock -= dt) <= 0) $('ticker').style.display = 'none';
-    $('speed').textContent = g.foot ? `On foot${g.foot.running ? ', running' : ''}` : `${Math.round(p.kmh)} km/h`;
+    $('speed').textContent = g.ride ? 'On the bus' : g.foot ? `On foot${g.foot.running ? ', running' : ''}` : `${Math.round(p.kmh)} km/h`;
+    if (this.save.input === 'gamepad' && this.padAction.pressed()) this.door();
+    const stop = g.atStop;
+    if (stop !== this.lastStop) { this.lastStop = stop; if (stop) this.banner(`Bus stop. Wait here and the bus pulls in for you: a single is ${FARE} Points`, false, 4); }
     const pct = p.fuel / p.car.tank;
     $('fuelfill').style.width = `${pct * 100}%`;
     $('fueltext').textContent = `Fuel ${Math.round(p.fuel)} L`;
@@ -442,12 +460,33 @@ export class App {
     $('pad-brake').textContent = this.game.foot ? 'Back' : 'Brake';
   }
 
-  /** Out of the car, or back in: the action button and F. */
+  /** The one action button, F and Y: whatever fits where you are. Off or on a bus, in or out of the car, or a door. */
   private door() {
     const g = this.game;
-    if (g.foot) { if (!g.getIn()) this.toast('Walk back to your car to get in'); return; }
+    if (g.ride) { if (!g.getOff() && !g.ringBell()) this.toast('Bell rung: the bus stops at the next stop'); return; }
+    if (g.busHere) return this.boardBus();
+    if (g.foot) {
+      if (g.getIn()) return;
+      const d = g.atDoor;
+      if (d) this.openDoor(d); else this.toast('Walk back to your car to get in');
+      return;
+    }
     const why = g.cantGetOut;
     if (why) this.toast(why); else g.getOut();
+  }
+
+  private boardBus() {
+    const fare = this.save.debug ? 0 : FARE;
+    if (!this.game.board(fare)) this.toast(`The fare is ${FARE} Points, and you have ${this.wallet.points()}`);
+  }
+
+  /** At a place's front door: what it is, and the jobs that start here. Going inside comes with the shops. */
+  private openDoor(d: Door) {
+    const g = this.game, place = placeAt(g.town, g.content.places, d.plot), here = g.offers.filter((o) => o.start === d.plot);
+    const jobs = g.quest ? '<p>Finish the job you are on to take another.</p>' : here.length ? here.map((o) => `<div class="offer"><div><b>${esc(o.title)}</b><span>${esc(o.text)}</span><span>${o.basePay} to ${o.maxPay} Points</span></div><button class="primary" data-id="${o.id}">Take</button></div>`).join('') : '<p>No jobs from here just now.</p>';
+    const c = this.sheet('dialog', `<h2>${esc(place?.name ?? 'A front door')}</h2><p>${esc(place ? place.kind[0].toUpperCase() + place.kind.slice(1) : '')}. The door is shut for now: going inside comes later.</p>${jobs}<div class="row end"><button class="primary" id="x">Back to the street</button></div>`);
+    c.querySelector<HTMLElement>('#x')!.onclick = () => this.close('dialog');
+    for (const b of c.querySelectorAll<HTMLElement>('[data-id]')) b.onclick = () => { g.accept(Number(b.dataset.id)); this.close('dialog'); };
   }
 
   /** Buttons that only make sense where the car is right now. */
@@ -457,8 +496,9 @@ export class App {
     const pump = !foot && g.canRefuel;
     const low = !foot && p.fuel / p.car.tank < WARN_LOW_PCT && !pump;
     const bent = p.damage > 0.02;
-    const out = !foot && Math.abs(p.speed) <= STILL_MPS && p.state !== 'Refuelling', back = !!foot && foot.canReach(p);
-    const key = [atHome, pump, low, p.state === 'Stranded', bent, out, back].join();
+    const out = !foot && Math.abs(p.speed) <= STILL_MPS && p.state !== 'Refuelling', ride = g.ride, back = !!foot && !ride && foot.canReach(p);
+    const bus = !!g.busHere, door = g.atDoor, stopped = !!ride && ride.bus.dwell > 0;
+    const key = [atHome, pump, low, p.state === 'Stranded', bent, out, back, bus, door?.plot.x, !!ride, ride?.rang, stopped].join();
     if (key === this.actionsKey) return;
     this.actionsKey = key;
     const box = $('actions');
@@ -476,6 +516,10 @@ export class App {
     if (low) add('Route to station', () => { g.routeToStation(); this.banner('Routing to the nearest station'); });
     if (out) add('Get out', () => this.door());
     if (back) add('Get in', () => this.door(), 'primary');
+    if (bus) add(`Get on, ${FARE} Points`, () => this.boardBus(), 'primary');
+    if (door && !back) add(placeAt(g.town, g.content.places, door.plot)?.name ?? 'Door', () => this.openDoor(door));
+    if (ride && stopped) add('Get off', () => g.getOff(), 'primary');
+    else if (ride && !ride.rang) add('Ring the bell', () => g.ringBell(), 'primary');
   }
 
   /** Straighten the bodywork at home: a flat rate per percent of damage, free in debug. */
@@ -698,6 +742,7 @@ export class App {
       <p>Layout</p><div class="row">${opt('hand:right', 'Right-handed', s.hand === 'right')}${opt('hand:left', 'Left-handed', s.hand === 'left')}</div>
       <p>Voice and sound</p><div class="row">${opt('mute:0', 'On', !s.muted)}${opt('mute:1', 'Off', s.muted)}</div>
       <p>Graphics${this.view.fps ? ` (running at ${this.view.fps} fps)` : ''}</p><div class="row">${opt('gfx:auto', 'Auto', s.graphics === 'auto')}${opt('gfx:high', 'High', s.graphics === 'high')}${opt('gfx:low', 'Low', s.graphics === 'low')}</div>
+      <p>You on foot</p><div class="row looks">${LOOKS.map((l, i) => `<button class="ghost look ${s.look === i ? 'on' : ''}" data-v="look:${i}" aria-label="Look ${i + 1}" style="background:linear-gradient(${l.hair} 0 22%, ${l.skin} 22% 38%, ${l.shirt} 38% 70%, ${l.trousers} 70%)"></button>`).join('')}</div>
       <p>Car body</p><div class="row">${opt('body:voxel', 'Voxel', s.body === 'voxel')}${opt('body:blocks', 'Blocks', s.body === 'blocks')}</div>
       <p>Costs</p><div class="row">${opt('debug:0', 'Pay as you go', !s.debug)}${opt('debug:1', 'Free everything (debug)', s.debug)}</div>
       <p>Radio</p><div class="row">${this.stations.map((st, i) => opt(`radio:${i}`, esc(st.name), s.radio === i)).join('')}${opt('radio:-1', 'Off', s.radio < 0)}</div>
@@ -726,6 +771,7 @@ export class App {
       if (k === 'gfx') { s.graphics = v as DriveSave['graphics']; this.view.setQuality(s.graphics); }
       if (k === 'body') { s.body = v as DriveSave['body']; this.view.bodyStyle = s.body; this.view.setCar(s.designs[s.car] ?? {}, s.driver); }
       if (k === 'debug') s.debug = v === '1';
+      if (k === 'look') { s.look = Number(v); this.view.you.setLook(s.look); }
       this.store();
       this.openPause();
     };
@@ -816,7 +862,7 @@ export class App {
       <p>How you steer</p><div class="row">${opt('input:keyboard', 'Keyboard', s.input === 'keyboard')}${opt('input:joystick', 'Joystick', s.input === 'joystick')}${opt('input:dpad', 'D-pad', s.input === 'dpad')}${opt('input:tilt', 'Tilt', s.input === 'tilt')}${opt('input:gamepad', 'Controller', s.input === 'gamepad')}</div>
       <p>Layout</p><div class="row">${opt('hand:right', 'Right-handed', s.hand === 'right')}${opt('hand:left', 'Left-handed', s.hand === 'left')}</div>
       <p>Keyboard: WASD or arrows to drive, Space handbrake, Q and E indicators. Controller: left stick steers, right trigger go, left trigger brake, A handbrake, bumpers indicators.</p>
-      <p>On foot: F or the Get out button leaves the car and gets back in. Forward walks and steering turns you; hold Space or A to run, or keep holding forward and you break into a run.</p>
+      <p>On foot: F, Y on a controller, or the action button gets you out of the car and back in, onto a bus and off it, and to a place's door. Wait at a stop and the bus pulls in; ring the bell before your stop. Forward walks and steering turns you; hold Space or A to run, or keep holding forward and you break into a run.</p>
       <div class="row end"><button class="primary" id="x">Keep driving</button></div>`);
     c.querySelector<HTMLElement>('#x')!.onclick = () => this.close('dialog');
     for (const b of c.querySelectorAll<HTMLElement>('[data-v]')) b.onclick = async () => {

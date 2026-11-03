@@ -84,6 +84,19 @@ export class PadWatch {
   private seen = false;
 }
 
+/** One controller button's presses, each counted once: Y gets you out of the car and back in, as the action button does. */
+export const PAD_ACTION = 3;
+export class PadButton {
+  private was = true; // held as the page opened doesn't count
+  private index: number;
+  constructor(index: number) { this.index = index; }
+  pressed(): boolean {
+    const now = !!standardPad()?.buttons[this.index]?.pressed, fresh = now && !this.was;
+    this.was = now;
+    return fresh;
+  }
+}
+
 export class Gamepad implements InputScheme {
   id = 'gamepad' as const;
   private bumpers = [false, false];

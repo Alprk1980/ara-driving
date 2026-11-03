@@ -14,13 +14,19 @@ Each stage needs its own research pass first: how each job really runs, and the 
 ### Stage A: on foot
 - [x] Get out of the car wherever it's parked, and back in. The car stays where you left it, and the save keeps it.
 - [x] Walk the pavements as one of the town's figures, with a camera that follows; cross at zebras and green men.
-- [ ] A button on the controller to get out and back in (F, the Get out button and a tap work now).
-- [ ] Choose which figure you are (the save keeps a look; there's no picker yet).
-- [ ] Doors on the shops and places you can walk up to.
+- [x] A button on the controller to get out and back in: Y, as F and the action button.
+- [x] Choose which figure you are, in the Menu.
+- [x] Doors on the shops and places you can walk up to. Each says what the place is and offers the jobs that start
+      there; going inside is Stage C, or ARA World's.
 
 ### Stage B: buses as a passenger
-- [ ] Wait at a stop, flag the bus, pay the fare (England's bus fare cap is a real number to look up), ride, ring the
-      bell, get off at the next stop.
+- [x] Wait at a stop, flag the bus, pay the fare (2 Points, from England's £3 cap), ride, ring the bell, get off at the
+      next stop. Stops are request stops: a bus only pulls in for someone waiting, someone getting off, or the bell.
+- [ ] The fare cap drops to £2 on 1 January 2027. At a Point to about £1.40 that's 1.4 Points, so `BUS_FARE` should
+      go down to 1 then (confirm the new cap has started first).
+- [ ] Which bus is which: route numbers on the buses and stops, and when the next one is due.
+- [ ] Junction gridlock: now and then a bus and the cars round it stop at a junction and never clear. Driving you leave it
+      behind; riding the bus you sit in it. Found by `tools/footreview.ts` (sessions 6 and 8).
 
 ### Stage C: shops and a shopping centre
 - [ ] Go into a shop and buy things with the Points jobs earn: clothes for your figure, food, parts and paint.
