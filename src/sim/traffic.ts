@@ -30,6 +30,7 @@ const CALM_MPS2 = 3, ZEBRA_STOP_M = 2.5, SIGNAL_LOOK_M = 45; // a driver's calm 
 // who rings the bell once before their stop (operators' guides, such as East Yorkshire's and Reliance's). How often a
 // passenger wants a given stop is judged.
 const ALIGHT_ODDS = 0.5;
+const DEADLOCK_MPS = 0.5, DEADLOCK_GO_S = 4; // stopped, and how long the one going first ignores the car it was waiting for; judged
 const STOP_BLOCKED_S = 2; // held this long short of the stop, it lets people on and off where it is; judged, and under PASS_AFTER_S, which restarts the wait
 export const HAIL_M = 4; // close enough to the stop's pole for the driver to see you waiting
 const DOORS_S = 7, PER_PERSON_S = 3.5, STOP_LANE = 4.4, STOP_LOOK_M = 34, AT_STOP_M = 1.5; // doors and pulling away, plus 3-5 s for each contactless tap: TfL's average dwell is 10.5-14.5 s. The lane puts a bus's flank at the kerb
@@ -55,6 +56,8 @@ export type TrafficCar = {
   plan: Leg[] | null; leg: number; route: number; // a bus's route, or a crew's way to a job
   dwell: number; served: number; // seconds left at a stop, and the last stop's index on the route
   callAt: number; calling: boolean; // the stop it last looked at, and whether someone aboard wants it
+  blocker: TrafficCar | null; // the car it's stopped or slowed behind, last time it looked
+  ignore: TrafficCar | null; ignoreFor: number; // a car it's going on past, for a few seconds, to break a deadlock
   blue: boolean; scene: number; job: Job | null; dormant: boolean; // dormant: an off-duty crew, off the map until called
   chase: boolean; replan: number; returning: boolean; // following the player; heading back to the station
   amber: boolean; load: Rider | null; loading: number; // a recovery truck's beacons, what's on its bed, and the seconds left winching it up
@@ -121,7 +124,7 @@ export class Traffic {
   }
 
   private blank(colour: number, size: { halfL: number; halfW: number }, id: FleetId | null = null): TrafficCar {
-    return { x: -1000, z: -1000, heading: 0, speed: 0, cruise: 0, want: 0, colour, edge: 0, to: 0, along: 0, nextEdge: 0, nextTo: 0, lane: LANE, laneGoal: LANE, waiting: 0, passing: 0, holding: -1, cool: 0, braking: false, vx: 0, vz: 0, spin: 0, dents: { front: 0, back: 0, left: 0, right: 0 }, damage: 0, wreck: 0, ...size, signal: 0, role: id ? FLEET_RULES[id].role : 'car', fleet: id, kg: id ? FLEET_RULES[id].kg : CAR_KG, plan: null, leg: 0, route: 0, dwell: 0, served: -1, callAt: -1, calling: false, blue: false, scene: 0, job: null, dormant: false, chase: false, replan: 0, returning: false, amber: false, load: null, loading: 0, riding: false, lift: 0 };
+    return { x: -1000, z: -1000, heading: 0, speed: 0, cruise: 0, want: 0, colour, edge: 0, to: 0, along: 0, nextEdge: 0, nextTo: 0, lane: LANE, laneGoal: LANE, waiting: 0, passing: 0, holding: -1, cool: 0, braking: false, vx: 0, vz: 0, spin: 0, dents: { front: 0, back: 0, left: 0, right: 0 }, damage: 0, wreck: 0, ...size, signal: 0, role: id ? FLEET_RULES[id].role : 'car', fleet: id, kg: id ? FLEET_RULES[id].kg : CAR_KG, plan: null, leg: 0, route: 0, dwell: 0, served: -1, callAt: -1, calling: false, blocker: null, ignore: null, ignoreFor: 0, blue: false, scene: 0, job: null, dormant: false, chase: false, replan: 0, returning: false, amber: false, load: null, loading: 0, riding: false, lift: 0 };
   }
 
   /** Puts a bus on its route somewhere in the ring round the player, or at the nearest point of the route if none is. */
@@ -274,16 +277,21 @@ export class Traffic {
       return along > 0 && along < gap + c.halfL && Math.abs(dx * fz - dz * fx) < (c.blue ? BLUE_GAP : SIDE_GAP) ? along : -1;
     };
     let yielding = false, inWay = 0; // which side of the car what's stopping it lies, driver's left positive
+    c.blocker = null;
+    c.ignoreFor -= dt;
     for (const o of this.cars) {
-      if (o === c || o.dormant || o.riding) continue;
+      if (o === c || o.dormant || o.riding || (c.ignoreFor > 0 && o === c.ignore)) continue;
       const at = ahead(o);
-      if (at >= 0) want = Math.min(want, at - c.halfL - o.halfL < QUEUE_GAP_M ? 0 : o.speed);
+      if (at >= 0) { const w = at - c.halfL - o.halfL < QUEUE_GAP_M ? 0 : o.speed; if (w < want) { want = w; c.blocker = o; } }
       if (at >= 0 && (o.wreck > 0 || o.dwell > 0 || o.scene > 0 || (c.blue && o.speed < 1))) { blocked = true; inWay = (o.x - c.x) * fz - (o.z - c.z) * fx; } // a wreck in the lane, a bus at its stop or a crew at work is passed like anything else left in the way
       if (!c.blue && o.blue && o.scene <= 0 && o.speed > 2 && dist(o, c) < GIVE_WAY_M) { // pull in and stop until it's gone by, unless it's stuck behind you, when moving on is what clears the way
         const dx = c.x - o.x, dz = c.z - o.z, fwd = dx * Math.sin(o.heading) + dz * Math.cos(o.heading), side = Math.abs(dx * Math.cos(o.heading) - dz * Math.sin(o.heading));
         if (fwd > -2 && side < GIVE_WAY_SIDE_M) yielding = true;
       }
     }
+    // Holding a junction while stopped behind another car only blocks it: the car in front may be the one waiting for
+    // the junction, and then neither ever moves. So a held-up holder lets the junction go.
+    if (c.holding >= 0 && c.blocker && c.blocker.speed < 1 && c.speed < 1) this.release(c);
     for (const o of this.kerb?.shoved ?? []) { // a car knocked out into the road
       const at = ahead(o);
       if (at < 0) continue;
@@ -501,10 +509,27 @@ export class Traffic {
     return Math.abs(cross) < 0.35 ? 0 : cross > 0 ? 1 : -1;
   }
 
+  /** Stopped cars each waiting on the next, round in a ring: a deadlock, as when two meet at angles in a junction and each
+   * sees the other in its way. A queue at a red ends at the car at the line, so it never makes a ring. In a real one
+   * drivers sort it out by one going first, so the first car of the ring edges on past the car it's waiting for. */
+  private breakDeadlocks() {
+    for (const c of this.cars) {
+      if (!c.blocker || c.speed > DEADLOCK_MPS || c.ignoreFor > 0) continue;
+      const ring: TrafficCar[] = [c];
+      let o: TrafficCar | null = c.blocker;
+      while (o && o !== c && ring.length < 12 && o.speed <= DEADLOCK_MPS && !ring.includes(o)) { ring.push(o); o = o.blocker; }
+      if (o !== c) continue;
+      const go = ring.reduce((a, b) => (this.cars.indexOf(a) < this.cars.indexOf(b) ? a : b));
+      go.ignore = go.blocker;
+      go.ignoreFor = DEADLOCK_GO_S;
+    }
+  }
+
   /** Moves every car and returns the speed of any impact with the player this step. */
   /** `focus`: where cars are kept around, which is you when you're on foot and the car otherwise. */
   step(dt: number, player: PlayerCar, focus: Vec = player): number {
     const thinking = this.ticks++ % THINK_STEPS === 0;
+    if (thinking) this.breakDeadlocks();
     let impact = 0;
     this.lastCrash = null;
     this.clock += dt;
