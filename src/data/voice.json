@@ -38,5 +38,9 @@
   {
     "key": "fuel_critical",
     "text": "Fuel is critical"
+  },
+  {
+    "key": "bus_stopping",
+    "text": "Bus stopping now"
   }
 ]

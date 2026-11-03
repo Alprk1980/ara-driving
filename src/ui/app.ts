@@ -15,6 +15,8 @@ import { PAD_ACTION, PadButton } from '../input/schemes.ts';
 import { LOOKS } from '../view/people.ts';
 import type { Door } from '../sim/doors.ts';
 import { placeAt } from '../sim/quests.ts';
+import { CHOOSABLE, VOICE_NAMES } from './clips.ts';
+import type { ClipBackend } from './voice.ts';
 import type { BusStop } from '../sim/town.ts';
 import type { RadioHost } from './radio.ts';
 import type { Sound } from './sound.ts';
@@ -101,6 +103,7 @@ export class App {
   private saveClock = AUTOSAVE_S;
   private actionsKey = '';
   private padAction = new PadButton(PAD_ACTION);
+  clips: ClipBackend | null = null; // the recorded voices, for the Menu's choice and its samples
   private lastStop: BusStop | null = null;
   private trackerKey = '';
   private bodyKey = '';
@@ -244,7 +247,7 @@ export class App {
         this.store();
         break;
       case 'bus':
-        if (e.what === 'bell') { this.sound.chime(1180); this.banner('Bus stopping'); break; }
+        if (e.what === 'bell') { this.sound.chime(1180); this.voice.say('bus_stopping'); break; } // says it and shows it
         this.view.footChanged();
         if (e.what === 'on') this.toast(e.fare ? `Fare paid, ${e.fare} Points. Ring the bell before your stop` : 'On the bus. Ring the bell before your stop');
         else this.toast('Off the bus');
@@ -741,6 +744,8 @@ export class App {
       ${s.input === 'tilt' ? '<div class="row" style="margin-top:6px"><button class="ghost" id="centre-tilt">Re-centre tilt</button></div>' : ''}
       <p>Layout</p><div class="row">${opt('hand:right', 'Right-handed', s.hand === 'right')}${opt('hand:left', 'Left-handed', s.hand === 'left')}</div>
       <p>Voice and sound</p><div class="row">${opt('mute:0', 'On', !s.muted)}${opt('mute:1', 'Off', s.muted)}</div>
+      <p>Sat nav voice</p><div class="row">${[...CHOOSABLE, 'device'].map((v) => opt(`guide:${v}`, VOICE_NAMES[v] ?? 'Device', s.voices.guide === v)).join('')}</div>
+      <p>Radio DJ voice</p><div class="row">${[...CHOOSABLE, 'device'].map((v) => opt(`dj:${v}`, VOICE_NAMES[v] ?? 'Device', s.voices.dj === v)).join('')}</div>
       <p>Graphics${this.view.fps ? ` (running at ${this.view.fps} fps)` : ''}</p><div class="row">${opt('gfx:auto', 'Auto', s.graphics === 'auto')}${opt('gfx:high', 'High', s.graphics === 'high')}${opt('gfx:low', 'Low', s.graphics === 'low')}</div>
       <p>You on foot</p><div class="row looks">${LOOKS.map((l, i) => `<button class="ghost look ${s.look === i ? 'on' : ''}" data-v="look:${i}" aria-label="Look ${i + 1}" style="background:linear-gradient(${l.hair} 0 22%, ${l.skin} 22% 38%, ${l.shirt} 38% 70%, ${l.trousers} 70%)"></button>`).join('')}</div>
       <p>Car body</p><div class="row">${opt('body:voxel', 'Voxel', s.body === 'voxel')}${opt('body:blocks', 'Blocks', s.body === 'blocks')}</div>
@@ -772,6 +777,12 @@ export class App {
       if (k === 'body') { s.body = v as DriveSave['body']; this.view.bodyStyle = s.body; this.view.setCar(s.designs[s.car] ?? {}, s.driver); }
       if (k === 'debug') s.debug = v === '1';
       if (k === 'look') { s.look = Number(v); this.view.you.setLook(s.look); }
+      if (k === 'guide' || k === 'dj') { // a sample in the new voice, so you hear what you picked
+        s.voices[k] = v;
+        this.voice.muted = s.muted;
+        if (k === 'guide') this.voice.say('left_ahead');
+        else { const line = this.clips?.sample('dj'); if (line) this.voice.chatter(line); }
+      }
       this.store();
       this.openPause();
     };

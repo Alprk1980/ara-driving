@@ -2,10 +2,11 @@
 // dropped, so the game never says "turn left" after the junction.
 import type { VoiceKey, VoiceLine } from '../../schemas/content.ts';
 import type { Cue } from '../sim/route.ts';
+import { clipKey, clipPath, DEFAULT_VOICES, type ClipIndex, type Role, type VoiceChoice } from './clips.ts';
 
 const PRIORITY: Record<VoiceKey, number> = {
   fuel_critical: 5, reached: 4, left_now: 3, right_now: 3, uturn_now: 3, recalculating: 2,
-  left_ahead: 1, right_ahead: 1, uturn_ahead: 1, fuel_low: 0,
+  left_ahead: 1, right_ahead: 1, uturn_ahead: 1, fuel_low: 0, bus_stopping: 2,
 };
 const STALE_MS = 2000;
 
@@ -29,6 +30,80 @@ export class SpeechBackend implements VoiceBackend {
     speechSynthesis.speak(u);
   }
   cancel() { speechSynthesis.cancel(); this.speaking = false; }
+}
+
+const SILENT_WAV = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
+
+/** The recorded clips in public/voice where a line has one (tools/voicegen.ts makes them), the device's own speech for
+ * anything else, and for any clip that won't play. */
+export class ClipBackend implements VoiceBackend {
+  ready: boolean;
+  speaking = false;
+  private clips: ClipIndex = {};
+  /** Who reads the sat nav and the radio: the Menu's choice, which the save keeps. */
+  choice: VoiceChoice = { ...DEFAULT_VOICES };
+  private audio: HTMLAudioElement | null;
+  private fallback: VoiceBackend;
+  private playing = 0; // which play is current: a cut-off one's late failure must not touch the line after it
+
+  constructor(fallback: VoiceBackend, audio: HTMLAudioElement | null = typeof Audio === 'undefined' ? null : new Audio()) {
+    this.fallback = fallback;
+    this.audio = audio;
+    this.ready = !!this.audio || fallback.ready;
+  }
+
+  /** Which lines have a clip. Without the list every line is spoken by the device, as before. */
+  async load(url = 'voice/clips.json') {
+    try {
+      const r = await fetch(url);
+      if (r.ok) this.clips = await r.json();
+    } catch { /* offline before the list was cached: the device's speech it is */ }
+  }
+
+  get count() { return Object.keys(this.clips).length; }
+
+  /** A line that this role says, to try a voice out with. */
+  sample(role: Role): string | null { return Object.values(this.clips).find((c) => c.role === role)?.text ?? null; }
+
+  /** The clip to play for a line, in the chosen voice; null for the device's own speech. */
+  private clipFor(text: string): string | null {
+    const key = clipKey(text), c = this.clips[key];
+    if (!c) return null;
+    const voice = c.role === 'rider' ? Object.keys(c.voices)[0] : this.choice[c.role];
+    return voice && voice in c.voices ? clipPath(voice, key) : null;
+  }
+
+  /** Inside the Start tap: a phone only lets audio play from a tap, and this one element is then free to play. */
+  unlock() {
+    this.fallback.unlock();
+    if (this.audio) { this.playing++; this.audio.src = SILENT_WAV; this.audio.play().catch(() => {}); }
+  }
+
+  speak(text: string, done: () => void) {
+    const file = this.clipFor(text), a = this.audio;
+    this.speaking = true;
+    const spoken = () => { this.speaking = false; done(); };
+    if (!a || !file) return this.fallback.speak(text, spoken);
+    const id = ++this.playing;
+    const finish = (fell: boolean) => {
+      if (id !== this.playing) return; // a newer line has the speaker now
+      this.playing++;
+      a.onended = a.onerror = null;
+      if (fell) this.fallback.speak(text, spoken); else spoken();
+    };
+    a.onended = () => finish(false);
+    a.onerror = () => finish(true);
+    a.src = `voice/${file}`;
+    // Starting a new clip cuts off the one before, whose play() then fails with AbortError: that's not this clip failing.
+    a.play().catch((e: Error) => { if (e?.name !== 'AbortError') finish(true); });
+  }
+
+  cancel() {
+    this.playing++;
+    if (this.audio) { this.audio.onended = this.audio.onerror = null; this.audio.pause(); }
+    this.fallback.cancel();
+    this.speaking = false;
+  }
 }
 
 export const cueKey = (c: Cue): VoiceKey => (c.stage === 'reached' ? 'reached' : (`${c.manoeuvre.kind}_${c.stage}` as VoiceKey));

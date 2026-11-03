@@ -32,13 +32,14 @@ export const STYLES: Record<CatalogueKind, Record<string, { tier: Tier; colors: 
 };
 export const DECAL_SHAPES = ['star', 'bolt', 'heart', 'paw', 'crown', 'number'] as const;
 
-export const VOICE_KEYS = ['left_ahead', 'left_now', 'right_ahead', 'right_now', 'uturn_ahead', 'uturn_now', 'reached', 'recalculating', 'fuel_low', 'fuel_critical'] as const;
+export const VOICE_KEYS = ['left_ahead', 'left_now', 'right_ahead', 'right_now', 'uturn_ahead', 'uturn_now', 'reached', 'recalculating', 'fuel_low', 'fuel_critical', 'bus_stopping'] as const; // bus_stopping: the bell's been rung on the bus you're riding
 export type VoiceKey = (typeof VOICE_KEYS)[number];
 export type VoiceLine = { key: VoiceKey; text: string };
 const VOICE_WORD: Record<VoiceKey, RegExp> = {
   left_ahead: /\bleft\b/i, left_now: /\bleft\b/i, right_ahead: /\bright\b/i, right_now: /\bright\b/i,
   uturn_ahead: /\bu-turn\b/i, uturn_now: /\bu-turn\b/i, reached: /\b(reached|arrived)\b/i,
   recalculating: /\b(recalculating|new route|rerouting)\b/i, fuel_low: /\b(fuel|petrol)\b/i, fuel_critical: /\b(fuel|petrol)\b/i,
+  bus_stopping: /\bstopping\b/i, // a UK bus lights up and says Bus stopping once the bell's rung
 };
 
 const ID = /^[a-z][a-z0-9_]*$/;

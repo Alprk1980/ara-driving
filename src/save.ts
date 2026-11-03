@@ -3,6 +3,7 @@ import type { SchemeId } from './input/schemes.ts';
 import { CARS } from './sim/economy.ts';
 import type { Trip } from './sim/game.ts';
 import { freshProgress, type Progress } from './sim/quests.ts';
+import { CHOOSABLE, DEFAULT_VOICES, type VoiceChoice } from './ui/clips.ts';
 
 export const GAME_ID = 'ara_driving';
 export const SAVE_KEY = 'ara_driving';
@@ -40,10 +41,11 @@ export type DriveSave = {
   walls: WallHit[]; // the holes still showing in buildings
   ledger: LedgerLine[]; // the latest Points changes, newest first
   look: number; // which of the town's people you are when you get out of the car
+  voices: VoiceChoice; // who reads the sat nav and the radio
 };
 
 export const emptySave = (touch: boolean): DriveSave => ({
-  v: 1, car: 'hatchback', fuel: {}, dmg: {}, designs: {}, driver: {}, input: touch ? 'joystick' : 'keyboard', hand: 'right', camera: 0, muted: false, radio: 0, progress: freshProgress(), guide: [], graphics: 'auto', body: 'voxel', picked: false, debug: false, start: -1, lastStart: -1, trip: null, walls: [], ledger: [], look: 0,
+  v: 1, car: 'hatchback', fuel: {}, dmg: {}, designs: {}, driver: {}, input: touch ? 'joystick' : 'keyboard', hand: 'right', camera: 0, muted: false, radio: 0, progress: freshProgress(), guide: [], graphics: 'auto', body: 'voxel', picked: false, debug: false, start: -1, lastStart: -1, trip: null, walls: [], ledger: [], look: 0, voices: { ...DEFAULT_VOICES },
 });
 
 export function saveErrors(s: DriveSave): string[] {
@@ -68,6 +70,7 @@ export function saveErrors(s: DriveSave): string[] {
   if (typeof s.debug !== 'boolean') out.push('debug must be true or false');
   if (!Number.isInteger(s.start) || !Number.isInteger(s.lastStart)) out.push('start must be a plot or -1');
   if (!Number.isInteger(s.look) || s.look < 0) out.push('look must be a whole number from 0');
+  if (!s.voices || [s.voices.guide, s.voices.dj].some((v) => v !== 'device' && !CHOOSABLE.includes(v))) out.push('voices must be choosable voices or device');
   return out;
 }
 

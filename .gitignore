@@ -10,3 +10,4 @@ out.log
 # contact sheets, rebuilt from drawings/sheets
 drawings/contact-*.png
 drawings/all-buildings.png
+.voice-runs

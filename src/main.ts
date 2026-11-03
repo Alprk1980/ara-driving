@@ -28,7 +28,7 @@ import { App, ProfileWallet } from './ui/app.ts';
 import { PerfMeter } from './ui/perf.ts';
 import { RadioHost } from './ui/radio.ts';
 import { Sound } from './ui/sound.ts';
-import { SpeechBackend, VoiceGuide } from './ui/voice.ts';
+import { ClipBackend, SpeechBackend, VoiceGuide } from './ui/voice.ts';
 import { View } from './view/scene.ts';
 
 /** Move the loader on, and let the browser paint it before the next heavy stage. */
@@ -66,7 +66,9 @@ await loading(82, 'Fetching your car');
 view.setCar(save.designs[save.car] ?? {}, save.driver);
 view.replayWalls(save.walls);
 
-const speech = new SpeechBackend();
+const speech = new ClipBackend(new SpeechBackend()); // recorded clips first, the device's own voice for the rest
+void speech.load();
+speech.choice = save.voices; // the same object, so a choice in the Menu takes at once
 let app: App;
 const voice = new VoiceGuide(voiceLines as VoiceLine[], speech, (text, key) => app?.banner(text, key === 'fuel_critical'), () => sound.chime());
 voice.muted = sound.muted = save.muted;
@@ -74,6 +76,7 @@ const router = new InputRouter(new FloatingJoystick(freshHeld()), (id) => app?.t
 app = new App(game, view, wallet, save, router, voice, sound, items, new RadioHost(radioLines as RadioLine[]), stations as Station[], { guide: guideLines as GuideLine[], chatter: chatter as ChatterLine[], ranks: ranks as Rank[], stories: stories as StoryPlace[] });
 
 app.padLabels(); // a save left on foot opens on foot
+app.clips = speech;
 let running = false;
 const enter = async () => {
   await app.applyScheme(save.input);

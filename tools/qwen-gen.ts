@@ -300,7 +300,11 @@ Write 8 lines with topic travel.` },
   },
   voice: {
     file: 'src/data/voice.json', prompt: 'prompts/voice.txt', errors: voiceErrors as Kind['errors'], key: 'key',
-    batches: () => [{ ask: `Write one line for each key: ${VOICE_KEYS.join(', ')}.` }],
+    batches: () => { // only the keys with no line yet, or named to redo
+      const have = new Set(existsSync('src/data/voice.json') ? (JSON.parse(readFileSync('src/data/voice.json', 'utf8')) as { key: string }[]).map((v) => v.key) : []);
+      const open = VOICE_KEYS.filter((k) => replace.has(k) || !have.has(k));
+      return open.length ? [{ ask: `Write one line for each key: ${open.join(', ')}.` }] : [];
+    },
   },
 };
 

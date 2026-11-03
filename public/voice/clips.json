@@ -1,0 +1,1654 @@
+{
+ "29826280": {
+  "text": "Plant Shed fills baskets with cheerful greenery and easy chats.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 4.31,
+   "bf_emma": 3.51,
+   "bf_isabella": 3.61,
+   "bf_alice": 3.83,
+   "bf_lily": 3.8,
+   "bm_fable": 4.37,
+   "bm_lewis": 4.09,
+   "bm_daniel": 3.66
+  }
+ },
+ "50527811": {
+  "text": "The school fun day is on, and teachers love deliveries!",
+  "role": "dj",
+  "voices": {
+   "bm_george": 3.86,
+   "bm_fable": 3.72,
+   "bf_emma": 3.07,
+   "bf_isabella": 3.17,
+   "bf_alice": 3.35,
+   "bf_lily": 3.34,
+   "bm_lewis": 3.64,
+   "bm_daniel": 3.2
+  }
+ },
+ "78563204": {
+  "text": "Hey! Nice to meet you. Bit of drizzle, eh?",
+  "role": "rider",
+  "voices": {
+   "bm_fable": 3.02
+  }
+ },
+ "1f45d222": {
+  "text": "Turn left ahead",
+  "role": "guide",
+  "voices": {
+   "bf_emma": 1.28,
+   "bf_isabella": 1.43,
+   "bf_alice": 1.42,
+   "bf_lily": 1.64,
+   "bm_george": 1.59,
+   "bm_fable": 1.52,
+   "bm_lewis": 1.32,
+   "bm_daniel": 1.38
+  }
+ },
+ "7f124a13": {
+  "text": "Turn left now",
+  "role": "guide",
+  "voices": {
+   "bf_emma": 1.18,
+   "bf_isabella": 1.32,
+   "bf_alice": 1.29,
+   "bf_lily": 1.47,
+   "bm_george": 1.43,
+   "bm_fable": 1.29,
+   "bm_lewis": 1.19,
+   "bm_daniel": 1.27
+  }
+ },
+ "977133cd": {
+  "text": "Turn right ahead",
+  "role": "guide",
+  "voices": {
+   "bf_emma": 1.33,
+   "bf_isabella": 1.43,
+   "bf_alice": 1.43,
+   "bf_lily": 1.56,
+   "bm_george": 1.46,
+   "bm_fable": 1.57,
+   "bm_lewis": 1.32,
+   "bm_daniel": 1.39
+  }
+ },
+ "01cd8534": {
+  "text": "Turn right now",
+  "role": "guide",
+  "voices": {
+   "bf_emma": 1.21,
+   "bf_isabella": 1.33,
+   "bf_alice": 1.38,
+   "bf_lily": 1.5,
+   "bm_george": 1.47,
+   "bm_fable": 1.49,
+   "bm_lewis": 1.21,
+   "bm_daniel": 1.36
+  }
+ },
+ "efb76ddd": {
+  "text": "U-turn ahead",
+  "role": "guide",
+  "voices": {
+   "bf_emma": 1.26,
+   "bf_isabella": 1.32,
+   "bf_alice": 1.34,
+   "bm_george": 1.53,
+   "bm_fable": 1.32,
+   "bm_lewis": 1.26,
+   "bm_daniel": 1.37,
+   "bf_lily": 1.6
+  }
+ },
+ "29f63464": {
+  "text": "U-turn now",
+  "role": "guide",
+  "voices": {
+   "bf_emma": 1.13,
+   "bf_isabella": 1.27,
+   "bf_alice": 1.24,
+   "bf_lily": 1.34,
+   "bm_george": 1.36,
+   "bm_fable": 1.19,
+   "bm_lewis": 1.12,
+   "bm_daniel": 1.21
+  }
+ },
+ "06390041": {
+  "text": "Destination reached",
+  "role": "guide",
+  "voices": {
+   "bf_emma": 1.45,
+   "bm_fable": 1.74,
+   "bf_isabella": 1.59,
+   "bf_alice": 1.66,
+   "bf_lily": 1.83,
+   "bm_george": 1.84,
+   "bm_lewis": 1.58,
+   "bm_daniel": 1.63
+  }
+ },
+ "1895b05e": {
+  "text": "Recalculating route",
+  "role": "guide",
+  "voices": {
+   "bf_emma": 1.48,
+   "bm_fable": 1.77,
+   "bf_isabella": 1.73,
+   "bf_alice": 1.7,
+   "bf_lily": 1.86,
+   "bm_george": 1.71,
+   "bm_lewis": 1.56,
+   "bm_daniel": 1.64
+  }
+ },
+ "95e7c39d": {
+  "text": "Fuel is low",
+  "role": "guide",
+  "voices": {
+   "bf_emma": 1.16,
+   "bf_isabella": 1.37,
+   "bf_alice": 1.29,
+   "bf_lily": 1.49,
+   "bm_george": 1.43,
+   "bm_fable": 1.32,
+   "bm_lewis": 1.31,
+   "bm_daniel": 1.35
+  }
+ },
+ "5107bb34": {
+  "text": "Fuel is critical",
+  "role": "guide",
+  "voices": {
+   "bf_emma": 1.42,
+   "bf_isabella": 1.59,
+   "bf_alice": 1.6,
+   "bf_lily": 1.65,
+   "bm_george": 1.68,
+   "bm_fable": 1.69,
+   "bm_lewis": 1.53,
+   "bm_daniel": 1.52
+  }
+ },
+ "af9bbd3a": {
+  "text": "Corner Bakery has warm rolls and smiles by the till.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 3.92,
+   "bf_emma": 2.97,
+   "bf_isabella": 3.05,
+   "bf_alice": 3.22,
+   "bf_lily": 3.3,
+   "bm_fable": 3.71,
+   "bm_lewis": 3.66,
+   "bm_daniel": 3.22
+  }
+ },
+ "960f63eb": {
+  "text": "Toy Nook keeps little hands busy and big imaginations happy.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 4.52,
+   "bf_emma": 3.69,
+   "bf_isabella": 3.84,
+   "bf_alice": 3.96,
+   "bf_lily": 3.9,
+   "bm_fable": 4.42,
+   "bm_lewis": 4.36,
+   "bm_daniel": 3.85
+  }
+ },
+ "f0985ef5": {
+  "text": "Sewing Basket has buttons, ribbons, and friendly help.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 3.77,
+   "bf_emma": 3.12,
+   "bf_isabella": 3.19,
+   "bf_alice": 3.36,
+   "bf_lily": 3.39,
+   "bm_fable": 3.97,
+   "bm_lewis": 3.66,
+   "bm_daniel": 3.24
+  }
+ },
+ "5647bfa8": {
+  "text": "Candle Loft sells lovely candles, so pop in for a cosy glow.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 4.38,
+   "bf_emma": 3.8,
+   "bf_isabella": 3.98,
+   "bm_fable": 4.12,
+   "bf_alice": 3.96,
+   "bf_lily": 3.93,
+   "bm_lewis": 4.2,
+   "bm_daniel": 3.89
+  }
+ },
+ "d5234157": {
+  "text": "Sun Cup Cafe pours friendly chats with your cuppa.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 3.54,
+   "bm_fable": 3.62,
+   "bf_emma": 2.91,
+   "bf_isabella": 2.98,
+   "bf_alice": 3.08,
+   "bf_lily": 3.07,
+   "bm_lewis": 3.24,
+   "bm_daniel": 3.03
+  }
+ },
+ "83d884d4": {
+  "text": "Maple Mug makes mugs feel like a hug in a cup.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 3.7,
+   "bm_fable": 3.59,
+   "bf_emma": 2.79,
+   "bf_isabella": 2.86,
+   "bf_alice": 3.18,
+   "bf_lily": 3.16,
+   "bm_lewis": 3.2,
+   "bm_daniel": 3.06
+  }
+ },
+ "0abf41d7": {
+  "text": "Berry Lane Cafe serves toast, cakes, and a warm hello.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 4.07,
+   "bm_fable": 4.07,
+   "bf_emma": 3.13,
+   "bf_isabella": 3.19,
+   "bf_alice": 3.46,
+   "bf_lily": 3.42,
+   "bm_lewis": 3.87,
+   "bm_daniel": 3.38
+  }
+ },
+ "256e5027": {
+  "text": "Fresh Cart has crisp veggies, bread, and cheerful greetings.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 4.02,
+   "bm_fable": 4.03,
+   "bf_emma": 3.16,
+   "bf_isabella": 3.12,
+   "bf_alice": 3.43,
+   "bf_lily": 3.44,
+   "bm_lewis": 3.81,
+   "bm_daniel": 3.32
+  }
+ },
+ "0b5a0a1e": {
+  "text": "Sunday Market is a lovely wander for treats and chats.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 3.74,
+   "bm_fable": 3.74,
+   "bf_emma": 3.05,
+   "bf_isabella": 3.12,
+   "bf_alice": 3.37,
+   "bf_lily": 3.41,
+   "bm_lewis": 3.54,
+   "bm_daniel": 3.18
+  }
+ },
+ "2948f71e": {
+  "text": "Market's heaving today, so if you're after the good bread, I'd get a shift on.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 4.74,
+   "bm_fable": 4.6,
+   "bf_emma": 4.11,
+   "bf_isabella": 4.3,
+   "bf_alice": 4.14,
+   "bf_lily": 4.22,
+   "bm_lewis": 4.55,
+   "bm_daniel": 4.02
+  }
+ },
+ "c508701f": {
+  "text": "School run's busy near the Garden Suburb, so take the long route and have a cheeky cuppa.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 5.71,
+   "bm_fable": 5.28,
+   "bf_emma": 4.79,
+   "bf_isabella": 4.83,
+   "bf_alice": 5.16,
+   "bf_lily": 5.04,
+   "bm_lewis": 5.56,
+   "bm_daniel": 4.9
+  }
+ },
+ "b4e7ae9a": {
+  "text": "High street's buzzing, but the bus'll be stuck, so I'd walk and wave at the Fresh Cart.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 5.47,
+   "bm_fable": 4.9,
+   "bf_emma": 4.5,
+   "bf_isabella": 4.54,
+   "bf_alice": 4.8,
+   "bf_lily": 4.66,
+   "bm_lewis": 5.43,
+   "bm_daniel": 4.66
+  }
+ },
+ "d0c6647f": {
+  "text": "I've just grabbed a mug from the Sun Cup Cafe, and it's doing its job.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 4.54,
+   "bm_fable": 4.33,
+   "bf_emma": 3.81,
+   "bf_isabella": 3.99,
+   "bf_alice": 4.03,
+   "bf_lily": 3.94,
+   "bm_lewis": 4.25,
+   "bm_daniel": 3.99
+  }
+ },
+ "efa3f389": {
+  "text": "Corner Bakery's queue's snaking round, but the smell makes the wait feel like a lovely little holiday.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 6.42,
+   "bm_fable": 5.74,
+   "bf_emma": 5.5,
+   "bf_isabella": 5.5,
+   "bf_alice": 5.9,
+   "bf_lily": 5.71,
+   "bm_lewis": 6.14,
+   "bm_daniel": 5.53
+  }
+ },
+ "6426e2eb": {
+  "text": "Parcel Depot's busy again, and I saw a dog guarding the boxes like a tiny security guard.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 6.55,
+   "bm_fable": 5.77,
+   "bf_emma": 5.47,
+   "bf_isabella": 5.57,
+   "bf_alice": 5.9,
+   "bf_lily": 5.8,
+   "bm_lewis": 6.27,
+   "bm_daniel": 5.58
+  }
+ },
+ "5ffe40f2": {
+  "text": "Toy Nook's window display changed, so kids stop and mums pretend not to smile.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 5.64,
+   "bm_fable": 5.18,
+   "bf_emma": 4.77,
+   "bf_isabella": 4.7,
+   "bf_alice": 5.09,
+   "bf_lily": 5.02,
+   "bm_lewis": 5.35,
+   "bm_daniel": 4.83
+  }
+ },
+ "45bf9af3": {
+  "text": "Garden Suburb's bin day, so if you hear a crunch, it's probably someone's dodgy recycling.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 6,
+   "bm_fable": 5.17,
+   "bf_emma": 5.05,
+   "bf_isabella": 5.27,
+   "bf_alice": 5.33,
+   "bf_lily": 5.24,
+   "bm_lewis": 5.82,
+   "bm_daniel": 5.27
+  }
+ },
+ "243958a8": {
+  "text": "Sewing Basket's got new wool, and I'm tempted to buy enough for a jumper.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 4.67,
+   "bm_fable": 4.48,
+   "bf_emma": 4.08,
+   "bf_isabella": 4.12,
+   "bf_alice": 4.36,
+   "bf_lily": 4.26,
+   "bm_lewis": 4.43,
+   "bm_daniel": 4.16
+  }
+ },
+ "c0e8f946": {
+  "text": "Delivery Bay's packed, but drivers wave, so it's cheerful chaos rather than a proper fuss.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 5.88,
+   "bm_fable": 5.59,
+   "bf_emma": 4.95,
+   "bf_isabella": 5.06,
+   "bf_alice": 5.2,
+   "bf_lily": 5.19,
+   "bm_lewis": 5.93,
+   "bm_daniel": 4.92
+  }
+ },
+ "f6f17ae1": {
+  "text": "Old Town's busy, so take your time through the lights.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 3.59,
+   "bm_fable": 3.3,
+   "bf_emma": 2.82,
+   "bf_isabella": 2.94,
+   "bf_alice": 3.09,
+   "bf_lily": 3.1,
+   "bm_lewis": 3.42,
+   "bm_daniel": 2.89
+  }
+ },
+ "1c7704a2": {
+  "text": "Business Quarter traffic's moving nicely today, so you're good to go.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 4.27,
+   "bm_fable": 4.3,
+   "bf_emma": 3.65,
+   "bf_isabella": 3.81,
+   "bf_alice": 3.77,
+   "bf_lily": 3.87,
+   "bm_lewis": 4.09,
+   "bm_daniel": 3.79
+  }
+ },
+ "94a11bbb": {
+  "text": "School run's making Garden Suburb a bit slow today.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 3.84,
+   "bm_fable": 3.67,
+   "bf_emma": 3.04,
+   "bf_isabella": 3.1,
+   "bf_alice": 3.36,
+   "bf_lily": 3.44,
+   "bm_lewis": 3.54,
+   "bm_daniel": 3.3
+  }
+ },
+ "41d0e002": {
+  "text": "The Works road's clear, so keep a steady pace.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 3.19,
+   "bm_fable": 3.19,
+   "bf_emma": 2.62,
+   "bf_isabella": 2.64,
+   "bf_alice": 2.65,
+   "bf_lily": 2.69,
+   "bm_lewis": 3.04,
+   "bm_daniel": 2.62
+  }
+ },
+ "5141b795": {
+  "text": "A queue's building at the Business Quarter junction, but it's clearing soon.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 4.38,
+   "bm_fable": 4.33,
+   "bf_emma": 3.77,
+   "bf_isabella": 3.89,
+   "bf_alice": 3.95,
+   "bf_lily": 3.89,
+   "bm_lewis": 4.17,
+   "bm_daniel": 3.79
+  }
+ },
+ "a037e539": {
+  "text": "Roundabout in Old Town's busy, so let's give one another a little space.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 4.98,
+   "bm_fable": 4.64,
+   "bf_emma": 4.16,
+   "bf_isabella": 4.33,
+   "bf_alice": 4.44,
+   "bf_lily": 4.42,
+   "bm_lewis": 4.69,
+   "bm_daniel": 4.23
+  }
+ },
+ "a5bd567c": {
+  "text": "Garden Suburb's got a school run queue, so mind the crossing ahead.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 4.51,
+   "bm_fable": 4.3,
+   "bf_emma": 3.68,
+   "bf_isabella": 3.81,
+   "bf_alice": 4.04,
+   "bf_lily": 3.93,
+   "bm_lewis": 4.16,
+   "bm_daniel": 3.75
+  }
+ },
+ "59bb3c63": {
+  "text": "Traffic's moving well through The Works and Business Quarter, so keep the lane tidy.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 5.07,
+   "bm_fable": 4.8,
+   "bf_emma": 4.18,
+   "bf_isabella": 4.45,
+   "bf_alice": 4.66,
+   "bf_lily": 4.53,
+   "bm_lewis": 4.75,
+   "bm_daniel": 4.43
+  }
+ },
+ "a7e6e811": {
+  "text": "Sunny spells breaking through today, so enjoy the bright bits while they last.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 4.86,
+   "bm_fable": 4.64,
+   "bf_emma": 4.15,
+   "bf_isabella": 4.34,
+   "bf_alice": 4.36,
+   "bf_lily": 4.37,
+   "bm_lewis": 4.65,
+   "bm_daniel": 4.33
+  }
+ },
+ "b8a10b3f": {
+  "text": "We've got sunny intervals later, with a fresh breeze keeping things nicely brisk.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 5.11,
+   "bm_fable": 4.87,
+   "bf_emma": 4.52,
+   "bf_isabella": 4.53,
+   "bf_alice": 4.63,
+   "bf_lily": 4.55,
+   "bm_lewis": 4.87,
+   "bm_daniel": 4.47
+  }
+ },
+ "a0618fd9": {
+  "text": "Cloudy at first, then mild and bright, so a pleasant one for a drive.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 4.73,
+   "bm_fable": 4.34,
+   "bf_emma": 3.81,
+   "bf_isabella": 4.03,
+   "bf_alice": 4.08,
+   "bf_lily": 3.96,
+   "bm_lewis": 4.56,
+   "bm_daniel": 3.91
+  }
+ },
+ "6d368532": {
+  "text": "Frost out on the lanes today, but it's turning bright and dry.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 4.03,
+   "bm_fable": 3.8,
+   "bf_emma": 3.32,
+   "bf_isabella": 3.42,
+   "bf_alice": 3.38,
+   "bf_lily": 3.41,
+   "bm_lewis": 3.89,
+   "bm_daniel": 3.37
+  }
+ },
+ "53c8c7f4": {
+  "text": "Misty first thing, then a fresh breeze clears it for bright, dry driving.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 4.79,
+   "bm_fable": 4.62,
+   "bf_emma": 3.88,
+   "bf_isabella": 4.04,
+   "bf_alice": 4.18,
+   "bf_lily": 4.26,
+   "bm_lewis": 4.81,
+   "bm_daniel": 4.1
+  }
+ },
+ "a002ae75": {
+  "text": "It's chilly now, but bright and mild, so keep your jacket handy.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 4.23,
+   "bm_fable": 4.1,
+   "bf_emma": 3.48,
+   "bf_isabella": 3.6,
+   "bf_alice": 3.68,
+   "bf_lily": 3.65,
+   "bm_lewis": 4.32,
+   "bm_daniel": 3.54
+  }
+ },
+ "79d7cfa5": {
+  "text": "It's a clear night, so if you're home late, look up for stars.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 3.71,
+   "bm_fable": 3.66,
+   "bf_emma": 3.09,
+   "bf_isabella": 3.12,
+   "bf_alice": 3.25,
+   "bf_lily": 3.3,
+   "bm_lewis": 3.66,
+   "bm_daniel": 3.1
+  }
+ },
+ "f82b5a7b": {
+  "text": "Evening's settling in, and the town looks lovely under the moon.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 3.99,
+   "bm_fable": 3.88,
+   "bf_emma": 3.4,
+   "bf_isabella": 3.51,
+   "bf_alice": 3.54,
+   "bf_lily": 3.53,
+   "bm_lewis": 3.8,
+   "bm_daniel": 3.48
+  }
+ },
+ "7f1d4b2f": {
+  "text": "Dark tonight, so take your time and enjoy the quiet roads.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 4.12,
+   "bm_fable": 3.89,
+   "bf_emma": 3.19,
+   "bf_isabella": 3.34,
+   "bf_alice": 3.6,
+   "bf_lily": 3.52,
+   "bm_lewis": 3.97,
+   "bm_daniel": 3.34
+  }
+ },
+ "03768c58": {
+  "text": "If you're out late, keep it cosy and let the night slow you down.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 4.14,
+   "bm_fable": 3.91,
+   "bf_emma": 3.28,
+   "bf_isabella": 3.33,
+   "bf_alice": 3.48,
+   "bf_lily": 3.59,
+   "bm_lewis": 3.94,
+   "bm_daniel": 3.43
+  }
+ },
+ "14a2cbf7": {
+  "text": "The moon's high now, so I hope your night's gentle and easy.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 3.84,
+   "bm_fable": 3.68,
+   "bf_emma": 3.05,
+   "bf_isabella": 3.21,
+   "bf_alice": 3.39,
+   "bf_lily": 3.47,
+   "bm_lewis": 3.63,
+   "bm_daniel": 3.21
+  }
+ },
+ "db66254b": {
+  "text": "Showers are popping through, so mind the puddles and enjoy the patter.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 4.33,
+   "bm_fable": 4.15,
+   "bf_emma": 3.64,
+   "bf_isabella": 3.68,
+   "bf_alice": 3.72,
+   "bf_lily": 3.75,
+   "bm_lewis": 4.09,
+   "bm_daniel": 3.62
+  }
+ },
+ "c928052b": {
+  "text": "Light drizzle on the windscreen, but it's the sort that makes the town cosy.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 4.72,
+   "bm_fable": 4.47,
+   "bf_emma": 3.79,
+   "bf_isabella": 4,
+   "bf_alice": 4.15,
+   "bf_lily": 4.04,
+   "bm_lewis": 4.37,
+   "bm_daniel": 3.9
+  }
+ },
+ "51907d8a": {
+  "text": "Outbreaks of rain moving over, so keep your wipers on and keep calm.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 4.69,
+   "bm_fable": 4.49,
+   "bf_emma": 3.83,
+   "bf_isabella": 4.03,
+   "bf_alice": 4.11,
+   "bf_lily": 4.05,
+   "bm_lewis": 4.39,
+   "bm_daniel": 3.98
+  }
+ },
+ "8186f1c3": {
+  "text": "Wet roads making the streets shine, so pop your umbrella out and stay cheerful.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 5.19,
+   "bm_fable": 5.11,
+   "bf_emma": 4.44,
+   "bf_isabella": 4.48,
+   "bf_alice": 4.65,
+   "bf_lily": 4.63,
+   "bm_lewis": 5.09,
+   "bm_daniel": 4.44
+  }
+ },
+ "75f0b301": {
+  "text": "Umbrellas out, drivers! It's a nice wet one, perfect for a cosy cuppa after.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 5.37,
+   "bm_fable": 5.19,
+   "bf_emma": 4.53,
+   "bf_isabella": 4.6,
+   "bf_alice": 4.78,
+   "bf_lily": 4.65,
+   "bm_lewis": 5.23,
+   "bm_daniel": 4.54
+  }
+ },
+ "18e97113": {
+  "text": "Puddles sparkling on the pavement, so splash around gently and enjoy the rain.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 5.31,
+   "bm_fable": 4.51,
+   "bf_emma": 4.44,
+   "bf_isabella": 4.59,
+   "bf_alice": 4.71,
+   "bf_lily": 4.77,
+   "bm_lewis": 5.14,
+   "bm_daniel": 4.54
+  }
+ },
+ "69d4f38f": {
+  "text": "Well done, driver, that's another job tucked away neatly.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 3.86,
+   "bm_fable": 3.8,
+   "bf_emma": 3.23,
+   "bf_isabella": 3.16,
+   "bf_alice": 3.4,
+   "bf_lily": 3.42,
+   "bm_lewis": 3.72,
+   "bm_daniel": 3.36
+  }
+ },
+ "940c6c18": {
+  "text": "Lovely work, you've earned yourself a proper cuppa now.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 3.28,
+   "bm_fable": 3.27,
+   "bf_emma": 2.69,
+   "bf_isabella": 2.73,
+   "bf_alice": 2.89,
+   "bf_lily": 2.97,
+   "bm_lewis": 3.14,
+   "bm_daniel": 2.94
+  }
+ },
+ "ad91e603": {
+  "text": "Sorted, you've had a nice little win on the high street.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 3.67,
+   "bm_fable": 3.62,
+   "bf_emma": 2.83,
+   "bf_isabella": 2.94,
+   "bf_alice": 3.34,
+   "bf_lily": 3.34,
+   "bm_lewis": 3.33,
+   "bm_daniel": 3.2
+  }
+ },
+ "a1e55aa0": {
+  "text": "That's a smart bit of work, let's keep smiling.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 2.97,
+   "bm_fable": 3.18,
+   "bf_emma": 2.55,
+   "bf_isabella": 2.5,
+   "bf_alice": 2.66,
+   "bf_lily": 2.84,
+   "bm_lewis": 2.82,
+   "bm_daniel": 2.74
+  }
+ },
+ "b125ce4c": {
+  "text": "Brilliant, you've just made the town a bit happier.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 2.94,
+   "bm_fable": 2.98,
+   "bf_emma": 2.31,
+   "bf_isabella": 2.38,
+   "bf_alice": 2.66,
+   "bf_lily": 2.74,
+   "bm_lewis": 2.72,
+   "bm_daniel": 2.44
+  }
+ },
+ "b0323896": {
+  "text": "Don't fret, driver, there's another job waiting somewhere.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 3.74,
+   "bm_fable": 3.83,
+   "bf_emma": 3.23,
+   "bf_isabella": 3.31,
+   "bf_alice": 3.28,
+   "bf_lily": 3.33,
+   "bm_lewis": 3.73,
+   "bm_daniel": 3.26
+  }
+ },
+ "833507df": {
+  "text": "It's okay, everyone misses a job now and then.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 3.39,
+   "bm_fable": 3.21,
+   "bf_emma": 2.68,
+   "bf_isabella": 2.73,
+   "bf_alice": 3.1,
+   "bf_lily": 3.09,
+   "bm_lewis": 3.17,
+   "bm_daniel": 3
+  }
+ },
+ "39eb2c73": {
+  "text": "Keep your chin up, we've got plenty going on.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 2.93,
+   "bm_fable": 2.9,
+   "bf_emma": 2.31,
+   "bf_isabella": 2.34,
+   "bf_alice": 2.6,
+   "bf_lily": 2.71,
+   "bm_lewis": 2.74,
+   "bm_daniel": 2.51
+  }
+ },
+ "d1454081": {
+  "text": "No worries, let's keep rolling and try again soon.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 3.39,
+   "bm_fable": 3.44,
+   "bf_emma": 2.78,
+   "bf_isabella": 2.75,
+   "bf_alice": 2.91,
+   "bf_lily": 3.02,
+   "bm_lewis": 3.15,
+   "bm_daniel": 2.93
+  }
+ },
+ "c2febbe9": {
+  "text": "Cheer up, the town won't let you down.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 2.45,
+   "bm_fable": 2.59,
+   "bf_emma": 2.01,
+   "bf_isabella": 2.09,
+   "bf_alice": 2.26,
+   "bf_lily": 2.43,
+   "bm_lewis": 2.24,
+   "bm_daniel": 2.14
+  }
+ },
+ "42622a0b": {
+  "text": "If the petrol's running low, pop into the forecourt.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 3.29,
+   "bm_fable": 3.3,
+   "bf_emma": 2.73,
+   "bf_isabella": 2.91,
+   "bf_alice": 3,
+   "bf_lily": 2.96,
+   "bm_lewis": 3.16,
+   "bm_daniel": 2.88
+  }
+ },
+ "ad917cb4": {
+  "text": "Give the tank a top-up before you head off.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 2.89,
+   "bm_fable": 2.93,
+   "bf_emma": 2.31,
+   "bf_isabella": 2.36,
+   "bf_alice": 2.51,
+   "bf_lily": 2.68,
+   "bm_lewis": 2.73,
+   "bm_daniel": 2.54
+  }
+ },
+ "aeedad39": {
+  "text": "The pump's waiting, so keep your tank happy.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 2.77,
+   "bm_fable": 3.04,
+   "bf_emma": 2.36,
+   "bf_isabella": 2.38,
+   "bf_alice": 2.55,
+   "bf_lily": 2.63,
+   "bm_lewis": 2.68,
+   "bm_daniel": 2.45
+  }
+ },
+ "082996d1": {
+  "text": "Don't run out, driver, there's fuel just ahead.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 3.12,
+   "bm_fable": 3.12,
+   "bf_emma": 2.45,
+   "bf_isabella": 2.62,
+   "bf_alice": 2.79,
+   "bf_lily": 2.91,
+   "bm_lewis": 3.11,
+   "bm_daniel": 2.73
+  }
+ },
+ "7c255ba1": {
+  "text": "You'll need petrol, and the pump's by the bus stop.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 3.02,
+   "bm_fable": 3.11,
+   "bf_emma": 2.47,
+   "bf_isabella": 2.56,
+   "bf_alice": 2.63,
+   "bf_lily": 2.67,
+   "bm_lewis": 2.83,
+   "bm_daniel": 2.61
+  }
+ },
+ "922ff6e8": {
+  "text": "You're on a lovely streak, keep that roll going.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 3.02,
+   "bm_fable": 3.1,
+   "bf_emma": 2.49,
+   "bf_isabella": 2.52,
+   "bf_alice": 2.66,
+   "bf_lily": 2.79,
+   "bm_lewis": 2.87,
+   "bm_daniel": 2.54
+  }
+ },
+ "ffa05071": {
+  "text": "You've nailed them in a row, that's great.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 2.66,
+   "bm_fable": 2.7,
+   "bf_emma": 2.12,
+   "bf_isabella": 2.11,
+   "bf_alice": 2.32,
+   "bf_lily": 2.42,
+   "bm_lewis": 2.23,
+   "bm_daniel": 2.26
+  }
+ },
+ "2a006842": {
+  "text": "That shift's gone like a breeze, driver.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 2.69,
+   "bm_fable": 2.89,
+   "bf_emma": 2.2,
+   "bf_isabella": 2.23,
+   "bf_alice": 2.4,
+   "bf_lily": 2.42,
+   "bm_lewis": 2.45,
+   "bm_daniel": 2.33
+  }
+ },
+ "48c5e63c": {
+  "text": "Here's another, you're building a proper streak.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 2.87,
+   "bm_fable": 2.87,
+   "bf_emma": 2.28,
+   "bf_isabella": 2.27,
+   "bf_alice": 2.51,
+   "bf_lily": 2.66,
+   "bm_lewis": 2.64,
+   "bm_daniel": 2.43
+  }
+ },
+ "5c42c93a": {
+  "text": "Streak's climbing, and we've got more jobs coming up.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 3.21,
+   "bm_fable": 3.18,
+   "bf_emma": 2.66,
+   "bf_isabella": 2.71,
+   "bf_alice": 2.87,
+   "bf_lily": 3,
+   "bm_lewis": 3.17,
+   "bm_daniel": 2.8
+  }
+ },
+ "e9440355": {
+  "text": "The roadworks are here, so cones guide you to a clever detour.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 3.91,
+   "bm_fable": 3.99,
+   "bf_emma": 3.42,
+   "bf_isabella": 3.51,
+   "bf_alice": 3.56,
+   "bf_lily": 3.59,
+   "bm_lewis": 3.86,
+   "bm_daniel": 3.45
+  }
+ },
+ "27ebff97": {
+  "text": "A friendly digger is digging, so please take the detour.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 3.68,
+   "bm_fable": 3.64,
+   "bf_emma": 3.02,
+   "bf_isabella": 3.24,
+   "bf_alice": 3.07,
+   "bf_lily": 3.2,
+   "bm_lewis": 3.45,
+   "bm_daniel": 3.07
+  }
+ },
+ "6b9af901": {
+  "text": "Cone cones on road, the works are slow and silly.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 3.5,
+   "bm_fable": 3.4,
+   "bf_emma": 2.79,
+   "bf_isabella": 2.84,
+   "bf_alice": 2.98,
+   "bf_lily": 2.99,
+   "bm_lewis": 3.28,
+   "bm_daniel": 2.95
+  }
+ },
+ "dacd91d2": {
+  "text": "The road works are busy, so find a detour with cheerful cones.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 4.11,
+   "bm_fable": 4.03,
+   "bf_emma": 3.55,
+   "bf_isabella": 3.6,
+   "bf_alice": 3.77,
+   "bf_lily": 3.7,
+   "bm_lewis": 3.86,
+   "bm_daniel": 3.59
+  }
+ },
+ "dbdd05a3": {
+  "text": "This road is digging slowly, but the detour is easy peasy.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 4.05,
+   "bm_fable": 3.87,
+   "bf_emma": 3.44,
+   "bf_isabella": 3.65,
+   "bf_alice": 3.6,
+   "bf_lily": 3.53,
+   "bm_lewis": 3.92,
+   "bm_daniel": 3.55
+  }
+ },
+ "30c55dbc": {
+  "text": "A parade with a float is marching, and the band plays!",
+  "role": "dj",
+  "voices": {
+   "bm_george": 3.73,
+   "bm_fable": 3.48,
+   "bf_emma": 2.94,
+   "bf_isabella": 2.98,
+   "bf_alice": 3.12,
+   "bf_lily": 3.21,
+   "bm_lewis": 3.48,
+   "bm_daniel": 3.14
+  }
+ },
+ "9ca0b316": {
+  "text": "The parade band is marching, so wave at the float.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 3.59,
+   "bm_fable": 3.57,
+   "bf_emma": 3.05,
+   "bf_isabella": 3.09,
+   "bf_alice": 3.19,
+   "bf_lily": 3.08,
+   "bm_lewis": 3.38,
+   "bm_daniel": 3
+  }
+ },
+ "77119fb6": {
+  "text": "A slow parade is on this road, with a float and band.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 3.86,
+   "bm_fable": 3.62,
+   "bf_emma": 2.97,
+   "bf_isabella": 3.06,
+   "bf_alice": 3.13,
+   "bf_lily": 3.18,
+   "bm_lewis": 3.65,
+   "bm_daniel": 3.1
+  }
+ },
+ "f7c3a80d": {
+  "text": "The march parade is cheerful, and the band plays softly.",
+  "role": "dj",
+  "voices": {
+   "bm_george": 3.76,
+   "bm_fable": 3.75,
+   "bf_emma": 3.15,
+   "bf_isabella": 3.32,
+   "bf_alice": 3.29,
+   "bf_lily": 3.27,
+   "bm_lewis": 3.46,
+   "bm_daniel": 3.2
+  }
+ },
+ "f128e693": {
+  "text": "The shop sale is on, and every shop wants a delivery!",
+  "role": "dj",
+  "voices": {
+   "bm_george": 3.55,
+   "bm_fable": 3.55,
+   "bf_emma": 3.04,
+   "bf_isabella": 3.17,
+   "bf_alice": 3.21,
+   "bf_lily": 3.28,
+   "bm_lewis": 3.35,
+   "bm_daniel": 3.12
+  }
+ },
+ "eca1577b": {
+  "text": "The cake fair is on, and every cafe wants a delivery!",
+  "role": "dj",
+  "voices": {
+   "bm_george": 3.73,
+   "bm_fable": 3.62,
+   "bf_emma": 2.99,
+   "bf_isabella": 3.09,
+   "bf_alice": 3.3,
+   "bf_lily": 3.38,
+   "bm_lewis": 3.55,
+   "bm_daniel": 3.23
+  }
+ },
+ "3136c548": {
+  "text": "The park festival is bright, and stalls need fresh treats!",
+  "role": "dj",
+  "voices": {
+   "bm_george": 3.72,
+   "bm_fable": 3.77,
+   "bf_emma": 3.17,
+   "bf_isabella": 3.31,
+   "bf_alice": 3.38,
+   "bf_lily": 3.33,
+   "bm_lewis": 3.59,
+   "bm_daniel": 3.27
+  }
+ },
+ "a3099297": {
+  "text": "The market day is buzzing, and stalls cheer for you!",
+  "role": "dj",
+  "voices": {
+   "bm_george": 3.31,
+   "bm_fable": 3.3,
+   "bf_emma": 2.5,
+   "bf_isabella": 2.51,
+   "bf_alice": 2.82,
+   "bf_lily": 2.88,
+   "bm_lewis": 2.95,
+   "bm_daniel": 2.81
+  }
+ },
+ "bede8df9": {
+  "text": "The office sale is cheerful, and desks want little parcels!",
+  "role": "dj",
+  "voices": {
+   "bm_george": 3.87,
+   "bm_fable": 4.04,
+   "bf_emma": 3.32,
+   "bf_isabella": 3.56,
+   "bf_alice": 3.49,
+   "bf_lily": 3.46,
+   "bm_lewis": 3.77,
+   "bm_daniel": 3.39
+  }
+ },
+ "05f6228a": {
+  "text": "The clinic fair is calm, and baskets need soft deliveries!",
+  "role": "dj",
+  "voices": {
+   "bm_george": 3.99,
+   "bm_fable": 3.91,
+   "bf_emma": 3.25,
+   "bf_isabella": 3.42,
+   "bf_alice": 3.5,
+   "bf_lily": 3.49,
+   "bm_lewis": 3.85,
+   "bm_daniel": 3.45
+  }
+ },
+ "a655237b": {
+  "text": "The library book sale is fun, and shelves need tidy boxes!",
+  "role": "dj",
+  "voices": {
+   "bm_george": 4.03,
+   "bm_fable": 4.14,
+   "bf_emma": 3.63,
+   "bf_isabella": 3.72,
+   "bf_alice": 3.76,
+   "bf_lily": 3.75,
+   "bm_lewis": 3.96,
+   "bm_daniel": 3.65
+  }
+ },
+ "cac4fa92": {
+  "text": "Lovely ride, this. Nice and smooth.",
+  "role": "rider",
+  "voices": {
+   "bf_isabella": 2.21
+  }
+ },
+ "868590b2": {
+  "text": "Quiet day for it, isn't it?",
+  "role": "rider",
+  "voices": {
+   "bm_fable": 2.22
+  }
+ },
+ "6de6b9a5": {
+  "text": "No rush at all, is there?",
+  "role": "rider",
+  "voices": {
+   "bf_isabella": 1.65
+  }
+ },
+ "ef59118c": {
+  "text": "Rather easy going, isn't it?",
+  "role": "rider",
+  "voices": {
+   "bm_fable": 2.38
+  }
+ },
+ "c6df426e": {
+  "text": "Good pace, actually. Very comfortable.",
+  "role": "rider",
+  "voices": {
+   "bf_isabella": 2.37
+  }
+ },
+ "ebcedd6f": {
+  "text": "Just right, this. Not bad at all.",
+  "role": "rider",
+  "voices": {
+   "bm_fable": 2.52
+  }
+ },
+ "b3daede4": {
+  "text": "Might warm up a bit, mind.",
+  "role": "rider",
+  "voices": {
+   "bf_isabella": 1.62
+  }
+ },
+ "b6caa581": {
+  "text": "Smooth as anything, this ride.",
+  "role": "rider",
+  "voices": {
+   "bm_fable": 2.46
+  }
+ },
+ "0d7fc86c": {
+  "text": "Gently now, eh. Gently.",
+  "role": "rider",
+  "voices": {
+   "bf_isabella": 1.77
+  }
+ },
+ "eb04181d": {
+  "text": "I'm going a bit tense.",
+  "role": "rider",
+  "voices": {
+   "bm_fable": 2.11
+  }
+ },
+ "c1e8aaac": {
+  "text": "Not ideal, that.",
+  "role": "rider",
+  "voices": {
+   "bf_isabella": 1.44
+  }
+ },
+ "4c475589": {
+  "text": "Mind the wobble, please.",
+  "role": "rider",
+  "voices": {
+   "bm_fable": 2.13
+  }
+ },
+ "59cf493c": {
+  "text": "Ah, yes, a bit wobbly.",
+  "role": "rider",
+  "voices": {
+   "bf_isabella": 1.6
+  }
+ },
+ "b973f31e": {
+  "text": "A bit shaky, that.",
+  "role": "rider",
+  "voices": {
+   "bm_fable": 1.93
+  }
+ },
+ "c0036a1d": {
+  "text": "Let's take it gently.",
+  "role": "rider",
+  "voices": {
+   "bf_isabella": 1.54
+  }
+ },
+ "8eb72678": {
+  "text": "Steady on, please.",
+  "role": "rider",
+  "voices": {
+   "bm_fable": 2.04
+  }
+ },
+ "9bf7065c": {
+  "text": "I liked that. Ta very much.",
+  "role": "rider",
+  "voices": {
+   "bf_isabella": 1.86
+  }
+ },
+ "192b1ae0": {
+  "text": "You're a star. Lovely ride.",
+  "role": "rider",
+  "voices": {
+   "bm_fable": 2.32
+  }
+ },
+ "eb72ab56": {
+  "text": "Cheers for that. Spot on.",
+  "role": "rider",
+  "voices": {
+   "bf_isabella": 1.7
+  }
+ },
+ "2af5262e": {
+  "text": "Not bad at all, that.",
+  "role": "rider",
+  "voices": {
+   "bm_fable": 2.04
+  }
+ },
+ "ad5b7b52": {
+  "text": "Thanks kindly. I'm grateful.",
+  "role": "rider",
+  "voices": {
+   "bf_isabella": 1.82
+  }
+ },
+ "3bd7e480": {
+  "text": "Lovely lift. Ta again.",
+  "role": "rider",
+  "voices": {
+   "bm_fable": 2.34
+  }
+ },
+ "46e20991": {
+  "text": "A bit wild, wasn't it?",
+  "role": "rider",
+  "voices": {
+   "bf_isabella": 1.67
+  }
+ },
+ "5b8b0007": {
+  "text": "I've lost a sock.",
+  "role": "rider",
+  "voices": {
+   "bm_fable": 1.7
+  }
+ },
+ "48dd06b1": {
+  "text": "Rough ride, that. Still, cheers.",
+  "role": "rider",
+  "voices": {
+   "bf_isabella": 2.04
+  }
+ },
+ "9d2b708e": {
+  "text": "Need a cuppa after that.",
+  "role": "rider",
+  "voices": {
+   "bm_fable": 1.86
+  }
+ },
+ "d4501e8f": {
+  "text": "I'm a little shaken.",
+  "role": "rider",
+  "voices": {
+   "bf_isabella": 1.38
+  }
+ },
+ "60c3419e": {
+  "text": "Not ideal, that ride.",
+  "role": "rider",
+  "voices": {
+   "bm_fable": 2.24
+  }
+ },
+ "c839eb53": {
+  "text": "Ta for this. It's quite bright, isn't it?",
+  "role": "rider",
+  "voices": {
+   "bf_isabella": 2.18
+  }
+ },
+ "4398a415": {
+  "text": "Cheers! Bit mild for the season, isn't it?",
+  "role": "rider",
+  "voices": {
+   "bm_fable": 3.08
+  }
+ },
+ "24fa9848": {
+  "text": "Hi! Not bad outside, all things considered.",
+  "role": "rider",
+  "voices": {
+   "bf_isabella": 2.59
+  }
+ },
+ "87168cb3": {
+  "text": "Brr! It's got a bit of bite, hasn't it?",
+  "role": "rider",
+  "voices": {
+   "bm_fable": 2.92
+  }
+ },
+ "8c7ce363": {
+  "text": "Hello! You can't see much today, can you?",
+  "role": "rider",
+  "voices": {
+   "bf_isabella": 2.24
+  }
+ },
+ "1aa9b2cb": {
+  "text": "Hello! Windy one, this. Hope you're not in a rush.",
+  "role": "rider",
+  "voices": {
+   "bm_fable": 2.98
+  }
+ },
+ "2c979095": {
+  "text": "Thanks for this. Lovely to get out of the wind.",
+  "role": "rider",
+  "voices": {
+   "bf_isabella": 2.43
+  }
+ },
+ "964447da": {
+  "text": "Oof! That was a bit of a bump.",
+  "role": "rider",
+  "voices": {
+   "bf_isabella": 1.82
+  }
+ },
+ "8527f907": {
+  "text": "Gosh, that jolted me quite nicely.",
+  "role": "rider",
+  "voices": {
+   "bm_fable": 2.86
+  }
+ },
+ "5735abca": {
+  "text": "Cor, that was more than I bargained for.",
+  "role": "rider",
+  "voices": {
+   "bf_isabella": 2.09
+  }
+ },
+ "e6cf4f41": {
+  "text": "Whoa! That was a bit lively, that.",
+  "role": "rider",
+  "voices": {
+   "bm_fable": 2.51
+  }
+ },
+ "ee1d0179": {
+  "text": "Oy! That was a bit more than I expected.",
+  "role": "rider",
+  "voices": {
+   "bf_isabella": 2.23
+  }
+ },
+ "0a3ab165": {
+  "text": "Blimey, I felt that one in my teeth.",
+  "role": "rider",
+  "voices": {
+   "bm_fable": 2.75
+  }
+ },
+ "4d180002": {
+  "text": "Ugh, that was a proper knock, wasn't it?",
+  "role": "rider",
+  "voices": {
+   "bf_isabella": 2.15
+  }
+ },
+ "8ba8c7b4": {
+  "text": "Eh, that wasn't exactly smooth sailing.",
+  "role": "rider",
+  "voices": {
+   "bm_fable": 2.88
+  }
+ },
+ "19fbdf32": {
+  "text": "Whoa, that stopped us quite suddenly.",
+  "role": "rider",
+  "voices": {
+   "bf_isabella": 2.04
+  }
+ },
+ "4d763184": {
+  "text": "Oof, I nearly had my chin in my lap.",
+  "role": "rider",
+  "voices": {
+   "bm_fable": 2.84
+  }
+ },
+ "3e4756ab": {
+  "text": "Blimey, that was abrupt, wasn't it?",
+  "role": "rider",
+  "voices": {
+   "bf_isabella": 1.98
+  }
+ },
+ "4309a5d0": {
+  "text": "Goodness, we've come up short, haven't we?",
+  "role": "rider",
+  "voices": {
+   "bm_fable": 2.67
+  }
+ },
+ "ba80adbd": {
+  "text": "Oomph! That was a bit sudden, isn't it?",
+  "role": "rider",
+  "voices": {
+   "bf_isabella": 2.11
+  }
+ },
+ "225718ec": {
+  "text": "Ah, there. That'll wake the neighbours, that will.",
+  "role": "rider",
+  "voices": {
+   "bm_fable": 3.02
+  }
+ },
+ "0575a057": {
+  "text": "Bus stopping now",
+  "role": "guide",
+  "voices": {
+   "bf_emma": 1.27,
+   "bf_isabella": 1.45,
+   "bf_alice": 1.48,
+   "bf_lily": 1.51,
+   "bm_george": 1.55,
+   "bm_fable": 1.5,
+   "bm_lewis": 1.29,
+   "bm_daniel": 1.37
+  }
+ }
+}
