@@ -543,5 +543,40 @@
       2,
       3
     ]
+  },
+  {
+    "id": "shopping_centre",
+    "name": "Arcade Shopping Centre",
+    "district": "business",
+    "finish": "cladding",
+    "walls": [
+      "#f8f7fb",
+      "#d7cfe9",
+      "#c1badf"
+    ],
+    "trim": "#4f5566",
+    "glass": "#1b6f9a",
+    "bay": 4.8,
+    "storey": 4.4,
+    "window": {
+      "form": "ribbon",
+      "w": 0.94,
+      "h": 0.4
+    },
+    "ground": {
+      "kind": "arcade",
+      "height": 5.6,
+      "main": "#f4f3f8",
+      "accent": "#1b6f9a"
+    },
+    "roof": {
+      "kind": "flat",
+      "color": "#a9b0b8"
+    },
+    "storeys": [
+      2,
+      2
+    ],
+    "use": "centre"
   }
 ]

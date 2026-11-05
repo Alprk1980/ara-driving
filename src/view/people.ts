@@ -32,7 +32,7 @@ type Joint = { pivot: number; hip: number; arm: number; parts: Part[] };
 const lighter = (hex: string, k: number) => `#${new THREE.Color(hex).multiplyScalar(k).getHexString()}`;
 
 /** The figure in metres, facing +z with its feet on y 0, limb by limb. */
-export function figureJoints(look: PersonLook): Joint[] {
+export function figureJoints(look: PersonLook & { cap?: string }): Joint[] {
   const box = (w: number, h: number, l: number, color: string, x: number, y: number, z: number): Part => ({ shape: 'box', x: x * CELL, y: (y - h / 2) * CELL, z: z * CELL, w: w * CELL, h: h * CELL, l: l * CELL, color });
   const legs = [-1, 1].map((s): Joint => ({ pivot: HIP_M, hip: -s, arm: 0, parts: [
     box(0.62, LEG_LEN - 0.35, 0.66, look.trousers, s * 0.36, (LEG_LEN + 0.35) / 2, 0),
@@ -49,7 +49,7 @@ export function figureJoints(look: PersonLook): Joint[] {
     long: [crown, box(1.18, 1.35, 0.24, hair, 0, HEAD_Y - 0.15, -0.52), box(0.12, 0.95, 0.9, hair, -0.6, HEAD_Y + 0.1, -0.05), box(0.12, 0.95, 0.9, hair, 0.6, HEAD_Y + 0.1, -0.05)],
     ponytail: [crown, nape, box(0.34, 0.95, 0.3, hair, 0, HEAD_Y - 0.2, -0.74)],
     curly: [box(1.32, 0.46, 1.26, hair, 0, CROWN + 0.18, 0), box(1.32, 0.85, 0.3, hair, 0, HEAD_Y + 0.1, -0.52), box(0.16, 0.6, 1, hair, -0.64, HEAD_Y + 0.25, -0.05), box(0.16, 0.6, 1, hair, 0.64, HEAD_Y + 0.25, -0.05)],
-    cap: [box(1.16, 0.5, 0.22, hair, 0, HEAD_Y + 0.15, -0.5), box(1.18, 0.34, 1.14, lighter(look.shirt, 0.8), 0, CROWN + 0.12, 0), box(1, 0.1, 0.5, lighter(look.shirt, 0.8), 0, CROWN - 0.02, 0.76)],
+    cap: [box(1.16, 0.5, 0.22, hair, 0, HEAD_Y + 0.15, -0.5), box(1.18, 0.34, 1.14, look.cap ?? lighter(look.shirt, 0.8), 0, CROWN + 0.12, 0), box(1, 0.1, 0.5, look.cap ?? lighter(look.shirt, 0.8), 0, CROWN - 0.02, 0.76)], // a bought hat in its own colour
   };
   const body: Joint = { pivot: 0, hip: 0, arm: 0, parts: [
     box(1.44, 2, 0.8, look.shirt, 0, LEG_LEN + 1, 0),
@@ -62,7 +62,7 @@ export function figureJoints(look: PersonLook): Joint[] {
 }
 
 /** One look as one mesh, with each vertex knowing its joint: [pivot height, hip weight, arm weight]. */
-export function figureGeometry(look: PersonLook): THREE.BufferGeometry {
+export function figureGeometry(look: PersonLook & { cap?: string }): THREE.BufferGeometry {
   return mergeGeometries(figureJoints(look).map((j) => {
     const g = partsGeometry(j.parts);
     if (j.arm) g.translate(0, -j.pivot, 0).rotateZ(j.arm * ARM_OUT).translate(0, j.pivot, 0); // arms hang a touch clear of the body

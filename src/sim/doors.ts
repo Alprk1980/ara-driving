@@ -12,10 +12,11 @@ const STEP_M = 0.25, MARGIN_M = 0.06;
 
 export type Door = Vec & { plot: Plot; heading: number }; // heading: the way the door faces, out to the street
 
-/** `skip`: plots with no building to knock at, such as the lots held empty for the regulars' stories. */
+/** `skip`: plots with no building to knock at, such as the lots held empty for the regulars' stories. The shopping
+ *  centre's doors are found the same way, from its own plot. */
 export function findDoors(town: Town, skip: readonly Plot[] = []): Door[] {
   const out: Door[] = [];
-  for (const plot of town.plots) {
+  for (const plot of [...town.plots, ...(town.centre ? [town.centre.plot] : [])]) {
     if (skip.includes(plot)) continue;
     const len = dist(plot, plot.road);
     if (len < 1) continue;

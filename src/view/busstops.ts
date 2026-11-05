@@ -132,3 +132,40 @@ export class BusSigns {
     }
   }
 }
+
+/** The shopping centre's name over its doors, square to the street: lettering on a fascia, as a centre has. */
+export function centreSign(town: Town): THREE.Object3D | null {
+  const c = town.centre;
+  if (!c?.box.front) return null;
+  const b = c.box, f = b.front!, onX = Math.abs(f.x) > Math.abs(f.z), depth = onX ? b.hx : b.hz;
+  const map = texture('centre-sign', 1024, 160, (x) => {
+    x.fillStyle = '#ffffff';
+    x.fillRect(0, 0, 1024, 160);
+    x.fillStyle = '#1f4e79';
+    x.font = 'bold 96px sans-serif';
+    x.textAlign = 'center';
+    x.textBaseline = 'middle';
+    x.fillText('Shopping Centre', 512, 84, 980);
+  });
+  const g = new THREE.Group(), sign = new THREE.Mesh(new THREE.PlaneGeometry(16, 2.5), new THREE.MeshBasicMaterial({ map }));
+  sign.position.set(b.x + f.x * (depth + 0.15), b.h - 2, b.z + f.z * (depth + 0.15));
+  sign.rotation.y = Math.atan2(f.x, f.z);
+  g.add(sign);
+  // The car park's tarmac, from the back of the pavement to the shopfront, and a white line between each bay.
+  const s = c.site, front = depth, deep = (onX ? Math.abs(s.x - b.x) + s.hx : Math.abs(s.z - b.z) + s.hz) - front;
+  const wide = (onX ? s.hz : s.hx) * 2, mid = front + deep / 2;
+  const tarmac = new THREE.Mesh(new THREE.PlaneGeometry(onX ? deep : wide, onX ? wide : deep).rotateX(-Math.PI / 2), new THREE.MeshLambertMaterial({ color: '#5b5f66' }));
+  tarmac.position.set(b.x + f.x * mid, 0.02, b.z + f.z * mid);
+  g.add(tarmac);
+  const line = new THREE.MeshBasicMaterial({ color: '#e9e9e2' }), across = { x: f.z, z: -f.x };
+  for (const row of [deep - BAY_ROW_M / 2 - 0.2, deep - BAY_ROW_M * 1.5 - AISLE_GAP_M - 0.2]) {
+    for (let t = -wide / 2 + 2; t <= wide / 2 - 2; t += 2.4) {
+      const m = new THREE.Mesh(new THREE.PlaneGeometry(onX ? BAY_ROW_M : 0.1, onX ? 0.1 : BAY_ROW_M).rotateX(-Math.PI / 2), line);
+      const at = front + row;
+      m.position.set(b.x + f.x * at + across.x * t, 0.03, b.z + f.z * at + across.z * t);
+      g.add(m);
+    }
+  }
+  return g;
+}
+const BAY_ROW_M = 4.8, AISLE_GAP_M = 6; // the bays' length and the aisle between the rows, as town.ts lays the cars out

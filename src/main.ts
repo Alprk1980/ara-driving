@@ -3,6 +3,7 @@ import type { CatalogueItem, ChatterLine, Find, Goal, GuideLine, Landmark, Place
 import { touch } from '../schemas/profile.ts';
 import { getGameSave, getPlayer, putPlayer } from '../kit/profile.ts';
 import catalogue from './data/catalogue.json';
+import { garmentItem } from './sim/shops.ts';
 import chatter from './data/chatter.json';
 import events from './data/events.json';
 import finds from './data/finds.json';
@@ -57,11 +58,12 @@ const sound = new Sound();
 const canvas = document.getElementById('scene') as HTMLCanvasElement;
 const items = catalogue as CatalogueItem[];
 await loading(52, 'Raising the buildings');
-const view = new View(canvas, game, (id) => items.find((c) => c.id === id), { landmarks: landmarks as Landmark[], skies: skies as Sky[], stories: stories as StoryPlace[] });
+// Clothes from the shops are looked up beside the catalogue, and worn as the garage's outfits were.
+const view = new View(canvas, game, (id) => items.find((c) => c.id === id) ?? garmentItem(id), { landmarks: landmarks as Landmark[], skies: skies as Sky[], stories: stories as StoryPlace[] });
 view.index = save.camera;
 view.setQuality(save.graphics);
 view.bodyStyle = save.body;
-view.you.setLook(save.look);
+view.you.setLook(save.look, save.driver);
 await loading(82, 'Fetching your car');
 view.setCar(save.designs[save.car] ?? {}, save.driver);
 view.replayWalls(save.walls);

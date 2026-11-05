@@ -35,6 +35,16 @@ const APRON_M = 12; // a forecourt deep enough to stand a fire engine on, clear 
 const SERVICE_AT: Record<ServiceId, Vec> = { fire: { x: 1350, z: 1300 }, ambulance: { x: 1750, z: 1750 }, police: { x: 1480, z: 1560 } }; // near the middle, so a crew can reach most of town quickly
 const DRIVE_WIDE = 3, DRIVE_SHARE = 0.65, DRIVE_CAR = 0.7, KERB_CLEAR = 4.5; // councils ask for 2.4-3 m wide and 4.8-5 m deep, which the 6 m front garden gives; the shares are judged
 export type Plot = Vec & { node: number; road: Vec };
+// The shopping centre (decided 2026-11-05): one building in the Business Quarter where a block of offices stood. ICSC
+// Europe's shopping centre standard starts a small centre at 5,000 m2; two floors of 60 by 45 m give 5,400. Retail
+// floors run taller than offices, about 5 m each, judged. In front, a surface car park of two rows of bays either side of
+// an aisle: 2.4 by 4.8 m bays and a 6 m aisle for parking square to it, the usual UK sizes (from general knowledge of
+// car park design guidance, not looked up this time).
+export const CENTRE_STYLE = 'shopping_centre'; // its building style in buildingstyles.json, kept for it alone
+export const CENTRE_W = 60, CENTRE_D = 45, CENTRE_H = 10, CENTRE_FLOORS = 2;
+const BAY_W = 2.4, BAY_L = 4.8, AISLE_M = 6, CENTRE_PAVE_M = 3, CENTRE_WALK_M = 8, CENTRE_FULL = 0.6; // pavement kept, the path to the doors, and how many bays are taken: judged
+const CENTRE_PARK_M = BAY_L * 2 + AISLE_M + 0.4;
+export type Centre = { box: Box; plot: Plot; site: { x: number; z: number; hx: number; hz: number } };
 
 export const SIZE = 3000;
 export const ROAD_W = 12;
@@ -82,6 +92,7 @@ export class Town {
   stations: Plot[] = [];
   plots: Plot[] = [];
   spots: Vec[] = []; // hiding places for finds, off the road but reachable
+  centre: Centre | null = null;
   rough = -1; // the street taken up by today's roadworks or parade, or -1
   private cells = new Map<number, Box[]>();
   private kerb = new Map<number, Box[]>(); // where the parked cars started: they can be shoved, so they aren't walls, but layout still steers round them
@@ -98,6 +109,7 @@ export class Town {
     const open = this.flood();
     this.spots = this.spots.filter((s) => open.has(this.gridKey(s.x, s.z)));
     if (!opts.bare) this.siteServices();
+    if (!opts.bare) this.siteCentre(makeRng(seed + 4));
     if (!opts.bare) this.siteDrawn(makeRng(seed + 3));
   }
 
@@ -126,12 +138,13 @@ export class Town {
       const taken: Box[] = [];
       for (const b of order) {
         if (taken.length >= DRAWN_COPIES[m.district]) break;
-        if (gone.has(b) || b.district !== m.district || b.drawn || !b.front || taken.some((o) => dist(o, b) < DRAWN_APART_M)) continue;
+        if (gone.has(b) || b.district !== m.district || b.drawn || !b.front || b === this.centre?.box || taken.some((o) => dist(o, b) < DRAWN_APART_M)) continue;
         const onX = Math.abs(b.front.x) >= Math.abs(b.front.z), along = onX ? b.hz : b.hx, depth = onX ? b.hx : b.hz;
         if (m.w / 2 < along * DRAWN_FILLS) continue;
         const frontAt = { x: b.x + (onX ? Math.sign(b.front.x) * depth : 0), z: b.z + (onX ? 0 : Math.sign(b.front.z) * depth) }, r = this.frontage(frontAt, b.front, m.w, m.d);
         // A building too big for its lot takes in the lots beside it, as a developer would, up to DRAWN_ASSEMBLY of them.
         const others = this.overlapping(r).filter((o) => o !== b);
+        if (others.includes(this.centre?.box as Box)) continue;
         if (others.length > DRAWN_ASSEMBLY || others.some((o) => o.district !== m.district || o.drawn) || !this.standsClear(r)) continue;
         if (others.length) {
           const inside = (v: Vec) => Math.abs(v.x - r.x) < r.hx + 1 && Math.abs(v.z - r.z) < r.hz + 1;
@@ -317,6 +330,50 @@ export class Town {
         const x = a.x + ux * along - uz * side * (ROAD_W / 2 + 5), z = a.z + uz * along + ux * side * (ROAD_W / 2 + 5);
         if (districtAt(x, z) === 'garden' && !this.boxAt(x, z, 3) && !onRoad(x, z, ROAD_W / 2 + 3) && clear.every((c) => dist(c, { x, z }) > 22)) this.trees.push({ x, z });
       }
+    }
+  }
+
+  // The shopping centre, after the stations and before the drawn buildings, on its own stream: the Business Quarter road
+  // nearest the district's middle with room on one side takes it, and the offices on that ground come down.
+  private siteCentre(rng: Rng) {
+    const mine = this.boxes.filter((b) => b.district === 'business');
+    if (!mine.length) return;
+    const middle = { x: mine.reduce((t, b) => t + b.x, 0) / mine.length, z: mine.reduce((t, b) => t + b.z, 0) / mine.length };
+    const near = [this.home, ...this.stations];
+    const tries = this.edges.map((e, k) => ({ e, k, d: dist(this.mid(e), middle) })).filter((t) => t.e.len > CENTRE_W + 50).sort((a, b) => a.d - b.d);
+    for (const { e, k } of tries) for (const side of [1, -1] as const) {
+      const a = this.nodes[e.a], b = this.nodes[e.b], ux = (b.x - a.x) / e.len, uz = (b.z - a.z) / e.len, m = this.mid(e);
+      const n = { x: -uz * side, z: ux * side }, front = { x: -n.x, z: -n.z }, onX = Math.abs(n.x) > Math.abs(n.z);
+      const frontOff = ROAD_W / 2 + CENTRE_PAVE_M + CENTRE_PARK_M, frontAt = { x: m.x + n.x * frontOff, z: m.z + n.z * frontOff };
+      const r = this.frontage(frontAt, front, CENTRE_W, CENTRE_D);
+      const near0 = ROAD_W / 2 + CENTRE_PAVE_M, deep = frontOff + CENTRE_D - near0, mid0 = near0 + deep / 2;
+      const site = { x: m.x + n.x * mid0, z: m.z + n.z * mid0, hx: onX ? deep / 2 : CENTRE_W / 2 + 2, hz: onX ? CENTRE_W / 2 + 2 : deep / 2 };
+      const corners = [[1, 1], [1, -1], [-1, 1], [-1, -1]].map(([p, q]) => ({ x: site.x + p * site.hx, z: site.z + q * site.hz }));
+      if (corners.some((c) => districtAt(c.x, c.z) !== 'business' || onBuffer(c.x, c.z))) continue;
+      if (!this.standsClear(site) || near.some((t) => Math.abs(t.x - site.x) < site.hx + 30 && Math.abs(t.z - site.z) < site.hz + 30)) continue;
+      const inside = (v: Vec, pad = 0) => Math.abs(v.x - site.x) < site.hx + pad && Math.abs(v.z - site.z) < site.hz + pad;
+      if (this.spots.some((v) => inside(v, 1))) continue;
+      for (const o of this.overlapping(site)) {
+        this.boxes.splice(this.boxes.indexOf(o), 1);
+        for (const list of this.cells.values()) { const i = list.indexOf(o); if (i >= 0) list.splice(i, 1); }
+      }
+      this.trees = this.trees.filter((v) => !inside(v, 2));
+      this.furniture = this.furniture.filter((v) => !inside(v, 1));
+      this.parked = this.parked.filter((v) => !inside(v, 1));
+      const box: Box = { x: r.x, z: r.z, hx: r.hx, hz: r.hz, h: CENTRE_H, hue: 0.55, district: 'business', front, style: CENTRE_STYLE };
+      this.boxes.push(box);
+      this.index(box);
+      // The car park: two rows of bays along the road, a gap left for the walk to the doors, cars nosed in square.
+      const along = { x: ux, z: uz };
+      for (const row of [near0 + BAY_L / 2 + 0.2, near0 + BAY_L * 1.5 + AISLE_M + 0.2]) {
+        for (let t = -CENTRE_W / 2 + BAY_W / 2; t < CENTRE_W / 2; t += BAY_W) {
+          if (Math.abs(t) < CENTRE_WALK_M / 2 || rng() > CENTRE_FULL) continue;
+          this.parked.push({ x: m.x + n.x * row + along.x * t, z: m.z + n.z * row + along.z * t, heading: Math.atan2(n.x, n.z) + (rng() < 0.5 ? Math.PI : 0), colour: rng() });
+        }
+      }
+      this.centre = { box, plot: { x: r.x, z: r.z, node: e.a, road: { x: m.x + n.x * (ROAD_W / 2 - 1), z: m.z + n.z * (ROAD_W / 2 - 1) } }, site };
+      void k;
+      return;
     }
   }
 

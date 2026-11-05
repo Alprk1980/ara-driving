@@ -4,6 +4,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { chat, parseJson } from './llm.ts';
 import { adPlaces, CAR_JOB_TYPES, carJobErrors, catalogueErrors, chatterErrors, eventErrors, findErrors, GOAL_KINDS, goalErrors, GUIDE_KEYS, GUIDE_WORD, guideErrors, landmarkErrors, PLACE_KINDS, placeErrors, PROP_KINDS, questTextErrors, radioErrors, RANK_COUNT, rankErrors, regularErrors, skyErrors, SKY_SLOTS, stationErrors, storyPlaceErrors, STYLES, TIER_PRICE, TWISTS, VOICE_KEYS, voiceErrors, type CatalogueKind, type JobCar, type Place, type RadioLine, type Regular } from '../schemas/content.ts';
+import { PLACE_SHOPS, shopErrors, type Shop } from '../schemas/shops.ts';
 import { buildingSetErrors, buildingStyleErrors, type BuildingStyle } from '../schemas/buildings.ts';
 import { carProfileErrors, profileVsCar, type CarBodyProfile } from '../schemas/carprofiles.ts';
 import { FLEET_RULES, fleetErrors } from '../schemas/fleet.ts';
@@ -16,6 +17,7 @@ import { DISTRICTS, DISTRICT_IDS } from '../src/sim/districts.ts';
 import { landmarkFor } from '../src/sim/quests.ts';
 import { Town } from '../src/sim/town.ts';
 
+const PLACES = JSON.parse(readFileSync('src/data/places.json', 'utf8')) as Place[];
 const carNotes = (existsSync('.qwen-runs/car-notes.json') ? JSON.parse(readFileSync('.qwen-runs/car-notes.json', 'utf8')) : {}) as Record<string, string>; // left by tools/carreview.ts
 const replaceFlag = process.argv.indexOf('--replace'), replaceIds = new Set(replaceFlag >= 0 ? process.argv[replaceFlag + 1].split(',') : []);
 
@@ -36,7 +38,9 @@ const BUILDING_SLOTS = [
   ['tin_shed', 'works', 'cladding', 'ribbon', 'loading', 'pitched'],
   ['old_mill', 'works', 'brick', 'arched', 'loading', 'parapet'],
   ['concrete_depot', 'works', 'panel', 'punched', 'loading', 'flat'],
-  ['cold_store', 'works', 'cladding', 'ribbon', 'loading', 'plant'],] as const;
+  ['cold_store', 'works', 'cladding', 'ribbon', 'loading', 'plant'],
+  ['shopping_centre', 'business', 'cladding', 'ribbon', 'arcade', 'flat'], // the one shopping centre: use centre, two tall floors
+] as const;
 
 // What each piece of furniture is, and the features schemas/furniture.ts checks for, in words.
 const FURNITURE_LOOK: Record<FurnitureId, string> = {
@@ -226,7 +230,7 @@ Write 8 lines with topic travel.` },
       const have = new Set(existsSync('src/data/buildingstyles.json') ? (JSON.parse(readFileSync('src/data/buildingstyles.json', 'utf8')) as Entry[]).map((e) => e.id) : []);
       const open = BUILDING_SLOTS.filter((s) => replaceIds.has(s[0]) || !have.has(s[0])); // only the gaps, and any named for a redo
       return [open.slice(0, 8), open.slice(8)].filter((part) => part.length).map((part) => ({
-        ask: `Slots:\n${part.map(([id, district, finish, form, ground, roof]) => `id ${id}: district ${district}, finish ${finish}, window form ${form}, ground ${ground}, roof ${roof}`).join('\n')}\nWrite one style per slot, in slot order.${notes}`,
+        ask: `Slots:\n${part.map(([id, district, finish, form, ground, roof]) => `id ${id}: district ${district}, finish ${finish}, window form ${form}, ground ${ground}, roof ${roof}${id === 'shopping_centre' ? ', use centre, storeys [2, 2], storey at least 4 m: a covered shopping centre, pale panels and a long glazed shopfront under a canopy' : ''}`).join('\n')}\nWrite one style per slot, in slot order.${notes}`,
         fits: (e, i) => {
           const s = part[i];
           if (!s) return ['more entries than slots'];
@@ -297,6 +301,26 @@ Write 8 lines with topic travel.` },
       ask: `Write 3 different lines for the moment ${moment}. Start each id with ${moment}_.`,
       fits: (e: Entry) => ((e as unknown as RoadLine).moment !== moment ? [`every entry must have moment ${moment}`] : []),
     })),
+  },
+  // The shops: one per place that can be a shop, café or market stall, then the shopping centre's units.
+  shops: {
+    file: 'src/data/shops.json', prompt: 'prompts/shops.txt', key: 'id',
+    errors: ((e: Shop) => shopErrors(e, PLACES.find((p) => p.id === e?.id))) as Kind['errors'],
+    checker: 'These are the stock lists of shops in a British town, as JSON. Flag a good that a shop of that name would not sell, a price or calorie count that is wrong for the real item, a clothes colour that looks odd for the garment, or two goods that are the same thing under different names.',
+    batches: () => {
+      const have = existing('src/data/shops.json'), catalogueIds = new Set(existing('src/data/catalogue.json'));
+      const noClash = (e: Entry) => ((e as unknown as Shop).stock ?? []).filter((g) => catalogueIds.has(g?.id)).map((g) => `${g.id}: that id belongs to the car catalogue, choose another`);
+      const slots = PLACES.filter((p) => PLACE_SHOPS[p.kind] && (replace.has(p.id) || !have.has(p.id)));
+      const street = Array.from({ length: Math.ceil(slots.length / 3) }, (_, b) => slots.slice(b * 3, b * 3 + 3)).map((part): Batch => ({
+        ask: `Slots:\n${part.map((p, n) => `${n + 1}. id ${p.id}, name ${p.name}, a ${p.kind}: sells one of ${PLACE_SHOPS[p.kind].join(', ')}`).join('\n')}\nThe town needs at least one motor shop, one bakery and one clothes shop among its shops, so pick those where a name fits.`,
+        fits: (e, i) => (e.id === part[i]?.id ? noClash(e) : [`entry ${i + 1} must be id ${part[i]?.id ?? '(none: too many entries)'}`]),
+      }));
+      const centre = [...have].some((id) => id.startsWith('centre_')) && !replace.size ? [] : [0, 1].map((b): Batch => ({
+        ask: `Write 4 shopping centre units, each with "centre": true and an id starting centre_. ${b === 0 ? 'Two clothes shops (one for everyday basics, one for shoes and outdoor wear), a café and a bakery.' : 'A clothes shop for hats, gloves and sunglasses, a sandwich bar (sells cafe), a sweet and snack shop (sells grocer), and a juice and fruit bar (sells grocer).'}`,
+        fits: (e) => (String(e.id).startsWith('centre_') && e.centre === true ? noClash(e) : [`${String(e.id)}: a centre unit's id starts centre_ and it has "centre": true`]),
+      }));
+      return [...street, ...centre];
+    },
   },
   voice: {
     file: 'src/data/voice.json', prompt: 'prompts/voice.txt', errors: voiceErrors as Kind['errors'], key: 'key',

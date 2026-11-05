@@ -44,7 +44,7 @@ describe('the shipped clips', () => {
         expect(pace, `${voice}: ${c.text}`).toBeLessThan(9);
       }
     }
-  });
+  }, 20000); // reads every clip on disk: slow when the whole suite runs at once
   it('keep what one player downloads small: their two voices and the passengers', () => {
     const seconds = Object.values(index).reduce((s, c) => s + (c.role === 'rider' ? Object.values(c.voices)[0] ?? 0 : c.voices[DEFAULT_VOICES[c.role]] ?? 0), 0);
     expect(seconds * 40 / 8 / 1024).toBeLessThan(4); // MB at 40 kb/s

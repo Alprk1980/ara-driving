@@ -11,6 +11,7 @@ export type BuildingStyle = {
   id: string;
   name: string;
   district: DistrictId;
+  use?: 'centre'; // kept for one building: the shopping centre, two tall retail floors, outside the district's zoning for offices
   finish: (typeof WALL_FINISHES)[number];
   walls: string[]; // the colours a block of this style can be painted, one picked per building
   trim: string; // sills, string courses, frames
@@ -89,7 +90,11 @@ export function buildingStyleErrors(s: unknown): string[] {
   const st = q.storeys;
   if (!Array.isArray(st) || st.length !== 2 || !Number.isInteger(st[0]) || !Number.isInteger(st[1])) out.push('storeys must be two whole numbers');
   else if (st[0] < 2 || st[1] > 12 || st[0] > st[1]) out.push(`storeys ${st}: from at least 2 to at most 12, the first no bigger than the second`);
-  if (oneOf(DISTRICT_IDS, q.district) && Array.isArray(st)) {
+  if (q.use !== undefined && q.use !== 'centre') out.push('use is "centre" or left out');
+  if ((q.id === 'shopping_centre') !== (q.use === 'centre')) out.push('the shopping_centre style, and only it, has "use": "centre"'); // src/sim/town.ts CENTRE_STYLE
+  if (q.use === 'centre' && Array.isArray(st) && (st[0] !== 2 || st[1] !== 2)) out.push('the shopping centre has storeys [2, 2]: two retail floors');
+  if (q.use === 'centre' && num(q.storey) && q.storey < 4) out.push(`storey ${q.storey}: a shopping centre's floors are tall, at least 4 metres`);
+  if (oneOf(DISTRICT_IDS, q.district) && Array.isArray(st) && q.use !== 'centre') {
     const [lo, hi] = DISTRICTS[q.district].storeys;
     if (st[0] < lo || st[1] > hi) out.push(`storeys ${st}: ${DISTRICTS[q.district].name} is zoned for ${lo}-${hi} floors`);
   }

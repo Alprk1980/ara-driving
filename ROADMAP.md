@@ -42,17 +42,23 @@ Decided 2026-11-05:
   the fare do. Cars and paint stay scaled down on purpose (a real respray is £2,400-2,800, about 1,700 Points).
 - Food is energy for running, and gently: a full bar is a few minutes of running, and an empty one still walks at full
   speed. A snack refills part of it, a meal all of it.
-- Car paint and parts are bought by driving to the motor factor or the garage, not from the Menu. Parts are cosmetic
-  (wheels, lights, trims), so the approved handling stays as it is. Anything already bought is kept.
+- Car paint and parts are bought by driving somewhere: the motor shop's counter, or the garage at home, which always
+  sold them. Parts are cosmetic (the body kits now; wheels and lights later), so the approved handling stays as it is.
+  Anything already bought is kept.
 - Clothes are garments: tops, trousers, shoes and hats. Hair and skin stay free choices, and a basic set is free. The
   driver and the figure on foot are one person, in the same clothes.
 - Qwen makes the shops' names and stock behind a validator holding the researched price bands.
 - The shopping centre replaces one Business Quarter block: one building of about 5,000 m² (ICSC Europe's small
   centre starts at 5,000), one entrance, car parking, and a sheet with a tab for each shop.
 
-- [ ] Go into a shop and buy things with the Points jobs earn: clothes for your figure, food, parts and paint.
-- [ ] Energy for running, refilled by food and drink.
-- [ ] A shopping centre in the Business Quarter, with several shops under one roof.
+- [x] Go into a shop and buy things with the Points jobs earn: clothes for your figure, food, parts and paint. 23
+      street shops and 8 centre units, stocked by Qwen behind `schemas/shops.ts`; four of the street shops sell nothing
+      yet (a toy shop, a bookshop), and a motor shop sells the garage's paint and parts.
+- [x] Energy for running, refilled by food and drink (`src/sim/energy.ts`).
+- [x] A shopping centre in the Business Quarter, with several shops under one roof.
+- [ ] Wheels and lights as cosmetic car parts, beside the body kits.
+- [ ] Whistle & Wrench's only plot is held for a regular's story, so it has no door; Sparrow Supplies is the motor
+      shop you can reach.
 
 ### Stage D: careers
 - [ ] Sign on at the station or depot and drive its vehicle on real shifts: bus driver (a timetabled route, stopping at

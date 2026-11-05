@@ -66,12 +66,13 @@ export class OnFoot {
     return carsOverlap(box, { x: this.x, z: this.z, heading: 0, halfL: 0.01, halfW: 0.01 }) !== null;
   }
 
-  /** `solid`: the cars near you, parked or moving, which you step round and which nudge you aside. */
-  step(dt: number, intent: DriveIntent, town: Town, solid: readonly CarBox[] = []) {
+  /** `solid`: the cars near you, parked or moving, which you step round and which nudge you aside. `tired`: out of
+   *  energy, so you walk however hard you push. */
+  step(dt: number, intent: DriveIntent, town: Town, solid: readonly CarBox[] = [], tired = false) {
     this.heading -= intent.steer * TURN_RAD_S * dt; // steering right turns the heading down, as in car.ts
     const forward = intent.throttle > 0.05;
     this.held = forward && intent.throttle > 0.5 ? this.held + dt : 0;
-    this.running = forward && intent.throttle > 0.5 && (!!intent.handbrake || this.held > RUN_AFTER_S);
+    this.running = !tired && forward && intent.throttle > 0.5 && (!!intent.handbrake || this.held > RUN_AFTER_S);
     const want = forward ? intent.throttle * (this.running ? FOOT_RUN_MPS : FOOT_WALK_MPS) : -intent.brake * FOOT_WALK_MPS * BACK_SHARE;
     this.speed += Math.max(-FOOT_MPS2 * dt, Math.min(FOOT_MPS2 * dt, want - this.speed));
     const f = this.dir, mx = f.x * this.speed * dt, mz = f.z * this.speed * dt;

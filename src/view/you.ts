@@ -1,6 +1,9 @@
 // You out of the car: one of the town's figures, drawn and walked the same way as the crowd on the pavements.
 import * as THREE from 'three';
+import type { Driver } from '../save.ts';
 import type { OnFoot } from '../sim/onfoot.ts';
+import { dressed } from '../sim/shops.ts';
+import type { Lookup } from './cockpit.ts';
 import { figureGeometry, figureMaterial, LOOKS, nextPace, walkPose } from './people.ts';
 
 export class YouFigure {
@@ -11,17 +14,20 @@ export class YouFigure {
   private phase = 0;
   private clock = 0;
 
-  constructor(scene: THREE.Scene, look: number) {
+  private find: Lookup;
+
+  constructor(scene: THREE.Scene, look: number, find: Lookup) {
     this.scene = scene;
+    this.find = find;
     this.strides.setUsage(THREE.DynamicDrawUsage);
     this.setLook(look);
   }
 
-  /** Which of the town's looks you wear. */
-  setLook(look: number) {
+  /** Which of the town's looks you are, in the clothes you've put on. */
+  setLook(look: number, driver: Driver = {}) {
     const was = this.mesh?.visible ?? false;
     if (this.mesh) { this.scene.remove(this.mesh); this.mesh.geometry.dispose(); }
-    const g = figureGeometry(LOOKS[((look % LOOKS.length) + LOOKS.length) % LOOKS.length]);
+    const g = figureGeometry(dressed(LOOKS[((look % LOOKS.length) + LOOKS.length) % LOOKS.length], driver, this.find));
     g.setAttribute('stride', this.strides);
     this.mesh = new THREE.InstancedMesh(g, figureMaterial(), 1);
     this.mesh.frustumCulled = false;

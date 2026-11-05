@@ -9,7 +9,7 @@ export const GAME_ID = 'ara_driving';
 export const SAVE_KEY = 'ara_driving';
 
 export type Design = { paint?: string; pattern?: string; decal?: string; body?: string };
-export type Driver = { outfit?: string; cap?: string; gloves?: string; sunglasses?: string };
+export type Driver = { outfit?: string; trousers?: string; shoes?: string; cap?: string; gloves?: string; sunglasses?: string }; // what you wear, in the car and out of it: schemas/shops.ts WORN_SLOTS
 export type Hand = 'right' | 'left';
 /** One change to the Points balance, for the history: when, by how much, why, and the balance after. */
 export type LedgerLine = { at: string; n: number; why: string; total: number };
@@ -92,6 +92,7 @@ export function tripErrors(t: Trip | null): string[] {
   if (t.waypoint !== null && !finite(t.waypoint?.x, t.waypoint?.z)) out.push('trip waypoint must be a point or null');
   if (!t.dents || !finite(...Object.values(t.dents)) || !Array.isArray(t.marks)) out.push('trip dents and marks are malformed');
   if (t.foot != null && !finite(t.foot.x, t.foot.z, t.foot.heading)) out.push('trip foot must be a place and heading, or null');
+  if (t.energy !== undefined && !(finite(t.energy) && t.energy >= 0 && t.energy <= 1)) out.push('trip energy must be 0-1');
   if (t.quest !== null && (!t.quest?.offer || !Number.isInteger(t.quest.offer.start) || !Number.isInteger(t.quest.offer.end) || !t.quest.at)) out.push('trip quest is malformed');
   return out;
 }

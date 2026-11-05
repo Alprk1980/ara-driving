@@ -11,6 +11,8 @@ import { Guide, Passengers } from './coach.ts';
 import { dist } from '../sim/town.ts';
 import { STILL_MPS } from '../sim/onfoot.ts';
 import { BUS_FARE as FARE } from '../sim/economy.ts';
+import { allGoods, centreUnits, eatGood, goodById, shopFor, slotOf } from '../sim/shops.ts';
+import { goodKey, isFood, type Good, type Shop } from '../../schemas/shops.ts';
 import { PAD_ACTION, PadButton } from '../input/schemes.ts';
 import { LOOKS } from '../view/people.ts';
 import type { Door } from '../sim/doors.ts';
@@ -44,7 +46,10 @@ const RUSH = [[7 / 24, 9.5 / 24], [16 / 24, 18.5 / 24]] as const; // the morning
 const TIER_LABEL = { common: 'Common', rare: 'Rare', epic: 'Epic', legendary: 'Legendary' };
 
 type Tab = 'cars' | 'paint' | 'pattern' | 'decal' | 'body' | 'outfit' | 'accessory';
-const TABS: [Tab, string][] = [['cars', 'Cars'], ['paint', 'Paint'], ['pattern', 'Patterns'], ['decal', 'Decals'], ['body', 'Body'], ['outfit', 'Outfits'], ['accessory', 'Accessories']];
+const TABS: [Tab, string][] = [['cars', 'Cars'], ['paint', 'Paint'], ['pattern', 'Patterns'], ['decal', 'Decals'], ['body', 'Body']]; // clothes are bought in the town's shops and worn from the Menu
+const CAR_KINDS = ['paint', 'pattern', 'decal', 'body'] as const;
+const GOOD_LABEL: Record<Good['kind'], string> = { hot_drink: 'Hot drink', cold_drink: 'Cold drink', snack: 'Snack', sandwich: 'Sandwich', meal: 'Meal', tee: 'T-shirt', jumper: 'Jumper', jacket: 'Jacket', trousers: 'Trousers', shoes: 'Shoes', hat: 'Hat', gloves: 'Gloves', sunglasses: 'Sunglasses' };
+const SLOT_LABEL: Record<keyof Driver, string> = { outfit: 'Top', trousers: 'Trousers', shoes: 'Shoes', cap: 'Hat', gloves: 'Gloves', sunglasses: 'Sunglasses' };
 
 /** The shared player, kept in memory and written after every change. */
 export class ProfileWallet implements Wallet {
@@ -373,9 +378,9 @@ export class App {
     if (this.save.input === 'gamepad' && this.padAction.pressed()) this.door();
     const stop = g.atStop;
     if (stop !== this.lastStop) { this.lastStop = stop; if (stop) this.banner(`Bus stop for the ${g.town.routesAt(stop).map((r) => r.name).join(' and ')}. Wait here and the bus pulls in for you: a single is ${FARE} Points`, false, 4); }
-    const pct = p.fuel / p.car.tank;
+    const pct = g.foot ? g.energy : p.fuel / p.car.tank; // out of the car, the chip shows your energy for running
     $('fuelfill').style.width = `${pct * 100}%`;
-    $('fueltext').textContent = `Fuel ${Math.round(p.fuel)} L`;
+    $('fueltext').textContent = g.foot ? `Energy ${Math.round(g.energy * 100)}%` : `Fuel ${Math.round(p.fuel)} L`;
     $('fuelchip').className = pct < WARN_CRITICAL_PCT ? 'chip crit' : pct < WARN_LOW_PCT ? 'chip low' : 'chip';
     this.bodywork();
 
@@ -487,13 +492,75 @@ export class App {
     if (!this.game.board(fare)) this.toast(`The fare is ${FARE} Points, and you have ${this.wallet.points()}`);
   }
 
-  /** At a place's front door: what it is, and the jobs that start here. Going inside comes with the shops. */
+  /** At a place's front door: its counter, if it's a shop, and the jobs that start here. Going inside is a counter
+   *  sheet, not a walk-in interior (decided 2026-11-05). */
   private openDoor(d: Door) {
-    const g = this.game, place = placeAt(g.town, g.content.places, d.plot), here = g.offers.filter((o) => o.start === d.plot);
+    if (d.plot === this.game.town.centre?.plot) return this.openCentre(d);
+    const g = this.game, place = placeAt(g.town, g.content.places, d.plot), here = g.offers.filter((o) => o.start === d.plot), shop = shopFor(place?.id);
     const jobs = g.quest ? '<p>Finish the job you are on to take another.</p>' : here.length ? here.map((o) => `<div class="offer"><div><b>${esc(o.title)}</b><span>${esc(o.text)}</span><span>${o.basePay} to ${o.maxPay} Points</span></div><button class="primary" data-id="${o.id}">Take</button></div>`).join('') : '<p>No jobs from here just now.</p>';
-    const c = this.sheet('dialog', `<h2>${esc(place?.name ?? 'A front door')}</h2><p>${esc(place ? place.kind[0].toUpperCase() + place.kind.slice(1) : '')}. The door is shut for now: going inside comes later.</p>${jobs}<div class="row end"><button class="primary" id="x">Back to the street</button></div>`);
+    const kind = esc(place ? place.kind[0].toUpperCase() + place.kind.slice(1) : '');
+    const c = this.sheet('dialog', `<h2>${esc(place?.name ?? 'A front door')}</h2>${shop ? `<p>${esc(shop.line)}</p>${this.counter(shop)}<p>Jobs from here</p>` : `<p>${kind}. The door is shut for now.</p>`}${jobs}<div class="row end"><button class="primary" id="x">Back to the street</button></div>`);
     c.querySelector<HTMLElement>('#x')!.onclick = () => this.close('dialog');
     for (const b of c.querySelectorAll<HTMLElement>('[data-id]')) b.onclick = () => { g.accept(Number(b.dataset.id)); this.close('dialog'); };
+    this.wireCounter(c, () => this.openDoor(d));
+  }
+
+  /** The shopping centre: one door, and a tab for each of its shops. */
+  private openCentre(d: Door, unit = 0) {
+    const units = centreUnits(), u = units[Math.min(unit, units.length - 1)];
+    const tabs = units.map((x, i) => `<button class="ghost ${x === u ? 'on' : ''}" data-unit="${i}">${esc(x.name)}</button>`).join('');
+    const c = this.sheet('dialog', `<h2>Shopping centre</h2>${u ? `<div class="tabs">${tabs}</div><p>${esc(u.line)}</p>${this.counter(u)}` : '<p>The shops are still being fitted out.</p>'}<div class="row end"><button class="primary" id="x">Back to the street</button></div>`);
+    c.querySelector<HTMLElement>('#x')!.onclick = () => this.close('dialog');
+    for (const b of c.querySelectorAll<HTMLElement>('[data-unit]')) b.onclick = () => this.openCentre(d, Number(b.dataset.unit));
+    this.wireCounter(c, () => this.openCentre(d, unit));
+  }
+
+  /** A shop's counter: what's for sale and what it costs. A motor shop sells the garage's paint and parts. */
+  private counter(shop: Shop): string {
+    const points = `<div class="chip" style="background:#eef1f7">${this.wallet.points().toLocaleString('en-GB')} Points</div>`;
+    if (shop.sells === 'motor') return `${points}<p>Paint and parts for your ${esc(carById(this.save.car).name)}</p><div class="items">${CAR_KINDS.map((k) => this.itemCards(k)).join('')}</div>`;
+    if (!shop.stock.length) return '<p>Nothing to buy here yet.</p>';
+    const food = shop.stock.some((x) => isFood(x.kind)), price = (x: Good) => (this.save.debug ? 'Free (debug)' : `${x.price} ${x.price === 1 ? 'Point' : 'Points'}`);
+    const row = (x: Good) => {
+      const swatch = (x.colors ?? []).map((h) => `<i class="swatch" style="background:${h}"></i>`).join('');
+      const key = goodKey(shop, x);
+      if (isFood(x.kind)) return `<div class="offer"><div><b>${esc(x.name)}</b><span>${GOOD_LABEL[x.kind]}, ${x.kcal} kcal</span></div><button class="primary" data-buy="${key}">Buy, ${price(x)}</button></div>`;
+      const slot = slotOf(x)!, worn = this.save.driver[slot] === key, owned = this.wallet.owns(key);
+      return `<div class="offer"><div><b>${swatch} ${esc(x.name)}</b><span>${GOOD_LABEL[x.kind]}</span></div><button class="${worn ? 'ghost' : 'primary'}" data-buy="${key}">${worn ? 'Take off' : owned ? 'Wear' : `Buy, ${price(x)}`}</button></div>`;
+    };
+    return `${points}${food ? `<p>Energy for running: ${Math.round(this.game.energy * 100)}%. Eat or drink something to fill it.</p>` : ''}${shop.stock.map(row).join('')}`;
+  }
+
+  /** The counter's buttons, and the sheet drawn again after each buy. */
+  private wireCounter(c: HTMLElement, again: () => void) {
+    for (const b of c.querySelectorAll<HTMLElement>('[data-buy]')) b.onclick = () => { this.buyGood(b.dataset.buy!); again(); };
+    for (const b of c.querySelectorAll<HTMLElement>('[data-item]')) b.onclick = () => this.pickItem(b.dataset.item!, again);
+  }
+
+  /** Food is eaten at the counter; clothes are bought once, then worn or taken off. */
+  private buyGood(key: string) {
+    const x = goodById(key);
+    if (!x) return;
+    if (isFood(x.kind)) {
+      if (!eatGood(this.game, this.wallet, x, this.save.debug)) return this.toast(`You need ${x.price - this.wallet.points()} more Points`);
+      this.toast(`${x.name}: energy ${Math.round(this.game.energy * 100)}%`);
+    } else {
+      if (!this.wallet.owns(key) && !this.save.debug) {
+        if (!this.wallet.spend(x.price, `Bought ${x.name}`)) return this.toast(`You need ${x.price - this.wallet.points()} more Points`);
+        this.wallet.grant(key);
+      }
+      this.wear(slotOf(x)!, key);
+    }
+    this.refreshPoints();
+    this.store();
+  }
+
+  /** Put something on, or take it off if it's already on: in the car and out of it, you're one person. */
+  private wear(slot: keyof Driver, id: string) {
+    const d = this.save.driver;
+    d[slot] = d[slot] === id ? undefined : id;
+    this.view.setCar(this.design(), d);
+    this.view.you.setLook(this.save.look, d);
   }
 
   /** Buttons that only make sense where the car is right now. */
@@ -524,7 +591,7 @@ export class App {
     if (out) add('Get out', () => this.door());
     if (back) add('Get in', () => this.door(), 'primary');
     if (bus) add(`Get on, ${FARE} Points`, () => this.boardBus(), 'primary');
-    if (door && !back) add(placeAt(g.town, g.content.places, door.plot)?.name ?? 'Door', () => this.openDoor(door));
+    if (door && !back) add(door.plot === g.town.centre?.plot ? 'Shopping centre' : placeAt(g.town, g.content.places, door.plot)?.name ?? 'Door', () => this.openDoor(door));
     if (ride && stopped) add('Get off', () => g.getOff(), 'primary');
     else if (ride && !ride.rang) add('Ring the bell', () => g.ringBell(), 'primary');
   }
@@ -752,6 +819,7 @@ export class App {
       <p>Radio DJ voice</p><div class="row">${[...CHOOSABLE, 'device'].map((v) => opt(`dj:${v}`, VOICE_NAMES[v] ?? 'Device', s.voices.dj === v)).join('')}</div>
       <p>Graphics${this.view.fps ? ` (running at ${this.view.fps} fps)` : ''}</p><div class="row">${opt('gfx:auto', 'Auto', s.graphics === 'auto')}${opt('gfx:high', 'High', s.graphics === 'high')}${opt('gfx:low', 'Low', s.graphics === 'low')}</div>
       <p>You on foot</p><div class="row looks">${LOOKS.map((l, i) => `<button class="ghost look ${s.look === i ? 'on' : ''}" data-v="look:${i}" aria-label="Look ${i + 1}" style="background:linear-gradient(${l.hair} 0 22%, ${l.skin} 22% 38%, ${l.shirt} 38% 70%, ${l.trousers} 70%)"></button>`).join('')}</div>
+      ${this.wardrobe()}
       <p>Car body</p><div class="row">${opt('body:voxel', 'Voxel', s.body === 'voxel')}${opt('body:blocks', 'Blocks', s.body === 'blocks')}</div>
       <p>Costs</p><div class="row">${opt('debug:0', 'Pay as you go', !s.debug)}${opt('debug:1', 'Free everything (debug)', s.debug)}</div>
       <p>Radio</p><div class="row">${this.stations.map((st, i) => opt(`radio:${i}`, esc(st.name), s.radio === i)).join('')}${opt('radio:-1', 'Off', s.radio < 0)}</div>
@@ -780,7 +848,8 @@ export class App {
       if (k === 'gfx') { s.graphics = v as DriveSave['graphics']; this.view.setQuality(s.graphics); }
       if (k === 'body') { s.body = v as DriveSave['body']; this.view.bodyStyle = s.body; this.view.setCar(s.designs[s.car] ?? {}, s.driver); }
       if (k === 'debug') s.debug = v === '1';
-      if (k === 'look') { s.look = Number(v); this.view.you.setLook(s.look); }
+      if (k === 'look') { s.look = Number(v); this.view.you.setLook(s.look, s.driver); }
+      if (k === 'wear') { const [slot, id] = v.split('='); this.wear(slot as keyof Driver, id); }
       if (k === 'guide' || k === 'dj') { // a sample in the new voice, so you hear what you picked
         s.voices[k] = v;
         this.voice.muted = s.muted;
@@ -790,6 +859,17 @@ export class App {
       this.store();
       this.openPause();
     };
+  }
+
+  /** What you own to wear, by where it goes: put it on or take it off anywhere. Buying is in the shops. */
+  private wardrobe(): string {
+    const owned = (Object.keys(SLOT_LABEL) as (keyof Driver)[]).map((slot) => {
+      const old = this.catalogue.filter((c) => (slot === 'outfit' ? c.kind === 'outfit' : c.kind === 'accessory' && c.style === slot) && this.wallet.owns(c.id)).map((c) => ({ id: c.id, name: c.name, colors: c.colors }));
+      const bought = allGoods().filter(({ key, good }) => slotOf(good) === slot && this.wallet.owns(key)).map(({ key, good }) => ({ id: key, name: good.name, colors: good.colors ?? [] }));
+      const all = [...old, ...bought];
+      return all.length ? `<p>${SLOT_LABEL[slot]}</p><div class="row">${all.map((w) => `<button class="ghost ${this.save.driver[slot] === w.id ? 'on' : ''}" data-v="wear:${slot}=${w.id}">${w.colors.map((h) => `<i class="swatch" style="background:${h}"></i>`).join('')} ${esc(w.name)}</button>`).join('')}</div>` : '';
+    }).join('');
+    return owned ? `<p><b>Your clothes</b>: tap to put on or take off</p>${owned}` : `<p>Your clothes: buy some in the town's clothes shops, then wear them here.</p>`;
   }
 
   // ---- garage and shop ----
@@ -839,7 +919,7 @@ export class App {
     return (on as Record<string, string | undefined>)[key] === c.id;
   }
 
-  private pickItem(id: string) {
+  private pickItem(id: string, after = () => this.renderGarage()) {
     const c = this.find(id)!;
     if (!this.wallet.owns(id) && !this.save.debug) {
       if (!this.wallet.spend(c.price, `Bought ${c.name}`)) return this.toast(`You need ${c.price - this.wallet.points()} more Points`);
@@ -850,7 +930,7 @@ export class App {
     slots[key] = slots[key] === id ? undefined : id;
     this.view.setCar(this.design(), this.save.driver);
     this.store();
-    this.renderGarage();
+    after();
   }
 
   private pickCar(id: string) {

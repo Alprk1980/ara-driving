@@ -80,7 +80,7 @@ export function buildDriver(driver: Driver, find: Lookup, pose: Pose): THREE.Gro
   const outfit = find(driver.outfit), cap = find(driver.cap), glasses = find(driver.sunglasses), gloves = find(driver.gloves);
   const skin = new THREE.MeshLambertMaterial({ color: '#e9b48c' });
   const top = new THREE.MeshLambertMaterial({ color: outfit?.colors[0] ?? '#3d6fd1' });
-  const seat = new THREE.MeshLambertMaterial({ color: INTERIOR.seat }), legs = new THREE.MeshLambertMaterial({ color: INTERIOR.legs });
+  const seat = new THREE.MeshLambertMaterial({ color: INTERIOR.seat }), legs = new THREE.MeshLambertMaterial({ color: find(driver.trousers)?.colors[0] ?? INTERIOR.legs }); // the trousers you bought, as you wear them on foot
   g.add(box(0.5, 0.12, 0.52, seat, 0, -0.08, 0.08));
   upper.add(box(0.5, 0.78, 0.1, seat, 0, 0.36, -0.2));
   upper.add(box(0.44, 0.5, 0.26, top, 0, 0.27, 0));

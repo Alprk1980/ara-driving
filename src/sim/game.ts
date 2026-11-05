@@ -1,5 +1,6 @@
 // The game director: owns the simulation, runs it in fixed steps and emits events. It knows nothing about
 // screens or sound, so tests and headless reviews run the same rules the player gets.
+import { afterEating, afterRun, TIRED_AT } from './energy.ts';
 import { contactAt, crushLevel, NEUTRAL, PlayerCar, sideOf, type DriveIntent, type DriveState, type Mark, type Side } from './car.ts';
 import type { Find, Goal, GoalKind, TownEventCard } from '../../schemas/content.ts';
 import { BUS_FARE, carById, RECOVERY_FEE, FIND_ALL_REWARD, FIND_REWARD, FUEL_PRICE, GOAL_REWARD, HOME_TOPUP_PCT, rankOf, rankPay, REGULAR_FINALE, REP_FINALE, REP_GOAL, REP_JOB, REP_SPOTLESS, streakBonus } from './economy.ts';
@@ -65,6 +66,7 @@ export type Trip = {
   dents: Record<Side, number>; marks: Mark[];
   quest: { offer: Omit<Offer, 'start' | 'end'> & { start: number; end: number }; at: QuestState } | null;
   foot?: { x: number; z: number; heading: number } | null; // out of the car, and where; saves from before walking have none
+  energy?: number; // running energy, 0-1; saves from before it existed start full
 };
 
 /** Where Points live. The app backs this with the shared profile; tests use a number. `why` is what the history shows. */
@@ -93,6 +95,7 @@ export class Game {
   goals: Goal[]; // today's
   event: TownEventCard | null = null;
   foot: OnFoot | null = null; // out of the car and walking; the car stays where it was left
+  energy = 1; // for running, 0-1: see energy.ts
   ride: { bus: TrafficCar; rang: boolean } | null = null; // on a bus, and whether you've rung for the next stop
   private doorList: Door[] | null = null;
   private eventBlock = 0;
@@ -206,6 +209,11 @@ export class Game {
     this.emit({ type: 'bus', what: 'on', fare });
     if (fare) this.emit({ type: 'points', points: this.wallet.points() });
     return true;
+  }
+
+  /** Eat or drink something: its kcal go back into the running bar. */
+  eat(kcal: number) {
+    this.energy = afterEating(this.energy, kcal);
   }
 
   /** Ring once for the next stop. */
@@ -350,6 +358,7 @@ export class Game {
       car: p.car.id, x: p.x, z: p.z, heading: p.heading, time: this.time, streak: this.streak,
       waypoint: this.waypoint, dest: this.dest, dents: { ...p.dents }, marks: p.marks.map((m) => ({ ...m })),
       quest: q ? { offer: { ...q.offer, start: all.indexOf(q.offer.start), end: all.indexOf(q.offer.end) }, at: q.state } : null,
+      energy: this.energy,
       foot: this.ride ? this.alightAt(this.ride.bus) : this.foot ? { x: this.foot.x, z: this.foot.z, heading: this.foot.heading } : null, // a reload puts you off the bus at the kerb
     };
   }
@@ -368,6 +377,7 @@ export class Game {
       this.setNav(this.quest.target);
     }
     if (t.foot) this.foot = new OnFoot(t.foot);
+    if (t.energy !== undefined) this.energy = t.energy;
     this.waypoint = t.waypoint;
     this.dest = t.waypoint ? t.dest : null;
     if (!this.quest) this.setNav(this.waypoint);
@@ -483,7 +493,11 @@ export class Game {
     this.traffic.rider = this.ride;
     const wall = p.step(STEP, foot ? NEUTRAL : intent, this.town), moving = this.traffic.step(STEP, p, here), kerb = this.parked.step(STEP, p, this.traffic.cars), crash = Math.max(moving, kerb), impact = Math.max(wall, crash);
     this.walkers.step(STEP, p, this.traffic.cars, here);
-    if (walking) walking.step(STEP, intent, this.town, this.solidNear(walking));
+    if (walking) {
+      const was = { x: walking.x, z: walking.z };
+      walking.step(STEP, intent, this.town, this.solidNear(walking), this.energy <= TIRED_AT);
+      if (walking.running) this.energy = afterRun(this.energy, dist(was, walking));
+    }
     else if (foot) this.stepRide(foot);
     const n = kerb > moving ? this.parked.crash : this.traffic.lastCrash;
     if (crash > 0 && crash >= wall && n) {

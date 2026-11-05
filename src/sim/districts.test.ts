@@ -72,7 +72,7 @@ describe('the four districts', () => {
   });
 
   it('build by their own zoning: plot, height and setback', () => {
-    for (const b of town.boxes.filter((o) => !o.drawn)) { // a drawn building keeps its drawing's size, held in drawnsites.test.ts
+    for (const b of town.boxes.filter((o) => !o.drawn && o !== town.centre?.box)) { // a drawn building keeps its drawing's size, held in drawnsites.test.ts; the shopping centre is held in centre.test.ts
       const r = DISTRICTS[b.district!], long = Math.max(b.hx, b.hz), short = Math.min(b.hx, b.hz);
       expect(long).toBeLessThanOrEqual(Math.max(r.plot[1], r.depth[1]) + 1e-9);
       expect(short).toBeGreaterThanOrEqual(Math.min(r.plot[0], r.depth[0]) - 1e-9);

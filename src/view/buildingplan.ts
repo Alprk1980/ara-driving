@@ -21,7 +21,7 @@ const hash = (a: number, b: number) => {
 /** Pick a style: a stretch of street shares a favourite, as real streets are built in runs, with others in among it. */
 export function planBuilding(b: Box, styles: readonly BuildingStyle[]): Plan {
   const pinned = b.style ? styles.find((s) => s.id === b.style) : undefined;
-  const district = b.district ?? DISTRICT_IDS[2], kin = styles.filter((s) => s.district === district);
+  const district = b.district ?? DISTRICT_IDS[2], kin = styles.filter((s) => s.district === district && !s.use); // a style kept for one building is never picked at random
   const pool = kin.length ? kin : styles;
   const favourite = pool[Math.floor(hash(Math.floor(b.x / 170), Math.floor(b.z / 170)) * pool.length)];
   const style = pinned ?? (b.hue < 0.45 ? favourite : pool[Math.floor(hash(b.x, b.z) * pool.length)]);
