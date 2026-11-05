@@ -83,7 +83,11 @@ const gltfLoader = new GLTFLoader();
 const glbCache = new Map<string, Promise<THREE.Object3D>>();
 function glb(url: string): () => Promise<THREE.Object3D> {
   let p = glbCache.get(url);
-  if (!p) { p = new Promise((done, fail) => gltfLoader.load(url, (g) => done(g.scene), undefined, fail)); glbCache.set(url, p); }
+  if (!p) {
+    const load = new Promise<THREE.Object3D>((done, fail) => gltfLoader.load(url, (g) => done(g.scene), undefined, fail));
+    load.catch(() => { if (glbCache.get(url) === load) glbCache.delete(url); }); // a failed load is tried again next time, as after a re-export
+    glbCache.set(url, (p = load));
+  }
   return async () => {
     const copy = (await p).clone(true);
     copy.traverse((m) => { const mesh = m as THREE.Mesh; if (mesh.isMesh) mesh.geometry = mesh.geometry.clone(); });

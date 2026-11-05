@@ -187,7 +187,13 @@ const bench = document.getElementById('bench')!;
 let stage = new THREE.Group(), guides = new THREE.Group(), walls: WallDamage | null = null;
 scene.add(stage);
 function clearStage() {
-  stage.traverse((o) => { const m = o as THREE.Mesh; if (m.isMesh) m.geometry?.dispose(); });
+  // Lines as well as meshes: the guides' wire boxes and side lines each made a geometry and a material of their own.
+  // Mesh materials are left alone, as some are shared with the game (parkedMaterial).
+  stage.traverse((o) => {
+    const m = o as THREE.Mesh | THREE.Line;
+    if ((m as THREE.Mesh).isMesh || (m as THREE.Line).isLine) m.geometry?.dispose();
+    if ((m as THREE.Line).isLine) for (const mat of [m.material].flat()) mat.dispose();
+  });
   scene.remove(stage);
   stage = new THREE.Group();
   guides = new THREE.Group();
