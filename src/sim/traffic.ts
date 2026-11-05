@@ -32,6 +32,13 @@ const CALM_MPS2 = 3, ZEBRA_STOP_M = 2.5, SIGNAL_LOOK_M = 45; // a driver's calm 
 const ALIGHT_ODDS = 0.5;
 const DEADLOCK_MPS = 0.5, DEADLOCK_GO_S = 4; // stopped, and how long the one going first ignores the car it was waiting for; judged
 const STOP_BLOCKED_S = 2; // held this long short of the stop, it lets people on and off where it is; judged, and under PASS_AFTER_S, which restarts the wait
+// How long until the bus: its distance round the route at the buses' average pace, stops and signals included. 9 m/s
+// is what the sim gives (three 15-minute runs, 8.9-9.1 m/s, 2026-11-05); real town buses manage about 5 (London's
+// average is near 18 km/h), but the game's traffic runs fast on purpose (see ROADMAP "Decided").
+export const BUS_RUN_MPS = 9;
+// The town runs one bus each way round each loop, and only near you, so a bus that's far round its route is put back
+// up the road from a stop where someone waits: out of sight, about as far off as any car arrives, so the wait is short.
+const UPSTREAM_M = 300, FAR_ROUND_M = 900; // judged: about half a minute's wait, and a bus too far round to wait for
 export const HAIL_M = 4; // close enough to the stop's pole for the driver to see you waiting
 const DOORS_S = 7, PER_PERSON_S = 3.5, STOP_LANE = 4.4, STOP_LOOK_M = 34, AT_STOP_M = 1.5; // doors and pulling away, plus 3-5 s for each contactless tap: TfL's average dwell is 10.5-14.5 s. The lane puts a bus's flank at the kerb
 const CREEP_MPS = 2.5, BLUE_MPS = 16, BLUE_LANE = 0, BLUE_DODGE = 1.8, BLUE_GAP = 2.15, PULL_IN_MPS = 3, YIELD_LANE = 3.6, GIVE_WAY_M = 70, GIVE_WAY_SIDE_M = 9, RED_CROSS_MPS = 5, BLUE_PASS_S = 1, ON_SCENE_M = 11; // UK blue-light drivers may treat a red as a give way, so they slow and cross; about 58 km/h in town, judged
@@ -127,12 +134,38 @@ export class Traffic {
     return { x: -1000, z: -1000, heading: 0, speed: 0, cruise: 0, want: 0, colour, edge: 0, to: 0, along: 0, nextEdge: 0, nextTo: 0, lane: LANE, laneGoal: LANE, waiting: 0, passing: 0, holding: -1, cool: 0, braking: false, vx: 0, vz: 0, spin: 0, dents: { front: 0, back: 0, left: 0, right: 0 }, damage: 0, wreck: 0, ...size, signal: 0, role: id ? FLEET_RULES[id].role : 'car', fleet: id, kg: id ? FLEET_RULES[id].kg : CAR_KG, plan: null, leg: 0, route: 0, dwell: 0, served: -1, callAt: -1, calling: false, blocker: null, ignore: null, ignoreFor: 0, blue: false, scene: 0, job: null, dormant: false, chase: false, replan: 0, returning: false, amber: false, load: null, loading: 0, riding: false, lift: 0 };
   }
 
-  /** Puts a bus on its route somewhere in the ring round the player, or at the nearest point of the route if none is. */
+  /** Where on its route this bus's driver would see someone waiting: the stop being hailed, if it's on this route. */
+  private hailedOn(c: TrafficCar): BusStop | null {
+    const h = this.hailing;
+    return h ? this.town.routes[c.route].stops.find((s) => dist(s, h) < HAIL_M) ?? null : null;
+  }
+
+  /** Metres round its route from this bus to a stop on it. */
+  routeGap(c: TrafficCar, s: BusStop): number {
+    const legs = this.town.routes[c.route].legs, n = legs.length, len = (i: number) => this.town.edges[legs[i].edge].len;
+    if (s.leg === c.leg && s.along >= c.along - AT_STOP_M) return Math.max(0, s.along - c.along);
+    let gap = len(c.leg) - c.along;
+    for (let i = (c.leg + 1) % n; i !== s.leg; i = (i + 1) % n) gap += len(i);
+    return gap + s.along;
+  }
+
+  /** Seconds until this stop's bus is there, or 0 if it's in with its doors open. Null for a stop no bus is running to. */
+  due(s: BusStop): number | null {
+    const c = this.cars.find((b) => b.role === 'bus' && b.route === s.route && !b.dormant);
+    if (!c) return null;
+    const gap = this.routeGap(c, s);
+    if (gap <= FAR_ROUND_M) return c.dwell > 0 && gap < AT_STOP_M * 2 ? 0 : gap / BUS_RUN_MPS;
+    return (Math.max(0, SPAWN_MAX - dist(c, s)) + this.upRoad(this.town.routes[c.route], s).back) / BUS_RUN_MPS; // it goes out of sight, and comes back round up the road
+  }
+
+  /** Puts a bus on its route somewhere in the ring round the player, or at the nearest point of the route if none is;
+   *  with someone waiting at one of its stops, up the road from them. */
   private placeBus(c: TrafficCar, near: Vec) {
-    const r: BusRoute = this.town.routes[c.route], legs = r.legs;
+    const r: BusRoute = this.town.routes[c.route], legs = r.legs, hailed = this.hailedOn(c);
     const mid = (l: Leg) => { const e = this.town.edges[l.edge], a = this.town.nodes[e.a], b = this.town.nodes[e.b]; return { x: (a.x + b.x) / 2, z: (a.z + b.z) / 2 }; };
     const scored = legs.map((l, i) => ({ i, d: Math.abs(dist(mid(l), near) - (SPAWN_MIN + SPAWN_MAX) / 2) })).sort((a, b) => a.d - b.d);
-    const leg = scored[Math.floor(this.rng() * Math.min(3, scored.length))].i;
+    const up = hailed ? this.upRoad(r, hailed) : null;
+    const leg = up?.leg ?? scored[Math.floor(this.rng() * Math.min(3, scored.length))].i;
     this.release(c);
     c.vx = c.vz = c.spin = 0;
     c.dents = { front: 0, back: 0, left: 0, right: 0 };
@@ -142,7 +175,7 @@ export class Traffic {
     c.leg = (leg + legs.length - 1) % legs.length;
     c.edge = legs[leg].edge;
     c.to = legs[leg].to;
-    c.along = this.town.edges[c.edge].len * (0.2 + this.rng() * 0.5);
+    c.along = up?.along ?? this.town.edges[c.edge].len * (0.2 + this.rng() * 0.5);
     c.cruise = c.speed = c.want = 10 + this.rng() * 2;
     c.lane = c.laneGoal = LANE;
     c.waiting = c.passing = 0;
@@ -151,6 +184,20 @@ export class Traffic {
     c.x = p.x;
     c.z = p.z;
     c.heading = Math.atan2(q.x - p.x, q.z - p.z);
+  }
+
+  /** The point on a route about UPSTREAM_M back from a stop as the crow flies, walking back along the legs. */
+  private upRoad(r: BusRoute, s: BusStop): { leg: number; along: number; back: number } {
+    const n = r.legs.length;
+    let leg = s.leg, along = s.along, back = 0;
+    while (back < FAR_ROUND_M * 0.8) {
+      along -= 10;
+      back += 10;
+      if (along < 1) { leg = (leg + n - 1) % n; along += this.town.edges[r.legs[leg].edge].len; }
+      const e = this.edgeEnds(r.legs[leg].edge, r.legs[leg].to);
+      if (dist({ x: e.a.x + e.dx * along, z: e.a.z + e.dz * along }, s) >= UPSTREAM_M) break;
+    }
+    return { leg, along, back };
   }
 
   private edgeEnds(edge: number, to: number) {
@@ -337,11 +384,18 @@ export class Traffic {
     c.want = want;
     c.braking = want < c.speed - 0.5;
     if (c.role === 'recovery' && !c.job && dist(c, this.seen) > GONE_M) this.standDown(c); // job done and out of sight, it's back at the yard
-    else if (dist(c, this.seen) > DESPAWN && !c.job && !c.returning) { // a crew on a job carries on to it
+    else if ((dist(c, this.seen) > DESPAWN || this.tooFarRound(c)) && !c.job && !c.returning) { // a crew on a job carries on to it
       if (c.role === 'bus') this.placeBus(c, this.seen);
       else if (c.fleet && c.fleet !== 'police_car') this.standDown(c);
       else this.place(c, this.seen);
     }
+  }
+
+  /** A bus far round its loop from someone waiting at one of its stops, and out of sight, to be brought round. */
+  private tooFarRound(c: TrafficCar): boolean {
+    if (c.role !== 'bus' || dist(c, this.seen) < SPAWN_MAX) return false;
+    const s = this.hailedOn(c);
+    return !!s && this.routeGap(c, s) > FAR_ROUND_M;
   }
 
   /** Pulling in at the next stop on this road, waiting there, and pulling out again. */

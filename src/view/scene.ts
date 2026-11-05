@@ -23,6 +23,7 @@ import { STOP_LINE_M } from '../sim/signals.ts';
 import { RoadControl } from './roadcontrol.ts';
 import { buildServices } from './services.ts';
 import { StreetLife } from './streetlife.ts';
+import { BusSigns } from './busstops.ts';
 import { TownBuildings } from './townblocks.ts';
 import { DrawnBuildings } from './drawn.ts';
 import { WallDamage } from './walls.ts';
@@ -371,6 +372,7 @@ export class View {
   fps = 0;
   private beam: THREE.Mesh;
   private life: StreetLife;
+  private busSigns: BusSigns;
   private control: RoadControl;
   private lookYaw = 0;
   private lookPitch = 0;
@@ -448,6 +450,8 @@ export class View {
     for (const id of game.progress.found) this.hideFind(id);
 
     this.life = new StreetLife(this.scene, game.town, game.traffic, game.walkers, game.parked);
+    this.busSigns = new BusSigns(game.town, game.traffic);
+    this.scene.add(this.busSigns.group);
     this.you = new YouFigure(this.scene, 0);
     buildDoors(this.scene, game.doors);
     this.control = new RoadControl(this.scene, game.town);
@@ -717,6 +721,7 @@ export class View {
   }
 
   private drawTraffic(dt: number) {
+    this.busSigns.draw();
     this.life.draw(dt, this.game.traffic, this.game.walkers, this.game.parked, this.attract ? this.stand : this.game.here);
     this.control.draw(dt, this.game.traffic.clock, this.game.walkers.lights);
     for (const c of this.game.traffic.cars) { // a car that's taken a real hit smokes where it stands

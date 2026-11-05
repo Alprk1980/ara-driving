@@ -117,3 +117,42 @@ describe('the doors', () => {
     expect(g.atDoor).toBe(d);
   });
 });
+
+describe('which bus is which', () => {
+  it('numbers each loop, C for clockwise and A for anticlockwise as the map shows it', () => {
+    expect(town.routes.map((r) => r.name).sort()).toEqual(['1A', '1C', '2A', '2C']);
+    for (const r of town.routes) {
+      // The loop's top side, the leg nearest the top of the map (least z): going clockwise, that runs to the right.
+      const mid = (i: number) => { const e = town.edges[r.legs[i].edge]; return (town.nodes[e.a].z + town.nodes[e.b].z) / 2; };
+      const top = r.legs.map((_, i) => i).reduce((a, b) => (mid(b) < mid(a) ? b : a)), l = r.legs[top], e = town.edges[l.edge];
+      const from = town.nodes[e.a === l.to ? e.b : e.a], to = town.nodes[l.to];
+      expect(to.x > from.x, `${r.name} along its top side`).toBe(r.name.endsWith('C'));
+    }
+  });
+
+  it('lists each stop\'s routes on its flag', () => {
+    town.routes.forEach((r, i) => { for (const s of r.stops) { expect(s.route).toBe(i); expect(town.routesAt(s)).toContain(r); } });
+  });
+
+  it('shows the route at the stop and on the bus', () => {
+    const { g, bus } = atStop();
+    expect(g.stopBoard!.map((b) => b.name)).toContain(town.routes[bus.route].name);
+    run(g, 20, () => bus.dwell > 0);
+    g.board();
+    expect(g.rideRoute!.name).toBe(town.routes[bus.route].name);
+    expect(g.stopBoard).toBeNull();
+  });
+
+  it('brings the next bus round soon after one has gone, about when the board says', () => {
+    const { g, bus, s } = atStop();
+    put(g, bus, s, -15); // just gone: the rest of its loop is kilometres
+    const said = g.stopBoard!.find((b) => b.name === town.routes[bus.route].name)!.due!;
+    expect(said).toBeLessThan(90);
+    let t = 0;
+    run(g, 240, () => { t += STEP; return bus.dwell > 0 && dist(bus, s) < 9; });
+    expect(bus.dwell).toBeGreaterThan(0);
+    expect(dist(bus, s)).toBeLessThan(9);
+    expect(t).toBeGreaterThan(said * 0.5);
+    expect(t).toBeLessThan(said * 1.6 + 10);
+  });
+});

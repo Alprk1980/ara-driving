@@ -25,6 +25,9 @@ import type { RoadMoment } from '../../schemas/services.ts';
 import roadLines from '../data/roadlines.json';
 
 const TREND_SHOWN = 0.5, ROAD_ROWS = 10;
+/** A stop's countdown, as a board shows it: "due" once it's all but there, then the wait. In real seconds, not the game
+ *  clock's hours, as that runs 180 times faster and a half-minute wait would read as an hour and a half. */
+const dueText = (s: number | null) => (s === null ? 'not running' : s < 10 ? 'due' : s < 60 ? `in ${Math.round(s / 10) * 10} s` : `in ${Math.round(s / 60)} min`);
 const ROAD_NAMES: Record<RoadMoment, string> = { red_stop: 'Waited at a red', zebra_wait: 'Stopped at a zebra', blue_pull: 'Pulled over for a blue light', stopped_after: 'Stopped after a knock', red_run: 'Ran a red light', zebra_run: 'Drove over a busy zebra', blue_block: 'Held up a blue light', drove_off: 'Drove off after a knock', pulled_over: 'Stopped by the police', got_away: 'Lost the police', course: 'Went on a course', phone_use: 'Used a phone at the wheel', hoax_call: 'Called 999 with no emergency', recovery_called: 'Called for recovery' };
 import { CAMERA_NAMES, type View } from '../view/scene.ts';
 import { DISTRICTS, DISTRICT_IDS, type DistrictId } from '../sim/districts.ts';
@@ -249,7 +252,7 @@ export class App {
       case 'bus':
         if (e.what === 'bell') { this.sound.chime(1180); this.voice.say('bus_stopping'); break; } // says it and shows it
         this.view.footChanged();
-        if (e.what === 'on') this.toast(e.fare ? `Fare paid, ${e.fare} Points. Ring the bell before your stop` : 'On the bus. Ring the bell before your stop');
+        if (e.what === 'on') { const r = this.game.rideRoute, on = r ? `On the ${r.name} ${r.via}` : 'On the bus'; this.toast(e.fare ? `${on}. Fare paid, ${e.fare} Points. Ring the bell before your stop` : `${on}. Ring the bell before your stop`); }
         else this.toast('Off the bus');
         this.store();
         break;
@@ -365,10 +368,11 @@ export class App {
     if ((this.bannerClock -= dt) <= 0) $('banner').style.display = 'none';
     if ((this.toastClock -= dt) <= 0) $('toast').style.display = 'none';
     if ((this.tickerClock -= dt) <= 0) $('ticker').style.display = 'none';
-    $('speed').textContent = g.ride ? 'On the bus' : g.foot ? `On foot${g.foot.running ? ', running' : ''}` : `${Math.round(p.kmh)} km/h`;
+    const board = g.stopBoard;
+    $('speed').textContent = g.ride ? `On the ${g.rideRoute!.name}` : board ? board.map((b) => `${b.name} ${dueText(b.due)}`).join(', ') : g.foot ? `On foot${g.foot.running ? ', running' : ''}` : `${Math.round(p.kmh)} km/h`;
     if (this.save.input === 'gamepad' && this.padAction.pressed()) this.door();
     const stop = g.atStop;
-    if (stop !== this.lastStop) { this.lastStop = stop; if (stop) this.banner(`Bus stop. Wait here and the bus pulls in for you: a single is ${FARE} Points`, false, 4); }
+    if (stop !== this.lastStop) { this.lastStop = stop; if (stop) this.banner(`Bus stop for the ${g.town.routesAt(stop).map((r) => r.name).join(' and ')}. Wait here and the bus pulls in for you: a single is ${FARE} Points`, false, 4); }
     const pct = p.fuel / p.car.tank;
     $('fuelfill').style.width = `${pct * 100}%`;
     $('fueltext').textContent = `Fuel ${Math.round(p.fuel)} L`;

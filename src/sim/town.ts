@@ -18,14 +18,18 @@ export const FURNITURE_KINDS = ['bench', 'bin', 'planter', 'bollard', 'cycle_rac
 export type ParkedCar = Vec & { heading: number; colour: number; drive?: boolean };
 export type Zebra = Vec & { edge: number; along: number; ux: number; uz: number; kind: CrossingKind }; // along: metres from the edge's node a; a pelican or puffin has signals
 export type Leg = { edge: number; to: number };
-export type BusStop = Vec & { leg: number; along: number; edge: number; to: number }; // along: metres into the leg, in the direction of travel
-export type BusRoute = { legs: Leg[]; stops: BusStop[] };
+export type BusStop = Vec & { leg: number; along: number; edge: number; to: number; route: number }; // along: metres into the leg, in the direction of travel; route: its index in town.routes
+export type BusRoute = { legs: Leg[]; stops: BusStop[]; name: string; via: string }; // name: the number on the blind and the stop's flag; via: the words beside it
 export type Service = Vec & { id: ServiceId; heading: number; road: Vec; edge: number; along: number; apron: number }; // along: metres from the edge's node a
 export type Drive = Vec & { fx: number; fz: number; deep: number; wide: number; kerb: Vec }; // paving from the pavement to the house; f points at the street
 export type Furniture = Vec & { kind: (typeof FURNITURE_KINDS)[number]; heading: number; len: number; tint?: number };
 const BAY_M = 6.6, JUNCTION_CLEAR = 28; // a 6 m parallel bay with a little give, kept far enough off a junction that a car swinging out of the turn misses it
 export const ZEBRA_OFF = 26; // metres from a junction to a crossing
 export const ZIGZAG_M = 16; // no parking within the zig-zags (Highway Code rule 190); the length is about eight marks, from memory, as no source gave it
+// Circular routes are numbered as Birmingham numbers its Outer and Inner Circles (the 11 and the 8): one number for the
+// loop, with C for the buses going clockwise and A for anticlockwise, as seen on the map. No B, which could be read as
+// "backwards".
+const CIRCLES = [{ num: '1', via: 'Outer Circle' }, { num: '2', via: 'Inner Circle' }] as const;
 const STOP_SPACING_M = 400, STOP_CLEAR_M = 22; // 400 m apart, the long-standing UK rule of thumb (Edinburgh and Surrey guidance); room for a 12 m bus to pull in and out, judged
 const APRON_M = 12; // a forecourt deep enough to stand a fire engine on, clear of the pavement
 const SERVICE_AT: Record<ServiceId, Vec> = { fire: { x: 1350, z: 1300 }, ambulance: { x: 1750, z: 1750 }, police: { x: 1480, z: 1560 } }; // near the middle, so a crew can reach most of town quickly
@@ -375,7 +379,12 @@ export class Town {
       }
     });
     const ring = (lo: number, hi: number) => this.loop([lo * N + lo, hi * N + lo, hi * N + hi, lo * N + hi]);
-    for (const legs of [ring(2, 8), ring(4, 6)]) for (const way of [legs, this.backwards(legs)]) this.routes.push({ legs: way, stops: this.findStops(way) });
+    [ring(2, 8), ring(4, 6)].forEach((legs, i) => {
+      for (const way of [legs, this.backwards(legs)]) {
+        const name = CIRCLES[i].num + (this.clockwise(way) ? 'C' : 'A');
+        this.routes.push({ legs: way, stops: this.findStops(way, this.routes.length), name, via: CIRCLES[i].via });
+      }
+    });
     for (const r of this.routes) for (const s of r.stops) this.stopsOn.set(s.edge, [...(this.stopsOn.get(s.edge) ?? []), s]);
   }
 
@@ -418,12 +427,24 @@ export class Town {
     return path.at(-1)?.edge === edge ? path : [...path, { edge, to: e.b }];
   }
 
+  /** Whether a loop runs clockwise on the map, where x runs right and z runs down the page. */
+  private clockwise(legs: Leg[]): boolean {
+    let twice = 0;
+    legs.forEach((l, i) => { const a = this.nodes[l.to], b = this.nodes[legs[(i + 1) % legs.length].to]; twice += a.x * b.z - b.x * a.z; });
+    return twice > 0; // the shoelace sum, positive for clockwise with the page's z axis pointing down
+  }
+
+  /** The routes calling at a stop, by name: any route with a stop on this spot. */
+  routesAt(p: Vec): BusRoute[] {
+    return this.routes.filter((r) => r.stops.some((s) => dist(s, p) < 6));
+  }
+
   /** The same loop the other way round. */
   private backwards(legs: Leg[]): Leg[] {
     return legs.map((l) => ({ edge: l.edge, to: this.edges[l.edge].a === l.to ? this.edges[l.edge].b : this.edges[l.edge].a })).reverse();
   }
 
-  private findStops(legs: Leg[]): BusStop[] {
+  private findStops(legs: Leg[], route: number): BusStop[] {
     const stops: BusStop[] = [];
     let since = STOP_SPACING_M / 2;
     legs.forEach((l, leg) => {
@@ -431,7 +452,7 @@ export class Town {
       for (let along = 45; along < e.len - 45; along += 15) {
         const p = { x: a.x + dx * along, z: a.z + dz * along };
         if (since + along < STOP_SPACING_M || this.zebras.some((z) => dist(z, p) < 40) || stops.some((s) => dist(s, p) < 80)) continue;
-        stops.push({ x: p.x + dz * (ROAD_W / 2 + 1), z: p.z - dx * (ROAD_W / 2 + 1), leg, along, edge: l.edge, to: l.to });
+        stops.push({ x: p.x + dz * (ROAD_W / 2 + 1), z: p.z - dx * (ROAD_W / 2 + 1), leg, along, edge: l.edge, to: l.to, route });
         since = -along;
       }
       since += e.len;

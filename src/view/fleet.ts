@@ -19,6 +19,21 @@ export function beaconAt(v: FleetVehicle) {
   return { z: z - 0.25, y: top + 0.06, wide: v.half * 0.8 };
 }
 
+/** How far forward an outline's nose reaches at this height. */
+function noseOf(body: FleetVehicle['body'], y: number) {
+  for (let i = body.length - 1; i > 0; i--) {
+    const [z0, y0] = body[i - 1], [z1, y1] = body[i];
+    if ((y >= Math.min(y0, y1) && y <= Math.max(y0, y1)) && y0 !== y1) return z0 + ((y - y0) / (y1 - y0)) * (z1 - z0);
+  }
+  return body[body.length - 1][0];
+}
+
+/** A bus's destination display, over the windscreen: its middle, how wide and tall, and the back's matching panel. */
+export function blindAt(v: FleetVehicle) {
+  const top = Math.max(...v.body.map((p) => p[1])), y = Math.min(v.screen.y1 + 0.16, top - 0.16);
+  return { y, z: noseOf(v.body, y) + 0.03, w: v.half * 1.3, h: 0.26, tail: v.body[0][0] };
+}
+
 export function fleetGeometry(v: FleetVehicle): THREE.BufferGeometry {
   const rules = FLEET_RULES[v.id], crew = rules.role === 'bus' ? null : LIVERY[rules.role];
   const paint = new THREE.Color(crew?.paint ?? v.paint ?? '#ffffff'), skirt = new THREE.Color(v.skirt ?? crew?.paint ?? '#ffffff');
@@ -32,13 +47,7 @@ export function fleetGeometry(v: FleetVehicle): THREE.BufferGeometry {
     return body[body.length - 1][1];
   };
   /** How far forward the nose reaches at this height. */
-  const noseAt = (y: number) => {
-    for (let i = body.length - 1; i > 0; i--) {
-      const [z0, y0] = body[i - 1], [z1, y1] = body[i];
-      if ((y >= Math.min(y0, y1) && y <= Math.max(y0, y1)) && y0 !== y1) return z0 + ((y - y0) / (y1 - y0)) * (z1 - z0);
-    }
-    return nose;
-  };
+  const noseAt = (y: number) => noseOf(body, y);
   const band = (y0: number, y1: number, colour: THREE.Color) => { // one colour round the flanks between two heights, wherever the body is that tall
     for (const s of [1, -1]) for (let z = tail; z < nose - 0.05; z += 0.3) {
       const z1 = Math.min(z + 0.3, nose);
@@ -107,6 +116,6 @@ export function fleetGeometry(v: FleetVehicle): THREE.BufferGeometry {
     parts.push(tinted(new THREE.BoxGeometry(0.22, 0.1, 0.12).translate(s * (half + 0.1), Math.min(y1, top - 0.3), noseAt(Math.min(y1, top - 0.3)) - 0.3), RUBBER)); // mirrors
   }
   if (crew) { const b = beaconAt(v); parts.push(tinted(new THREE.BoxGeometry(b.wide * 2 + 0.1, 0.08, 0.3).translate(0, b.y - 0.05, b.z), BAR)); }
-  if (rules.role === 'bus') parts.push(tinted(new THREE.BoxGeometry(half * 1.3, 0.26, 0.04).translate(0, Math.min(y1 + 0.16, top - 0.16), noseAt(Math.min(y1 + 0.16, top - 0.16)) + 0.03), new THREE.Color('#14161a'))); // the destination blind
+  if (rules.role === 'bus') { const b = blindAt(v); parts.push(tinted(new THREE.BoxGeometry(b.w, b.h, 0.04).translate(0, b.y, b.z), new THREE.Color('#14161a'))); } // the destination blind; busstops.ts lights the route on it
   return mergeGeometries([g, ...parts])!;
 }

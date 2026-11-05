@@ -26,15 +26,33 @@ Each stage needs its own research pass first: how each job really runs, and the 
       next stop. Stops are request stops: a bus only pulls in for someone waiting, someone getting off, or the bell.
 - [ ] The fare cap drops to £2 on 1 January 2027. At a Point to about £1.40 that's 1.4 Points, so `BUS_FARE` should
       go down to 1 then (confirm the new cap has started first).
-- [ ] Which bus is which: route numbers on the buses and stops, and when the next one is due.
+- [x] Which bus is which: route numbers on the buses and stops, and when the next one is due. The two loops are the 1
+      (Outer Circle) and 2 (Inner Circle), C clockwise and A anticlockwise as Birmingham numbers its circles. Each bus
+      lights its number front and back, each stop has a flag listing its routes, and the HUD counts down to the bus in
+      real seconds. A bus far round its loop is brought back round, up the road from where you wait.
 - [x] Junction gridlock: now and then a bus and the cars round it stopped at a junction and never cleared. Fixed: a car
       held up behind another lets the junction go, and a ring of cars each waiting on the next has one go first. Found by
       `tools/footreview.ts`; `src/sim/gridlock.test.ts` replays the sessions that jammed.
 
 ### Stage C: shops and a shopping centre
+Decided 2026-11-05:
+- Going inside is a counter sheet at the shop's door: browse, buy, leave. No 3D interiors; ARA World can take over
+  later for the places it has.
+- Prices follow a split rule. Everyday things (food, drink, clothes) cost real money at about £1.40 a Point, as fuel and
+  the fare do. Cars and paint stay scaled down on purpose (a real respray is £2,400-2,800, about 1,700 Points).
+- Food is energy for running, and gently: a full bar is a few minutes of running, and an empty one still walks at full
+  speed. A snack refills part of it, a meal all of it.
+- Car paint and parts are bought by driving to the motor factor or the garage, not from the Menu. Parts are cosmetic
+  (wheels, lights, trims), so the approved handling stays as it is. Anything already bought is kept.
+- Clothes are garments: tops, trousers, shoes and hats. Hair and skin stay free choices, and a basic set is free. The
+  driver and the figure on foot are one person, in the same clothes.
+- Qwen makes the shops' names and stock behind a validator holding the researched price bands.
+- The shopping centre replaces one Business Quarter block: one building of about 5,000 m² (ICSC Europe's small
+  centre starts at 5,000), one entrance, car parking, and a sheet with a tab for each shop.
+
 - [ ] Go into a shop and buy things with the Points jobs earn: clothes for your figure, food, parts and paint.
+- [ ] Energy for running, refilled by food and drink.
 - [ ] A shopping centre in the Business Quarter, with several shops under one roof.
-- [ ] How far "going inside" goes here, or hands over to ARA World, is one of that game's open decisions (below).
 
 ### Stage D: careers
 - [ ] Sign on at the station or depot and drive its vehicle on real shifts: bus driver (a timetabled route, stopping at

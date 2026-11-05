@@ -177,6 +177,20 @@ export class Game {
     return null;
   }
 
+  /** The routes calling at the stop you're at, and how many seconds until each one's bus, soonest first: the stop's
+   *  countdown board. Null when you're not at a stop. */
+  get stopBoard(): { name: string; via: string; due: number | null }[] | null {
+    const at = this.atStop;
+    if (!at) return null;
+    return this.town.routesAt(at).map((r) => {
+      const s = r.stops.find((q) => dist(q, at) < 6)!;
+      return { name: r.name, via: r.via, due: this.traffic.due(s) };
+    }).sort((a, b) => (a.due ?? Infinity) - (b.due ?? Infinity));
+  }
+
+  /** The route of the bus you're riding. */
+  get rideRoute() { return this.ride ? this.town.routes[this.ride.bus.route] : null; }
+
   /** A bus stopped at your stop with its doors open. */
   get busHere(): TrafficCar | null {
     const s = this.atStop;
