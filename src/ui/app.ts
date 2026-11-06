@@ -749,7 +749,7 @@ export class App {
     const kinds = { delivery: 'Delivery', passenger: 'Passenger', trial: 'Time trial' };
     const reach = g.player.fuel;
     const tag = (o: Game['offers'][number]) => {
-      const job = o.business ? `From ${o.business}` : o.regular ? `${o.regular.name}: part ${o.regular.step + 1} of ${o.regular.total}` : o.rematch ? `Your best: ${o.rematch.time}s` : o.carJob ? CAR_JOBS[o.carJob].label : o.twist ? TWIST_RULES[o.twist].label : '';
+      const job = o.rogue ? 'Getaway job: police may give chase' : o.business ? `From ${o.business}` : o.regular ? `${o.regular.name}: part ${o.regular.step + 1} of ${o.regular.total}` : o.rematch ? `Your best: ${o.rematch.time}s` : o.carJob ? CAR_JOBS[o.carJob].label : o.twist ? TWIST_RULES[o.twist].label : '';
       const t = [job, o.market ? `${g.event?.title ?? 'Market day'}: +${MARKET_BOOST * 100}%` : ''].filter(Boolean).join(' · ');
       return t ? `<span class="tag">${esc(t)}</span>` : '';
     };

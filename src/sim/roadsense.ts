@@ -101,7 +101,8 @@ export class RoadSense {
     }
   }
 
-  private pursue() {
+  /** The police set off after you. */
+  pursue() {
     if (this.chaser) return;
     this.chaser = this.g.traffic.pursue(this.g.player);
     this.chaseAge = this.talk = this.lost = 0;

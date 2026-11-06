@@ -8,6 +8,7 @@ import type { CallCard, CareerId } from '../../schemas/careers.ts';
 import type { TownCase } from '../../schemas/cases.ts';
 import type { CaseProgress } from './casebook.ts';
 import type { RivalCrew } from '../../schemas/rivals.ts';
+import { ROGUE_ODDS, ROGUE_PAY, ROGUE_RANK, ROGUE_SCORE, type RogueJob } from '../../schemas/rogue.ts';
 import type { Season } from './rivals.ts';
 import { freshRoad, type RoadRecord } from './roadsense.ts';
 import { pointAt, route, type Route } from './route.ts';
@@ -24,6 +25,7 @@ export type Offer = {
   carJob?: JobCar;
   market?: boolean; // ends at the kind of place today's market day pays extra for
   business?: string; // a delivery a shop or depot sends out itself: its name
+  rogue?: boolean; // a getaway job: more pay, and the police may give chase (schemas/rogue.ts)
 };
 export type QuestPhase = 'HeadingToStart' | 'Active';
 export type QuestState = { phase: QuestPhase; care: number; elapsed: number; gate: number; bumps: number; track: number[] };
@@ -47,7 +49,7 @@ export function ghostPose(g: Ghost, elapsed: number): { x: number; z: number; he
 export type Progress = { arcs: Record<string, number>; ghosts: Ghost[]; found: string[]; rep: number; daily: Daily; road?: RoadRecord; careers?: Partial<Record<CareerId, number>>; cases?: CaseProgress; season?: Season }; // road and careers: missing from older saves; careers counts the jobs done in each
 export const freshProgress = (): Progress => ({ arcs: {}, ghosts: [], found: [], rep: 0, daily: freshDaily(''), road: freshRoad() });
 
-const offerMult = (o: Offer) => (o.carJob ? CAR_JOBS[o.carJob].mult : 1) * (o.market ? 1 + MARKET_BOOST : 1);
+const offerMult = (o: Offer) => (o.carJob ? CAR_JOBS[o.carJob].mult : 1) * (o.market ? 1 + MARKET_BOOST : 1) * (o.rogue ? ROGUE_PAY : 1);
 
 export const placeAt = (town: Town, places: Place[], p: Plot): Place | undefined => places[town.plots.indexOf(p) % places.length];
 
@@ -66,7 +68,7 @@ const BUSINESS_ODDS = 0.6, BUSINESS_REACH_M = 1000; // how often a business send
 export const CARE_PER_BUMP = 0.2;
 export const CARE_PER_HARD_STOP = 0.1;
 
-export type QuestContent = { places: Place[]; quests: QuestText[]; regulars?: Regular[]; finds?: Find[]; goals?: Goal[]; calls?: CallCard[]; cases?: TownCase[]; rivals?: RivalCrew[] };
+export type QuestContent = { places: Place[]; quests: QuestText[]; regulars?: Regular[]; finds?: Find[]; goals?: Goal[]; calls?: CallCard[]; cases?: TownCase[]; rivals?: RivalCrew[]; rogue?: RogueJob[] };
 
 function bandKm(rng: Rng, rank: number): { min: number; max: number } {
   const bands = rank >= RANK_LONG_HAUL ? [...ROUTE_BANDS, LONG_HAUL] : ROUTE_BANDS;
@@ -163,6 +165,18 @@ export class QuestGenerator {
     list[at] = o;
   }
 
+  /** A getaway job, dressed over an ordinary delivery or passenger offer, for a driver with the rank and the road sense. */
+  private addRogue(list: Offer[]) {
+    const pool = this.content.rogue ?? [];
+    if (!pool.length || rankOf(this.progress.rep) < ROGUE_RANK || (this.progress.road?.score ?? 0) < ROGUE_SCORE || this.rng() > ROGUE_ODDS) return;
+    const card = pool[Math.floor(this.rng() * pool.length)], o = list.find((x) => x.type === card.type && !x.regular && !x.carJob && !x.business && !x.rematch);
+    if (!o) return;
+    o.title = card.title;
+    o.text = card.text.replace('{dropoff}', o.endName);
+    o.twist = undefined;
+    o.rogue = true;
+  }
+
   /** A job only this car is offered, dressed over the offer of its type. */
   private addCarJob(list: Offer[], car: Car) {
     const pool = this.content.quests.filter((q) => q.car === car.id);
@@ -224,6 +238,7 @@ export class QuestGenerator {
     if (!out.some((o) => o.litres <= fuel)) out[0] = this.cheapest(from, car, out.slice(1)); // after the rematch, which can be a long way off
     this.addCarJob(out, car);
     this.addBusiness(out, from, car);
+    this.addRogue(out);
     this.addRegular(out);
     for (const o of out) {
       o.market = !!this.boost && placeAt(this.town, this.content.places, o.end)?.kind === this.boost;

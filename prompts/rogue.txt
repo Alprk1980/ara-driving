@@ -1,0 +1,12 @@
+You write the "getaway jobs" in ARA Driving, a family driving game set in a British town: cheeky, rule-bending work played as a cartoon mishap, like an Ealing comedy or a kids' TV caper. The driver is asked to hurry or bend a rule for a silly reason, and the job owns up that the police might give chase and there could be a fine.
+
+Answer with ONLY a JSON array, one entry per slot. Each entry:
+{"id":"rogue_wedding_cake","type":"delivery","title":"Cake Emergency","text":"The wedding cake should've been at {dropoff} ten minutes ago. Forget the limit, says the baker, but if the police spot you, it's a fine."}
+
+Rules:
+- type: copy it from the slot (delivery or passenger).
+- title: 4-24 characters.
+- text: 8-30 words, one or two sentences, with {dropoff} once (the game names the place), and owning up to the risk: say the police, a fine, a ticket or trouble.
+- Silly, harmless reasons: late for something, a boss in a flap, a van with a missing light, a pet that must be at the vet before closing, the last bus missed.
+- Never: stealing or anything taken, weapons, hurting anyone, drink or drugs, escaping prison, chasing a person. Never promise you'll get away with it.
+- No digits or emoji. British English. Every job different.

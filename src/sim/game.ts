@@ -7,6 +7,7 @@ import { dayWeather, type Forecast, type TravelFact } from './bulletins.ts';
 import { accuse, clueAt, hear, openCase } from './casebook.ts';
 import { freshSeason, PRIZES, SEASON_S, standings, type Standing } from './rivals.ts';
 import { CASE_REWARD, type TownCase } from '../../schemas/cases.ts';
+import { ROGUE_CATCH_ODDS, ROGUE_FINE } from '../../schemas/rogue.ts';
 import { DISTRICTS, districtAt } from './districts.ts';
 import { contactAt, crushLevel, NEUTRAL, PlayerCar, sideOf, type DriveIntent, type DriveState, type Mark, type Side } from './car.ts';
 import type { Find, Goal, GoalKind, TownEventCard } from '../../schemas/content.ts';
@@ -529,6 +530,10 @@ export class Game {
   /** Something the driving record has to say, with its reward or its fine. */
   roadEvent(e: { moment: RoadMoment; pay: number; points: number }) {
     if (e.moment === 'school_calm') this.goalStep('school');
+    if (e.moment === 'pulled_over' && this.quest?.offer.rogue) { // stopped on a getaway: the job's off, and the fine is double
+      this.wallet.spend(Math.min(ROGUE_FINE, this.wallet.points()), 'Fine: getaway job');
+      this.failQuest('Stopped by the police: the getaway job is off'); // the quest step comes after the road's in each frame, so this is safe here
+    }
     const why = ROAD_WHY[e.moment] ?? 'On the road';
     if (e.pay > 0) this.wallet.earn(e.pay, why);
     else if (e.pay < 0) this.wallet.spend(Math.min(-e.pay, this.wallet.points()), why);
@@ -950,6 +955,7 @@ export class Game {
         q.elapsed = 0;
         this.nav = new Navigator(q.offer.route);
         this.emit({ type: 'questPhase', label: q.offer.type === 'trial' ? 'Go! Hit every checkpoint' : q.offer.type === 'passenger' ? 'Passenger on board' : 'Cargo loaded' });
+        if (q.offer.rogue && makeRng(Math.floor(this.time * 997) + 3)() < ROGUE_CATCH_ODDS) { this.road.pursue(); this.emit({ type: 'questPhase', label: 'Blue lights behind: the police have spotted you' }); } // the getaway's risk
       }
       return;
     }

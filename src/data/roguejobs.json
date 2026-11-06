@@ -1,0 +1,116 @@
+[
+  {
+    "id": "rogue_last_bus",
+    "type": "delivery",
+    "title": "Last Bus",
+    "text": "The parcel from the missed bus must reach {dropoff} before the depot closes. The sender says hurry, but knows police could spot you and hand you a fine."
+  },
+  {
+    "id": "rogue_best_man",
+    "type": "passenger",
+    "title": "Best Man Dash",
+    "text": "The best man is late for {dropoff}; hurry gently, because a ticket from the police would spoil the speech."
+  },
+  {
+    "id": "rogue_cat_clinic",
+    "type": "passenger",
+    "title": "Cat to Clinic",
+    "text": "Take this worried cat to {dropoff} before the vet shuts, or the police might spot us and demand a fine."
+  },
+  {
+    "id": "rogue_tea_urn",
+    "type": "passenger",
+    "title": "Tea Break Panic",
+    "text": "The office tea urn is empty, so dash to {dropoff}; a police chase would only add bother and a ticket."
+  },
+  {
+    "id": "rogue_forgotten_suit",
+    "type": "passenger",
+    "title": "Forgotten Suit",
+    "text": "His wedding suit is at {dropoff}; fetch him quickly, before the police notice and a fine ruins the vows."
+  },
+  {
+    "id": "rogue_choir_call",
+    "type": "passenger",
+    "title": "Choir Curtain Call",
+    "text": "The choir must be at {dropoff} by curtain call; if the police follow, there will be trouble and a fine."
+  },
+  {
+    "id": "rogue_knitting_club",
+    "type": "passenger",
+    "title": "Knitting Club",
+    "text": "Granny must reach {dropoff} for the knitting club; if the police catch us, it is a fine and embarrassment."
+  },
+  {
+    "id": "rogue_biscuit_sale",
+    "type": "passenger",
+    "title": "Bob's Biscuit Run",
+    "text": "Bob must get to {dropoff} before his biscuit sale ends; a police stop could mean a ticket and fuss."
+  },
+  {
+    "id": "rogue_school_play",
+    "type": "passenger",
+    "title": "School Play",
+    "text": "Mum is late for {dropoff}; hurry, but remember the police may care and a fine would ruin the play."
+  },
+  {
+    "id": "rogue_parade_float",
+    "type": "passenger",
+    "title": "Float Folly",
+    "text": "The parade float needs its captain at {dropoff}; if the police chase, it is trouble and a likely fine."
+  },
+  {
+    "id": "rogue_wedding_cake",
+    "type": "delivery",
+    "title": "Cake Emergency",
+    "text": "The wedding cake should've been at {dropoff} ten minutes ago. Forget the limit, says the baker, but if the police spot you, it's a fine."
+  },
+  {
+    "id": "rogue_parcel_panic",
+    "type": "delivery",
+    "title": "Parcel Panic",
+    "text": "A parcel of rubber ducks must reach {dropoff} before the fête closes. The shopkeeper begs you to dash, but warns that police might issue a ticket."
+  },
+  {
+    "id": "rogue_flour_fiasco",
+    "type": "delivery",
+    "title": "Flour Fiasco",
+    "text": "The bakery run at {dropoff} is nearly out of flour, and the boss is in a flap. Speed if you must, but police could catch you and demand a fine."
+  },
+  {
+    "id": "rogue_cat_carrier",
+    "type": "delivery",
+    "title": "Cat Carrier",
+    "text": "The cat carrier must be delivered to {dropoff} before the vet shuts. Its owner says hurry, but a police chase and a fine are not part of the plan."
+  },
+  {
+    "id": "rogue_bunting_blunder",
+    "type": "delivery",
+    "title": "Bunting Blunder",
+    "text": "The village fête at {dropoff} has no bunting until you arrive. The organiser wants you there yesterday, and admits police could give you trouble."
+  },
+  {
+    "id": "rogue_cake_tin",
+    "type": "delivery",
+    "title": "Cake Tin",
+    "text": "A borrowed cake tin needs returning to {dropoff} before the street party ends. The neighbour pleads for haste, but says a ticket would ruin the day."
+  },
+  {
+    "id": "rogue_piano_sheet",
+    "type": "delivery",
+    "title": "Piano Sheet",
+    "text": "The concert sheet music is waiting at {dropoff}, and the pianist cannot play. Rushing might help, though police could notice and hand you a fine."
+  },
+  {
+    "id": "rogue_lunchbox",
+    "type": "delivery",
+    "title": "Lunchbox",
+    "text": "A forgotten lunchbox must reach {dropoff} before the school bell rings. The parent begs for speed, but warns that police could turn this into a fine."
+  },
+  {
+    "id": "rogue_garden_gnomes",
+    "type": "delivery",
+    "title": "Garden Gnomes",
+    "text": "The gnomes for {dropoff} must be laid out before the judge arrives. The gardener panics, but says police could catch you and demand a fine."
+  }
+]

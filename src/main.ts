@@ -14,6 +14,8 @@ import places from './data/places.json';
 import calls from './data/calls.json';
 import cases from './data/cases.json';
 import rivals from './data/rivals.json';
+import rogueJobs from './data/roguejobs.json';
+import type { RogueJob } from '../schemas/rogue.ts';
 import type { RivalCrew } from '../schemas/rivals.ts';
 import type { TownCase } from '../schemas/cases.ts';
 import { loadCases } from './sim/casebook.ts';
@@ -61,7 +63,7 @@ wallet.ledger = save.ledger; // the history lives in this game's save
 await loading(30, 'Laying out the town');
 const town = new Town();
 if (save.start < 0) save.start = dealStart(town, Math.random, save.lastStart);
-const game = new Game({ places: places as Place[], quests: quests as QuestText[], regulars: regulars as Regular[], finds: finds as Find[], goals: goals as Goal[], calls: calls as CallCard[], cases: loadCases(cases as TownCase[]), rivals: rivals as RivalCrew[] }, wallet, { town, start: save.start, carId: save.car, fuel: save.fuel[save.car], damage: save.dmg[save.car], progress: save.progress, day: new Date().toLocaleDateString('en-CA'), events: events as TownEventCard[], trip: save.trip?.car === save.car ? save.trip : null });
+const game = new Game({ places: places as Place[], quests: quests as QuestText[], regulars: regulars as Regular[], finds: finds as Find[], goals: goals as Goal[], calls: calls as CallCard[], cases: loadCases(cases as TownCase[]), rivals: rivals as RivalCrew[], rogue: rogueJobs as RogueJob[] }, wallet, { town, start: save.start, carId: save.car, fuel: save.fuel[save.car], damage: save.dmg[save.car], progress: save.progress, day: new Date().toLocaleDateString('en-CA'), events: events as TownEventCard[], trip: save.trip?.car === save.car ? save.trip : null });
 
 const sound = new Sound();
 const canvas = document.getElementById('scene') as HTMLCanvasElement;

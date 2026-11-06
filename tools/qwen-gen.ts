@@ -10,6 +10,7 @@ import { interiorErrors, type InteriorPalette } from '../schemas/interiors.ts';
 import { LINK_KINDS, radioLinkErrors } from '../schemas/radiolinks.ts';
 import { caseErrors, caseSetErrors, type TownCase } from '../schemas/cases.ts';
 import { PACES, rivalErrors } from '../schemas/rivals.ts';
+import { rogueErrors } from '../schemas/rogue.ts';
 import { buildingSetErrors, buildingStyleErrors, type BuildingStyle } from '../schemas/buildings.ts';
 import { carProfileErrors, profileVsCar, type CarBodyProfile } from '../schemas/carprofiles.ts';
 import { FLEET_RULES, fleetErrors } from '../schemas/fleet.ts';
@@ -322,6 +323,12 @@ Write 8 lines with topic travel.` },
 2. pace ${PACES[1]}: the steady crew
 3. pace ${PACES[2]}: the cocky, fast crew
 Write one crew per slot, in order.`, fits: (e: Entry, i: number) => [...(e.pace === PACES[i] ? [] : [`entry ${i + 1} must have pace ${PACES[i]}`])] }],
+  },
+  // Getaway jobs (schemas/rogue.ts): twenty, half deliveries and half passengers.
+  rogue: {
+    file: 'src/data/roguejobs.json', prompt: 'prompts/rogue.txt', errors: rogueErrors as Kind['errors'], key: 'id',
+    checker: 'These are cheeky rule-bending jobs for a family driving game, meant to be comic. Flag any that sound like real crime rather than a cartoon caper, that are mean or scary, or that repeat another job.',
+    batches: () => (['delivery', 'passenger'] as const).map((type) => ({ ask: `Write 10 getaway jobs, all of type ${type}. Start each id with rogue_.`, fits: (e: Entry) => (e.type === type ? [] : [`every entry here is type ${type}`]) })),
   },
   carprofiles: {
     file: 'src/data/carprofiles.json', prompt: 'prompts/carprofiles.txt', errors: carProfileErrors as Kind['errors'], key: 'id',
