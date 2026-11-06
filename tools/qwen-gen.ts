@@ -9,6 +9,7 @@ import { BASE_SAYS, CALL_CAREERS, CALL_KINDS, callErrors } from '../schemas/care
 import { interiorErrors, type InteriorPalette } from '../schemas/interiors.ts';
 import { LINK_KINDS, radioLinkErrors } from '../schemas/radiolinks.ts';
 import { caseErrors, caseSetErrors, type TownCase } from '../schemas/cases.ts';
+import { PACES, rivalErrors } from '../schemas/rivals.ts';
 import { buildingSetErrors, buildingStyleErrors, type BuildingStyle } from '../schemas/buildings.ts';
 import { carProfileErrors, profileVsCar, type CarBodyProfile } from '../schemas/carprofiles.ts';
 import { FLEET_RULES, fleetErrors } from '../schemas/fleet.ts';
@@ -311,6 +312,16 @@ Write 8 lines with topic travel.` },
         fits: (e: Entry) => [...(e.id === `case_${['trolley', 'returns', 'bunting'][i]}` ? [] : [`the id must be case_${['trolley', 'returns', 'bunting'][i]}`]), ...caseSetErrors([...(JSON.parse(readFileSync('src/data/cases.json', 'utf8')) as TownCase[]).filter((x) => x.id !== e.id), e as unknown as TownCase]).map((m) => `${m}: write that clue afresh`)],
       }));
     },
+  },
+  // The rival taxi crews (schemas/rivals.ts): one at each pace.
+  rivals: {
+    file: 'src/data/rivals.json', prompt: 'prompts/rivals.txt', errors: rivalErrors as Kind['errors'], key: 'id',
+    checker: 'These are rival taxi firms in a family driving game. Flag a name that doesn’t sound like a real British cab firm, taunts that are mean rather than cheeky, or two crews that feel the same.',
+    batches: () => [{ ask: `Slots:
+1. pace ${PACES[0]}: the laid-back crew
+2. pace ${PACES[1]}: the steady crew
+3. pace ${PACES[2]}: the cocky, fast crew
+Write one crew per slot, in order.`, fits: (e: Entry, i: number) => [...(e.pace === PACES[i] ? [] : [`entry ${i + 1} must have pace ${PACES[i]}`])] }],
   },
   carprofiles: {
     file: 'src/data/carprofiles.json', prompt: 'prompts/carprofiles.txt', errors: carProfileErrors as Kind['errors'], key: 'id',

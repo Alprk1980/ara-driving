@@ -42,6 +42,7 @@ import { poiNear } from '../sim/pois.ts';
 import { zoneAt } from '../sim/schoolrun.ts';
 import { suspects } from '../sim/casebook.ts';
 import { CASE_REWARD } from '../../schemas/cases.ts';
+import { PRIZES, SEASON_S } from '../sim/rivals.ts';
 import { forecastText, spokenTime, travelText } from '../sim/bulletins.ts';
 import { destinations, distanceText, etaText, GROUP_ORDER, nearestIn, turnText, type Dest, type DestGroup } from '../sim/satnav.ts';
 import { cueKey, type VoiceGuide } from './voice.ts';
@@ -376,6 +377,8 @@ export class App {
       case 'shiftPaid': this.toast(`${e.title}: +${e.pay} Points${e.onTime ? ', on time' : ''}${e.note ? `. ${e.note}` : ''}`); this.sound.chime(880); this.store(); break;
       case 'shiftPhase': this.ticker(e.label); break;
       case 'caseClue': this.sound.chime(990); break;
+      case 'rival': { const line = `${e.crew}: "${e.taunt}"`; this.ticker(line); this.voice.chatter(e.taunt); break; }
+      case 'season': this.toast(e.prize ? `Season over: you came ${['first', 'second', 'third'][e.place]}! +${e.prize} Points` : `Season over: ${e.board[0].name} took it. A new season starts now`); this.store(); break;
       case 'caseSolved': this.toast(`Case solved: ${e.title}. +${e.pay} Points`); this.sound.chime(1320); this.store(); break;
       case 'careerRank': { const r = CAREERS[e.career].ranks[e.rank]; this.toast(`Promoted: ${r.title}. ${r.opens}`); this.sound.chime(1320); break; }
     }
@@ -752,12 +755,22 @@ export class App {
     };
     const streak = g.streak ? `<p>${g.streak} in a row: the next job pays ${Math.round(streakBonus(g.streak) * 100)}% more. A tow, fast travel or a lost job ends it.</p>` : '';
     const rows = g.offers.map((o) => `<div class="offer"><div><b>${esc(o.title)} · ${kinds[o.type]}</b>${tag(o)}<span>${esc(o.text)}</span><span>${o.routeKm.toFixed(1)} km, ${o.basePay} to ${o.maxPay} Points, about ${Math.ceil(o.litres)} L${o.litres > reach ? ' · <em>refuel first</em>' : ''}</span></div><button class="primary" data-id="${o.id}">Take</button></div>`).join('');
-    const c = this.sheet('jobs', `<h2>Jobs nearby</h2>${streak}${rows}<div class="row end"><button class="ghost" id="casebtn">Case board</button><button class="ghost" id="careers">Careers</button><button class="ghost" id="today">Today</button><button class="ghost" id="x">Close</button></div>`);
+    const c = this.sheet('jobs', `<h2>Jobs nearby</h2>${streak}${rows}<div class="row end"><button class="ghost" id="seasonbtn">Season</button><button class="ghost" id="casebtn">Case board</button><button class="ghost" id="careers">Careers</button><button class="ghost" id="today">Today</button><button class="ghost" id="x">Close</button></div>`);
     c.querySelector<HTMLElement>('#casebtn')!.onclick = () => this.openCaseBoard();
+    c.querySelector<HTMLElement>('#seasonbtn')!.onclick = () => this.openSeason();
     c.querySelector<HTMLElement>('#today')!.onclick = () => this.openToday();
     c.querySelector<HTMLElement>('#careers')!.onclick = () => this.openCareers();
     c.querySelector<HTMLElement>('#x')!.onclick = () => this.close('jobs');
     for (const b of c.querySelectorAll<HTMLElement>('[data-id]')) b.onclick = () => { g.accept(Number(b.dataset.id)); this.close('jobs'); };
+  }
+
+  /** The season's board: you and the rival crews, what each has earned, and the time left. */
+  openSeason() {
+    const g = this.game, s = g.progress.season, board = g.seasonBoard, left = Math.max(0, SEASON_S - (s?.clock ?? 0));
+    const rows = board.map((x, i) => `<div class="offer"><div><b><i class="swatch" style="background:${x.colour}"></i> ${i + 1}. ${esc(x.name)}</b><span>${x.score.toLocaleString('en-GB')} Points this season${x.you ? ', from your jobs and shifts' : ''}</span></div>${PRIZES[i] ? `<span class="tag">+${PRIZES[i]}</span>` : ''}</div>`).join('');
+    const c = this.sheet('jobs', `<h2>Season ${(s?.n ?? 0) + 1}</h2><p>Three rival cab firms are out earning too. Whoever's earned most from jobs when the season ends tops the board. ${Math.ceil(left / 60)} minutes left, three days on the town's clock.</p>${rows}<div class="row end"><button class="ghost" id="back">Jobs</button><button class="primary" id="x">Close</button></div>`);
+    c.querySelector<HTMLElement>('#x')!.onclick = () => this.close('jobs');
+    c.querySelector<HTMLElement>('#back')!.onclick = () => this.openJobs();
   }
 
   /** The case board: what's gone missing, who's still in the frame, what the witnesses said, where to ask next, and

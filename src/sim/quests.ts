@@ -7,6 +7,8 @@ import { SHOPS } from './shops.ts';
 import type { CallCard, CareerId } from '../../schemas/careers.ts';
 import type { TownCase } from '../../schemas/cases.ts';
 import type { CaseProgress } from './casebook.ts';
+import type { RivalCrew } from '../../schemas/rivals.ts';
+import type { Season } from './rivals.ts';
 import { freshRoad, type RoadRecord } from './roadsense.ts';
 import { pointAt, route, type Route } from './route.ts';
 import { dist, type Plot, type Rng, type Town, type Vec } from './town.ts';
@@ -42,7 +44,7 @@ export function ghostPose(g: Ghost, elapsed: number): { x: number; z: number; he
 }
 
 /** A player's standing with the town: saved between sessions and shared with the offer list. */
-export type Progress = { arcs: Record<string, number>; ghosts: Ghost[]; found: string[]; rep: number; daily: Daily; road?: RoadRecord; careers?: Partial<Record<CareerId, number>>; cases?: CaseProgress }; // road and careers: missing from older saves; careers counts the jobs done in each
+export type Progress = { arcs: Record<string, number>; ghosts: Ghost[]; found: string[]; rep: number; daily: Daily; road?: RoadRecord; careers?: Partial<Record<CareerId, number>>; cases?: CaseProgress; season?: Season }; // road and careers: missing from older saves; careers counts the jobs done in each
 export const freshProgress = (): Progress => ({ arcs: {}, ghosts: [], found: [], rep: 0, daily: freshDaily(''), road: freshRoad() });
 
 const offerMult = (o: Offer) => (o.carJob ? CAR_JOBS[o.carJob].mult : 1) * (o.market ? 1 + MARKET_BOOST : 1);
@@ -64,7 +66,7 @@ const BUSINESS_ODDS = 0.6, BUSINESS_REACH_M = 1000; // how often a business send
 export const CARE_PER_BUMP = 0.2;
 export const CARE_PER_HARD_STOP = 0.1;
 
-export type QuestContent = { places: Place[]; quests: QuestText[]; regulars?: Regular[]; finds?: Find[]; goals?: Goal[]; calls?: CallCard[]; cases?: TownCase[] };
+export type QuestContent = { places: Place[]; quests: QuestText[]; regulars?: Regular[]; finds?: Find[]; goals?: Goal[]; calls?: CallCard[]; cases?: TownCase[]; rivals?: RivalCrew[] };
 
 function bandKm(rng: Rng, rank: number): { min: number; max: number } {
   const bands = rank >= RANK_LONG_HAUL ? [...ROUTE_BANDS, LONG_HAUL] : ROUTE_BANDS;

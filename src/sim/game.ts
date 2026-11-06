@@ -5,6 +5,7 @@ import { lightFrac, monthOf, RAIN_SPELL_H, sunFor, wetOdds, type Sun } from './a
 import { inPeak, schoolDay, schoolsIn, type School } from './schoolrun.ts';
 import { dayWeather, type Forecast, type TravelFact } from './bulletins.ts';
 import { accuse, clueAt, hear, openCase } from './casebook.ts';
+import { freshSeason, PRIZES, SEASON_S, standings, type Standing } from './rivals.ts';
 import { CASE_REWARD, type TownCase } from '../../schemas/cases.ts';
 import { DISTRICTS, districtAt } from './districts.ts';
 import { contactAt, crushLevel, NEUTRAL, PlayerCar, sideOf, type DriveIntent, type DriveState, type Mark, type Side } from './car.ts';
@@ -72,7 +73,9 @@ export type GameEvent =
   | { type: 'shiftPhase'; label: string }
   | { type: 'careerRank'; career: CareerId; rank: number }
   | { type: 'caseClue'; title: string; witness: string; text: string }
-  | { type: 'caseSolved'; title: string; ending: string; pay: number };
+  | { type: 'caseSolved'; title: string; ending: string; pay: number }
+  | { type: 'rival'; crew: string; taunt: string }
+  | { type: 'season'; place: number; prize: number; board: Standing[] };
 
 /** Where the drive was left: the car on the road, the clock, the job and the sat nav. Saved beside the progress, so a
  * reload carries on where it stopped. A job's places are kept as indexes into the town's plots, which a fixed seed rebuilds the same. */
@@ -200,6 +203,36 @@ export class Game {
     this.foot = new OnFoot(doorOf(p, this.town));
     this.emit({ type: 'foot', out: true });
     return true;
+  }
+
+  /** This season's board against the rival crews. */
+  get seasonBoard(): Standing[] { return standings(this.content.rivals ?? [], (this.progress.season ??= freshSeason())); }
+
+  /** Count what a job or a shift paid towards the season. */
+  private earnForSeason(pay: number) { (this.progress.season ??= freshSeason()).earned += pay; }
+
+  private seasonPlace = -1;
+  private stepSeason() {
+    const crews = this.content.rivals ?? [];
+    if (!crews.length) return;
+    const s = (this.progress.season ??= freshSeason());
+    s.clock += STEP;
+    if (s.clock >= SEASON_S) { // the season's over: the board pays out and a new one starts
+      const board = standings(crews, s), place = board.findIndex((x) => x.you), prize = PRIZES[place] ?? 0;
+      if (prize) this.wallet.earn(prize, `Season ${s.n + 1}: ${['first', 'second', 'third'][place]} place`);
+      this.emit({ type: 'season', place, prize, board });
+      if (prize) this.emit({ type: 'points', points: this.wallet.points() });
+      Object.assign(s, { n: s.n + 1, clock: 0, earned: 0 });
+      this.seasonPlace = -1;
+      return;
+    }
+    if (Math.round(s.clock / STEP) % 600 !== 0) return; // look at the board every ten seconds
+    const board = standings(crews, s), place = board.findIndex((x) => x.you);
+    if (this.seasonPlace >= 0 && place > this.seasonPlace) { // a crew's just passed you: they let you know
+      const by = board[place - 1], crew = crews.find((c) => c.name === by.name);
+      if (crew) this.emit({ type: 'rival', crew: crew.name, taunt: crew.taunts[Math.floor(s.clock) % crew.taunts.length] });
+    }
+    this.seasonPlace = place;
   }
 
   /** The case you're on, if there's one left to solve. */
@@ -379,6 +412,7 @@ export class Game {
       if (e.type === 'phase') this.emit({ type: 'shiftPhase', label: e.label });
       else if (e.type === 'paid') {
         this.wallet.earn(e.pay, `${CAREERS[s.career].name}: ${e.task.title}`);
+        this.earnForSeason(e.pay);
         const jobs = ((this.progress.careers ??= {})[s.career] ?? 0) + 1;
         this.progress.careers[s.career] = jobs;
         this.emit({ type: 'shiftPaid', title: e.task.title, pay: e.pay, onTime: e.onTime, note: e.note });
@@ -793,6 +827,7 @@ export class Game {
     if (p.state === 'Parked' && dist(this.town.home.road, p) < HOME_ZONE) this.homeTopUp();
     this.stepQuest();
     this.stepShift();
+    this.stepSeason();
     this.stepNav();
     this.stepFinds();
     this.stepEvent();
@@ -931,7 +966,7 @@ export class Game {
       const done = q.finish(p.car);
       const bonus = streakBonus(this.streak), extra = Math.round(done.pay * bonus), pay = Math.round((done.pay + extra) * (1 + rankPay(this.rank) + this.road.bonus));
       this.streak = pay > 0 ? this.streak + 1 : 0;
-      if (pay > 0) this.wallet.earn(pay, `Job: ${q.offer.title}`);
+      if (pay > 0) { this.wallet.earn(pay, `Job: ${q.offer.title}`); this.earnForSeason(pay); }
       this.emit({ type: 'questDone', offer: q.offer, pay, grade: done.grade });
       if (pay > 0 && this.streak > 1) this.emit({ type: 'streak', jobs: this.streak, bonus, pay: extra });
       if (q.offer.regular && pay > 0) this.finishRegular(q.offer.regular);

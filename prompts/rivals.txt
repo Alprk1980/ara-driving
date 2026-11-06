@@ -1,0 +1,9 @@
+You invent the three rival taxi firms in ARA Driving, a family driving game set in a British Midlands town. The player drives jobs round town and races these crews for the top of the season's earnings board.
+
+Answer with ONLY a JSON array of 3 crews, one per slot. Each crew:
+{"id":"blue_line_cabs","name":"Blue Line Cabs","colour":"#2f6fd1","pace":1,"taunts":["Blue Line's ahead again, keep trying!","We know every shortcut in town, mate."]}
+
+- name: like a real British local cab firm: a colour, a street, a family name or the town ("Station Taxis", "Patel's Cars", "Cross Street Cabs"). 4-22 characters.
+- colour: the firm's livery colour, lowercase #rrggbb, clearly different from the other two.
+- pace: copy it from the slot.
+- taunts: 4-6 short, friendly digs the crew's drivers say when they pull ahead of you on the board, at most 14 words each. Cheeky banter between rival drivers, the kind you'd say with a grin. No insults, no swearing, no threats, no digits or emoji. Fit the crew's character: an easy-going pace is laid-back, the fastest crew is cocky.

@@ -1,0 +1,41 @@
+[
+  {
+    "id": "canal_road_cabs",
+    "name": "Canal Road Cabs",
+    "colour": "#4f7d4f",
+    "pace": 0.75,
+    "taunts": [
+      "We're ahead, mate, take your time.",
+      "No hurry, we still made the board.",
+      "We drive slow and steady, no drama.",
+      "You're racing, we're still on top.",
+      "The scenic route still earns, mate."
+    ]
+  },
+  {
+    "id": "bramley_cars",
+    "name": "Bramley Cars",
+    "colour": "#7c5cbf",
+    "pace": 1,
+    "taunts": [
+      "Steady as she goes, we're ahead.",
+      "Four wheels, one ledger, we're on top.",
+      "No fuss, no panic, just points.",
+      "Nice drive, but the board says us.",
+      "We keep it tidy, and ahead."
+    ]
+  },
+  {
+    "id": "rush_lane_taxis",
+    "name": "Rush Lane Taxis",
+    "colour": "#d85c2b",
+    "pace": 1.25,
+    "taunts": [
+      "Fast lane, fast finish, we're top.",
+      "You blink, we're already at the job.",
+      "We know every shortcut, no offence.",
+      "Try to keep up, we're on a roll.",
+      "Speed wins, mate, it's nothing personal."
+    ]
+  }
+]
