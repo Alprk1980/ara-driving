@@ -43,3 +43,14 @@ describe('the map\'s points of interest', () => {
     expect(poiNear(list, { x: -500, z: -500 }, 45)).toBeNull();
   });
 });
+
+describe('post boxes and grit bins', () => {
+  const boxes = town.furniture.filter((f) => f.kind === 'post_box');
+  it('leave nowhere in town further than Ofcom\'s half mile from a post box', () => {
+    expect(boxes.length).toBeGreaterThan(5);
+    for (const p of town.plots) expect(Math.min(...boxes.map((b) => dist(b, p))), `plot at ${Math.round(p.x)},${Math.round(p.z)}`).toBeLessThan(805);
+  });
+  it('stand some grit bins at junctions', () => {
+    expect(town.furniture.filter((f) => f.kind === 'grit_bin').length).toBeGreaterThan(3);
+  });
+});

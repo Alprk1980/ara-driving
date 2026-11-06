@@ -3,7 +3,7 @@
 import * as THREE from 'three';
 import type { Design, Driver } from '../save.ts';
 import type { Car } from '../sim/economy.ts';
-import { addLamps, box, buildCockpit, buildDriver, type BackCamera, type Lookup, type Mirror } from './cockpit.ts';
+import { addLamps, box, buildCockpit, buildDriver, cabinFor, type BackCamera, type Lookup, type Mirror } from './cockpit.ts';
 import { drivingPosition } from './drivingposition.ts';
 import { addDrl, headGlow, rimParts, wheelLook } from './carparts.ts';
 
@@ -147,7 +147,7 @@ export function buildCar(car: Car, design: Design, driver: Driver, find: Lookup)
   const lamps = addLamps(body, len, wide, floor + deck * 0.65);
 
   const pose = drivingPosition({ floor, belt: floor + deck, roof: tall, front: cabZ + cabLen / 2, back: cabZ - cabLen / 2, wide });
-  const seat = buildDriver(driver, find, pose);
+  const cabin = cabinFor(car.id), seat = buildDriver(driver, find, pose, cabin);
   seat.position.set(pose.seat.x, pose.seat.y, pose.seat.z);
   seat.scale.setScalar(pose.seat.scale);
   body.add(seat);
@@ -166,7 +166,7 @@ export function buildCar(car: Car, design: Design, driver: Driver, find: Lookup)
   }
 
   // Seen only from the cockpit camera, which hides the body. Everything sits below the sightline.
-  const { dash, dashCanvas, dashTex, hands, eye, mirror, back } = buildCockpit(car.size, { floor, deck, roof: tall, cabZ, cabLen, pose }, skin, dark, driver, find);
+  const { dash, dashCanvas, dashTex, hands, eye, mirror, back } = buildCockpit(car.size, { floor, deck, roof: tall, cabZ, cabLen, pose }, skin, dark, driver, find, cabin);
   root.add(dash);
   return { root, body, wheels, front, dash, dashCanvas, dashTex, hands, eye, mirror, back, tails, heads, crush, ...lamps, fragile, seat };
 }

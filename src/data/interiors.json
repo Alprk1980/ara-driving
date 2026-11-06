@@ -1,0 +1,62 @@
+[
+  {
+    "id": "hatchback",
+    "pad": "#26282c",
+    "lower": "#34373d",
+    "frame": "#3a3d44",
+    "lining": "#b9b5ad",
+    "seat": "#35383f",
+    "rim": "#1b1d21",
+    "screen": "#16263a"
+  },
+  {
+    "id": "compact",
+    "pad": "#222731",
+    "lower": "#2f3642",
+    "frame": "#37404c",
+    "lining": "#c7c8c2",
+    "seat": "#2a3039",
+    "rim": "#1a1d22",
+    "screen": "#142431"
+  },
+  {
+    "id": "pickup",
+    "pad": "#252724",
+    "lower": "#343733",
+    "frame": "#3f423c",
+    "lining": "#b5b1a5",
+    "seat": "#303431",
+    "rim": "#1d1f1c",
+    "screen": "#152028"
+  },
+  {
+    "id": "taxi",
+    "pad": "#1f2123",
+    "lower": "#2d2f32",
+    "frame": "#34373a",
+    "lining": "#aeaaa1",
+    "seat": "#232529",
+    "rim": "#17181b",
+    "screen": "#121c28"
+  },
+  {
+    "id": "coupe",
+    "pad": "#252122",
+    "lower": "#342e30",
+    "frame": "#3d373a",
+    "lining": "#b7b0aa",
+    "seat": "#7e2b31",
+    "rim": "#1e1a1c",
+    "screen": "#162230"
+  },
+  {
+    "id": "supercar",
+    "pad": "#1e2023",
+    "lower": "#2c2f34",
+    "frame": "#373a40",
+    "lining": "#b0aead",
+    "seat": "#243e5d",
+    "rim": "#1b1d21",
+    "screen": "#142436"
+  }
+]

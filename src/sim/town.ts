@@ -14,7 +14,11 @@ export const DRAWN_FOOT = drawnFoot as unknown as DrawnFoot[]; // the buildings 
 // How many lots take each design. Spread out, so the same one doesn't turn up twice in a street.
 export const DRAWN_COPIES: Record<DistrictId, number> = { oldtown: 8, business: 6, garden: 16, works: 6 };
 const DRAWN_APART_M = 110, DRAWN_FILLS = 0.5, DRAWN_ASSEMBLY = 3; // how far apart two of a design stand, how much of a lot's front one must fill, and how many neighbouring lots a big one may take
-export const FURNITURE_KINDS = ['bench', 'bin', 'planter', 'bollard', 'cycle_rack', 'bus_shelter', 'hedge', 'container', 'pallets'] as const;
+export const FURNITURE_KINDS = ['bench', 'bin', 'planter', 'bollard', 'cycle_rack', 'bus_shelter', 'hedge', 'container', 'pallets', 'post_box', 'grit_bin'] as const;
+// Post boxes: Ofcom holds Royal Mail to having 98% of people within half a mile (805 m) of one; a town keeps them much
+// closer, so here one stands every POST_BOX_M along the busier streets, judged. Grit bins stand at some junctions, where
+// councils put them for the slopes and corners people walk and drive in snow: the share is judged.
+export const POST_BOX_REACH_M = 805, POST_BOX_M = 380, GRIT_SHARE = 0.18;
 export type ParkedCar = Vec & { heading: number; colour: number; drive?: boolean };
 export type Zebra = Vec & { edge: number; along: number; ux: number; uz: number; kind: CrossingKind }; // along: metres from the edge's node a; a pelican or puffin has signals
 export type Leg = { edge: number; to: number };
@@ -561,6 +565,7 @@ export class Town {
         }
       }
     });
+    this.postBoxes(makeRng(Math.floor(rng() * 1e9)));
     for (const r of this.routes) for (const s of r.stops) { // the shelter's back to the buildings, its seat looking at the road
       const l = r.legs[s.leg], e = this.edges[l.edge], b = this.nodes[l.to], a = this.nodes[e.a === l.to ? e.b : e.a];
       this.furniture.push({ kind: 'bus_shelter', x: s.x, z: s.z, heading: Math.atan2(-(b.z - a.z), b.x - a.x), len: 1 });
@@ -588,6 +593,28 @@ export class Town {
           if (!this.boxAt(p.x, p.z, 3.4) && !this.edges.some((e) => this.segDist(p, e) < ROAD_W / 2 + 4)) this.furniture.push({ kind: rng() < 0.65 ? 'container' : 'pallets', ...p, heading: Math.atan2(side.x, side.z) + (rng() < 0.5 ? 0 : Math.PI), len: 1, tint: rng() }); // parked up square to the shed
         }
       }
+    }
+  }
+
+  /** Pillar boxes along the kerb, spaced so nowhere in town is far from one, and grit bins at some junction corners. */
+  private postBoxes(rng: Rng) {
+    const clear = [this.home, ...this.stations, ...this.plots].map((p) => ('road' in p ? p.road : p)), stops = this.routes.flatMap((r) => r.stops);
+    const free = (p: Vec) => !this.boxAt(p.x, p.z, 0.8) && !this.kerbAt(p.x, p.z, 0.8) && clear.every((c) => dist(c, p) > 6) && stops.every((s) => dist(s, p) > 5) && this.drives.every((d) => dist(d.kerb, p) > 3) && this.furniture.every((f) => dist(f, p) > 2);
+    const placed: Vec[] = [];
+    for (const e of [...this.edges].sort((a, b) => b.len - a.len)) {
+      const a = this.nodes[e.a], b = this.nodes[e.b], ux = (b.x - a.x) / e.len, uz = (b.z - a.z) / e.len, side = rng() < 0.5 ? 1 : -1;
+      for (let along = 30; along < e.len - 30; along += 12) {
+        const p = { x: a.x + ux * along - uz * side * (ROAD_W / 2 + 0.6), z: a.z + uz * along + ux * side * (ROAD_W / 2 + 0.6) };
+        if (placed.some((q) => dist(q, p) < POST_BOX_M) || !free(p)) continue;
+        placed.push(p);
+        this.furniture.push({ kind: 'post_box', ...p, heading: Math.atan2(uz * side, -ux * side), len: 1 });
+      }
+    }
+    for (const n of this.nodes) {
+      if (rng() > GRIT_SHARE || this.adj[this.nodes.indexOf(n)].length < 3) continue;
+      const k = this.adj[this.nodes.indexOf(n)][0], o = this.nodes[k.to], d = dist(n, o) || 1, ux = (o.x - n.x) / d, uz = (o.z - n.z) / d;
+      const p = { x: n.x + ux * 16 - uz * (ROAD_W / 2 + 1.4), z: n.z + uz * 16 + ux * (ROAD_W / 2 + 1.4) };
+      if (free(p)) this.furniture.push({ kind: 'grit_bin', ...p, heading: Math.atan2(uz, -ux), len: 1 });
     }
   }
 

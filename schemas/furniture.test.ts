@@ -14,6 +14,8 @@ const GOOD: Record<FurnitureId, Part[]> = {
   bus_shelter: [part('box', 0, 2.4, 0, 3.6, 0.1, 1.5, '#3d4a5c'), part('box', 0, 0, -0.68, 3.5, 2.4, 0.05, '#a9d2e4'), part('box', -1.75, 0, -0.1, 0.06, 2.4, 1.2, '#a9d2e4'), part('box', 1.75, 0, -0.1, 0.06, 2.4, 1.2, '#a9d2e4'), part('box', 0, 0.45, -0.45, 2.2, 0.08, 0.35, '#8a5a34'), part('box', 0, 0, -0.45, 2, 0.45, 0.06, '#3d4a5c')],
   container: [part('box', 0, 0, 0, 2.44, 2.59, 6.06, '#ffffff'), part('box', 0, 0, 3.0, 2.3, 2.4, 0.04, '#9aa0ab')],
   pallets: [part('box', 0, 0, 0, 1.2, 0.14, 1.0, '#a9794a'), part('box', 0, 0.14, 0, 1.1, 0.9, 0.95, '#c49a66')],
+  post_box: [part('cylinder', 0, 0, 0, 0.49, 1.45, 0.49, '#d52b1e'), part('cylinder', 0, 1.45, 0, 0.53, 0.15, 0.53, '#d52b1e'), part('box', 0, 1.25, 0.24, 0.22, 0.04, 0.03, '#15171b')],
+  grit_bin: [part('box', 0, 0, 0, 1.0, 0.62, 0.5, '#f2c100'), part('box', 0, 0.62, 0, 1.02, 0.08, 0.52, '#e0b000')],
 };
 const good = (id: FurnitureId): FurnitureModel => ({ id, parts: structuredClone(GOOD[id]) });
 const fails = (id: FurnitureId, edit: (ps: Part[]) => void, text: string) => {
@@ -32,6 +34,13 @@ describe('street furniture', () => {
     fails('bin', (ps) => { ps[0].color = '#ffffff'; }, 'pure white');
     fails('bin', (ps) => { ps[1].y = 1.3; }, 'floats');
     fails('bin', (ps) => { ps[0].x = ps[1].x = 0.3; }, 'centre it');
+  });
+
+  it('keeps a pillar box red with a slot, and a grit bin yellow', () => {
+    fails('post_box', (ps) => { ps[0].color = '#2f5d50'; }, 'pillar-box red');
+    fails('post_box', (ps) => { ps[2].color = '#d52b1e'; }, 'posting slot');
+    fails('post_box', (ps) => { ps[0].h = 1.8; ps[1].y = 1.8; ps[2].y = 1.6; }, 'tall');
+    fails('grit_bin', (ps) => { ps[0].color = '#3f9a57'; }, 'safety yellow');
   });
 
   it('keeps to real sizes', () => {

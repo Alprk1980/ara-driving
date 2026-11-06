@@ -4,7 +4,10 @@
 - [x] Check performance on a real phone (the readout is on screen). A PC holds 60 fps at about 430,000 triangles.
       Done 2026-11-03: the phone stayed above 60 fps (green band) driving the production build over the LAN. The
       map-edge gate in TEEN_SCOPE.md (P4 marina/beach/lake) is open.
-- [ ] Hand more to Qwen: street furniture models and cockpit colours, through the generate, check and review loop.
+- [x] Hand more to Qwen: street furniture models and cockpit colours, through the generate, check and review loop.
+      Royal Mail pillar boxes (a Type K, 1.6 m by 0.49, red with a slot), spaced so nowhere is beyond Ofcom's half mile,
+      and yellow 200 L grit bins at some junctions. Each car has its own cabin, with a dark dash top so it doesn't
+      reflect in the windscreen, a light headlining, and coloured seats only in the coupe and supercar.
 - [ ] Drive into the holes you make in buildings, and save that damage.
 - [x] Finish the research pass: prices, pay, weather and day length (2026-11-06, `src/sim/almanac.ts`).
       The sun rises and sets on Birmingham's times for the real date, British Summer Time included: 07:12-16:30 in

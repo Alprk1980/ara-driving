@@ -6,6 +6,7 @@ import { chat, parseJson } from './llm.ts';
 import { adPlaces, CAR_JOB_TYPES, carJobErrors, catalogueErrors, chatterErrors, eventErrors, findErrors, GOAL_KINDS, goalErrors, GUIDE_KEYS, GUIDE_WORD, guideErrors, landmarkErrors, PLACE_KINDS, placeErrors, PROP_KINDS, questTextErrors, radioErrors, RANK_COUNT, rankErrors, regularErrors, skyErrors, SKY_SLOTS, stationErrors, storyPlaceErrors, STYLES, TIER_PRICE, TWISTS, VOICE_KEYS, voiceErrors, type CatalogueKind, type JobCar, type Place, type RadioLine, type Regular } from '../schemas/content.ts';
 import { PLACE_SHOPS, shopErrors, type Shop } from '../schemas/shops.ts';
 import { BASE_SAYS, CALL_CAREERS, CALL_KINDS, callErrors } from '../schemas/careers.ts';
+import { interiorErrors, type InteriorPalette } from '../schemas/interiors.ts';
 import { buildingSetErrors, buildingStyleErrors, type BuildingStyle } from '../schemas/buildings.ts';
 import { carProfileErrors, profileVsCar, type CarBodyProfile } from '../schemas/carprofiles.ts';
 import { FLEET_RULES, fleetErrors } from '../schemas/fleet.ts';
@@ -52,6 +53,8 @@ const FURNITURE_LOOK: Record<FurnitureId, string> = {
   cycle_rack: 'one Sheffield cycle stand: an upside-down U of round steel tube about 0.05 m thick, so exactly 2 legs from the ground, each at least 0.5 m tall, joined by a bar across the top. Every part at most 0.08 m across.',
   bus_shelter: 'a glass bus shelter: a roof over it all, at least 2.8 m long and 1.1 deep; a glass back wall on the far side from the road (z below 0), at least 2.5 m long, 1.8 tall and at most 0.1 thick; glass ends; a seat or perch inside, its top 0.45-0.8 m up. The front (+z) is open to the road, with no wall more than 1.2 m long.',
   container: `a 20 ft ISO shipping container standing in a works yard, its length along z. Part 1 is the box itself, exactly #ffffff, about 2.44 by 2.59 by 6.06 m, as each container is painted its own colour. Add doors, corner posts or ribs in other colours.`,
+  post_box: 'a Royal Mail Type K pillar box on a British pavement: a round cylinder body in pillar-box red about 0.49 m across standing on the ground, a slightly wider domed cap on top, a dark posting slot strip high on the front (+z side), and a small white or black collection plate below it. 1.5-1.7 m tall.',
+  grit_bin: 'a yellow council grit bin on a British street corner: a safety-yellow box about 1.0 m long, 0.5 deep and 0.7 tall standing on the ground, with a lid on top that may be a slightly wider yellow slab, and maybe a darker yellow band or handle.',
   pallets: `goods on pallets in a works yard: at least one standard UK pallet on the ground, a box ${PALLET.a} by ${PALLET.b} m and ${PALLET.h.join('-')} m tall at y 0, with a load stacked on it (sacks, boxes, a shrink-wrapped stack). A second pallet beside it is welcome.`,
 };
 
@@ -275,6 +278,13 @@ Write 8 lines with topic travel.` },
   carparts: {
     file: 'src/data/catalogue.json', prompt: 'prompts/catalogue.txt', errors: catalogueErrors as Kind['errors'], key: 'id',
     batches: () => [slotBatch([...slot('wheels', 'steel', 3), ...slot('wheels', 'alloy', 4), ...slot('wheels', 'sport', 3), ...slot('lights', 'halogen', 2), ...slot('lights', 'led', 3), ...slot('lights', 'drl', 3)])],
+  },
+  // The cabins: each car's trim colours, from the driver's seat.
+  interiors: {
+    file: 'src/data/interiors.json', prompt: 'prompts/interiors.txt', key: 'id',
+    errors: ((e: InteriorPalette) => interiorErrors(e, CARS.map((c) => c.id))) as Kind['errors'],
+    checker: 'These are the cabin colours of six British cars in a family game, as JSON. Flag a palette that would look odd or ugly from the driver’s seat, colours that clash, or two cars that look the same.',
+    batches: () => [{ ask: `Write one palette for each car, in this order: ${CARS.map((c) => `${c.id} (${c.perk})`).join(', ')}.`, fits: (e: Entry, i: number) => (e.id === CARS[i]?.id ? [] : [`entry ${i + 1} must be id ${CARS[i]?.id}`]) }],
   },
   carprofiles: {
     file: 'src/data/carprofiles.json', prompt: 'prompts/carprofiles.txt', errors: carProfileErrors as Kind['errors'], key: 'id',

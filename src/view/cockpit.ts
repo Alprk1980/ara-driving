@@ -3,6 +3,8 @@
 import * as THREE from 'three';
 import type { CatalogueItem } from '../../schemas/content.ts';
 import type { Driver } from '../save.ts';
+import type { InteriorPalette } from '../../schemas/interiors.ts';
+import interiors from '../data/interiors.json';
 import { RECLINE, WHEEL_RADIUS, WHEEL_RAKE, type drivingPosition } from './drivingposition.ts';
 
 export type Lookup = (id?: string) => CatalogueItem | undefined;
@@ -25,6 +27,10 @@ export function addLamps(body: THREE.Group, len: number, wide: number, y: number
 export const LAMP_OFF = '#55504a', LAMP_REVERSE = '#fff8e8', BLINK_OFF = '#6b4a1e', BLINK_ON = '#ffa21f';
 
 const INTERIOR = { pad: '#565b67', lower: '#6d727e', frame: '#454a55', lining: '#b9b6ad', seat: '#2b2f39', legs: '#2c3442', screen: '#2c5580', rim: '#2a2d34' };
+export type CabinColours = typeof INTERIOR;
+const CABINS = interiors as InteriorPalette[];
+/** A car's cabin colours, from the palettes Qwen chose (schemas/interiors.ts), or the plain grey a work vehicle keeps. */
+export const cabinFor = (carId: string): CabinColours => ({ ...INTERIOR, ...(CABINS.find((c) => c.id === carId) ?? {}) });
 // The interior mirror. R46 Class I: at least a 20 m wide strip of road seen from 60 m behind the eyes, so 2 atan(10/60),
 // about 19 degrees across. The glass size is judged from typical cars (about 250 by 65 mm), as R46's own minimum wasn't found.
 const MIRROR_W = 0.25, MIRROR_H = 0.065, R46_ACROSS = 2 * Math.atan(10 / 60);
@@ -73,14 +79,14 @@ const v = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
 type Pose = ReturnType<typeof drivingPosition>;
 
 /** The driver in their seat, hips at the origin: leaning back, knees up, hands at 9 and 3 on a wheel at `pose`. */
-export function buildDriver(driver: Driver, find: Lookup, pose: Pose): THREE.Group {
+export function buildDriver(driver: Driver, find: Lookup, pose: Pose, cabin: CabinColours = INTERIOR): THREE.Group {
   const g = new THREE.Group(), upper = new THREE.Group();
   upper.rotation.x = -RECLINE;
   g.add(upper);
   const outfit = find(driver.outfit), cap = find(driver.cap), glasses = find(driver.sunglasses), gloves = find(driver.gloves);
   const skin = new THREE.MeshLambertMaterial({ color: '#e9b48c' });
   const top = new THREE.MeshLambertMaterial({ color: outfit?.colors[0] ?? '#3d6fd1' });
-  const seat = new THREE.MeshLambertMaterial({ color: INTERIOR.seat }), legs = new THREE.MeshLambertMaterial({ color: find(driver.trousers)?.colors[0] ?? INTERIOR.legs }); // the trousers you bought, as you wear them on foot
+  const seat = new THREE.MeshLambertMaterial({ color: cabin.seat }), legs = new THREE.MeshLambertMaterial({ color: find(driver.trousers)?.colors[0] ?? cabin.legs }); // the trousers you bought, as you wear them on foot
   g.add(box(0.5, 0.12, 0.52, seat, 0, -0.08, 0.08));
   upper.add(box(0.5, 0.78, 0.1, seat, 0, 0.36, -0.2));
   upper.add(box(0.44, 0.5, 0.26, top, 0, 0.27, 0));
@@ -113,10 +119,10 @@ export function buildDriver(driver: Driver, find: Lookup, pose: Pose): THREE.Gro
 export type Cabin = { floor: number; deck: number; roof: number; cabZ: number; cabLen: number; pose: Pose };
 
 /** The cockpit view: the inside of the car around the driver's eye, seen only from the cockpit camera (the body hides itself there). */
-export function buildCockpit(size: readonly [number, number, number], cab: Cabin, skin: THREE.Material, dark: THREE.Material, driver: Driver, find: Lookup): { dash: THREE.Group; dashCanvas: HTMLCanvasElement; dashTex: THREE.CanvasTexture; hands: THREE.Group; eye: { x: number; y: number; z: number }; mirror: Mirror; back: BackCamera } {
+export function buildCockpit(size: readonly [number, number, number], cab: Cabin, skin: THREE.Material, dark: THREE.Material, driver: Driver, find: Lookup, cabin: CabinColours = INTERIOR): { dash: THREE.Group; dashCanvas: HTMLCanvasElement; dashTex: THREE.CanvasTexture; hands: THREE.Group; eye: { x: number; y: number; z: number }; mirror: Mirror; back: BackCamera } {
   const [len, , wide] = size, { eye, wheel } = cab.pose;
   const dash = new THREE.Group(), mat = (color: string) => new THREE.MeshLambertMaterial({ color });
-  const pad = mat(INTERIOR.pad), lower = mat(INTERIOR.lower), frame = mat(INTERIOR.frame), lining = new THREE.MeshBasicMaterial({ color: INTERIOR.lining }), rim = mat(INTERIOR.rim);
+  const pad = mat(cabin.pad), lower = mat(cabin.lower), frame = mat(cabin.frame), lining = new THREE.MeshBasicMaterial({ color: cabin.lining }), rim = mat(cabin.rim);
   const shield = cab.cabZ + cab.cabLen / 2, inner = wide * 0.44, cowl = eye.y - 0.24, screenTop = shield - 0.5;
 
   // The bonnet ahead, then the dash: a soft top pad, a lower fascia, and a hood over the gauges in front of the driver.
@@ -141,7 +147,7 @@ export function buildCockpit(size: readonly [number, number, number], cab: Cabin
   const stack = eye.x < 0 ? 0.02 : -0.02, screenY = cowl + 0.09;
   dash.add(box(0.34, 0.32, 0.05, frame, stack, cowl - 0.19, shield - 0.32));
   dash.add(box(0.3, 0.19, 0.03, frame, stack, screenY, shield - 0.33));
-  const blank = box(0.26, 0.15, 0.01, new THREE.MeshBasicMaterial({ color: INTERIOR.screen }), stack, screenY, shield - 0.35);
+  const blank = box(0.26, 0.15, 0.01, new THREE.MeshBasicMaterial({ color: cabin.screen }), stack, screenY, shield - 0.35);
   dash.add(blank);
   // The reversing camera: above the number plate, looking back and down, shown on the centre screen while reversing. Like
   // real ones, its picture is a mirror image, so left on the screen is left behind the car.

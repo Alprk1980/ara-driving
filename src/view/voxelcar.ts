@@ -8,7 +8,7 @@ import type { Mark, Side } from '../sim/car.ts';
 import type { Car } from '../sim/economy.ts';
 import { carProfileErrors, profileVsCar, type CarBodyProfile } from '../../schemas/carprofiles.ts';
 import { foldSkin, skinNormals, surfaceNet } from './carsurface.ts';
-import { addLamps, box, buildCockpit, buildDriver, type Lookup } from './cockpit.ts';
+import { addLamps, box, buildCockpit, buildDriver, cabinFor, type Lookup } from './cockpit.ts';
 import { addDrl, headGlow, rimParts, wheelLook } from './carparts.ts';
 import { carFittings, carVoxels, GLASS, HEAD, TAIL } from './voxels.ts';
 import { DEFAULT_PAINT, paintTexture, TAIL_DIM, type CarRig } from './carmesh.ts';
@@ -139,7 +139,7 @@ export function buildVoxelCar(car: Car, design: Design, driver: Driver, find: Lo
   root.add(body);
   const lamps = addLamps(body, len, wide, (p.sill + Math.min(p.panel[0].v, p.panel[p.panel.length - 1].v) * car.size[1]) / 2 + 0.12);
 
-  const seat = buildDriver(driver, find, fit.pose);
+  const cabin = cabinFor(car.id), seat = buildDriver(driver, find, fit.pose, cabin);
   seat.position.set(fit.seat.x, fit.seat.y, fit.seat.z);
   seat.scale.setScalar(fit.seat.scale);
   body.add(seat);
@@ -161,7 +161,7 @@ export function buildVoxelCar(car: Car, design: Design, driver: Driver, find: Lo
 
   // Seen only from the cockpit camera, which hides the body. Everything sits below the sightline.
   const paintSkin = new THREE.MeshLambertMaterial({ color: basePaint });
-  const { dash, dashCanvas, dashTex, hands, eye, mirror, back } = buildCockpit(car.size, { floor: p.sill, deck: belt - p.sill, roof, cabZ, cabLen, pose: fit.pose }, paintSkin, dark, driver, find);
+  const { dash, dashCanvas, dashTex, hands, eye, mirror, back } = buildCockpit(car.size, { floor: p.sill, deck: belt - p.sill, roof, cabZ, cabLen, pose: fit.pose }, paintSkin, dark, driver, find, cabin);
 
   // The crash: fold the skin where the marks are, and take the normals with it so the light shows the dents.
   const crumple = (levels: Record<Side, number>, marks: readonly Mark[]) => {

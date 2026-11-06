@@ -10,10 +10,14 @@
 // - container: a 20 ft ISO 668 box, 6.058 m long, 2.438 wide, 2.591 tall.
 // - pallets: a UK standard pallet is 1200 by 1000 mm (ISO 6780), about 144 mm tall, loaded to judged heights.
 // - planter: no standard; the sizes are judged from town centre planters.
+// - post_box: a Royal Mail Type K pillar box, 63 in (1,600 mm) above the pavement and 19.25 in (489 mm) across, from the
+//   Letter Box Study Group's record; painted pillar-box red, with a posting slot under a domed cap.
+// - grit_bin: the common 200 L council grit bin, 1,020 by 520 by 720 mm (several UK suppliers list the same size), in
+//   safety yellow, its lid the top.
 // Hedges aren't here: one tinted box stretched to length, with nothing to design.
 import { SHAPES, type Part } from './content.ts';
 
-export const FURNITURE_IDS = ['bench', 'bin', 'planter', 'bollard', 'cycle_rack', 'bus_shelter', 'container', 'pallets'] as const;
+export const FURNITURE_IDS = ['bench', 'bin', 'planter', 'bollard', 'cycle_rack', 'bus_shelter', 'container', 'pallets', 'post_box', 'grit_bin'] as const;
 export type FurnitureId = (typeof FURNITURE_IDS)[number];
 export type FurnitureModel = { id: FurnitureId; parts: Part[] };
 
@@ -28,6 +32,8 @@ export const FURNITURE_RULES: Record<FurnitureId, Rule> = {
   bus_shelter: { w: [3.0, 4.6], l: [1.2, 2.0], top: [2.4, 2.6], parts: [5, 14] },
   container: { w: [2.4, 2.48], l: [6.0, 6.1], top: [2.55, 2.65], parts: [1, 8] },
   pallets: { w: [1.0, 3.6], l: [1.0, 3.6], top: [0.8, 2.0], parts: [2, 10] },
+  post_box: { w: [0.42, 0.56], l: [0.42, 0.56], top: [1.5, 1.7], parts: [3, 8] },
+  grit_bin: { w: [0.9, 1.1], l: [0.45, 0.6], top: [0.65, 0.8], parts: [2, 6] },
 };
 export const SEAT_M: [number, number] = [0.45, 0.5]; // 470-480 mm, widened a little for low-poly
 export const BACK_ABOVE_SEAT_M = 0.3;
@@ -123,6 +129,17 @@ function kindErrors(id: FurnitureId, ps: Part[], top: number): string[] {
     const bases = ps.filter((p) => p.shape === 'box' && p.y < 0.01 && near(p.h, PALLET.h) && (fits(p, PALLET.a, PALLET.b) || fits(p, PALLET.b, PALLET.a)));
     if (!bases.length) out.push(`pallets need at least one real pallet on the ground: a box ${PALLET.a} by ${PALLET.b} m, ${span(PALLET.h)} tall, at y 0`);
     else if (!ps.some((p) => bases.some((b) => p.y >= b.h - 0.01 && touching(p, b)))) out.push('a pallet carries a load: put goods on top of a pallet');
+  }
+  if (id === 'post_box') {
+    const body = ps.reduce((a, b) => (b.w * b.h * b.l > a.w * a.h * a.l ? b : a)), red = hue(body.color);
+    if (!(red.h < 0.03 || red.h > 0.97) || red.s < 0.6 || lightness(body.color) < 0.3 || lightness(body.color) > 0.6) out.push('a pillar box is pillar-box red: its biggest part a strong red (like #d52b1e)');
+    if (body.shape !== 'cylinder' || body.y > 0.01) out.push('a pillar box is a round pillar: its biggest part a cylinder standing on the ground');
+    if (!ps.some((p) => p !== body && lightness(p.color) < 0.2 && p.y > 1 && p.h <= 0.08 && p.w >= 0.15)) out.push('a pillar box needs its posting slot: a dark strip at most 0.08 m tall and at least 0.15 wide, over 1 m up');
+  }
+  if (id === 'grit_bin') {
+    const body = ps.reduce((a, b) => (b.w * b.h * b.l > a.w * a.h * a.l ? b : a)), y = hue(body.color);
+    if (y.h < 0.11 || y.h > 0.18 || y.s < 0.6 || lightness(body.color) < 0.4) out.push('a grit bin is safety yellow: its biggest part a strong yellow (like #f2c100)');
+    if (body.y > 0.01) out.push('a grit bin\'s body stands on the ground');
   }
   if (id === 'container' && ps[0].w * ps[0].h * ps[0].l < 2.4 * 2.5 * 5.9) out.push('part 1 is the container\'s box: the full 6.06 by 2.44 by 2.59 m');
   return out;

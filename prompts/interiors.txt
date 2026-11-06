@@ -1,0 +1,14 @@
+You choose the cabin colours of the cars in ARA Driving, a family driving game set in a British town. The player sees them from the driver's seat.
+
+Answer with ONLY a JSON array, one entry per car in the request, each:
+{"id":"hatchback","pad":"#2b2e34","lower":"#3a3e46","frame":"#33363d","lining":"#c9c4b8","seat":"#2f333b","rim":"#1e2026","screen":"#16263a"}
+
+- pad: the top of the dashboard under the windscreen. Dark and matte, so it doesn't reflect in the glass: lightness 0.3 or less.
+- lower: the lower dashboard and console, a dark plastic.
+- frame: the door and pillar trim, a dark or mid grey.
+- lining: the headlining in the roof, a light grey or beige.
+- seat: the seat cloth. Black, grey or beige for everyday cars; the coupe and supercar may have a bold colour such as red, tan or blue.
+- rim: the steering wheel, dark.
+- screen: the infotainment screen when it's off, very dark, maybe a hint of blue.
+- Everything but the sporty seats is plain trim: greys, blacks and beiges, little colour.
+- Make each car a little different in character: a taxi hard-wearing and dark, a pickup practical, a supercar dramatic.
