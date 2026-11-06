@@ -3,6 +3,7 @@ import { DISTRICTS, DISTRICT_IDS, districtAt } from '../sim/districts.ts';
 import type { Game } from '../sim/game.ts';
 import { placeAt, storyPlot } from '../sim/quests.ts';
 import { pois, yourCar, type Poi, type PoiKind } from '../sim/pois.ts';
+import { WATER } from '../sim/waterside.ts';
 import { PLOT_SOLID, ROAD_W, SIZE, type Vec } from '../sim/town.ts';
 
 const SCALE = 0.6, PLOT = '#c4bcaa'; // image pixels per metre, and the colour of a place's plot
@@ -18,6 +19,7 @@ export const POI_STYLE: Record<PoiKind, { fill: string; label: string; size: num
   base_recovery: { fill: '#f08a24', label: 'R', size: 1, legend: 'Recovery yard: sign on' },
   base_mechanic: { fill: '#5b6b7a', label: 'G', size: 1, legend: 'Patrol garage: sign on' },
   centre: { fill: '#9b4fd0', label: 'SC', size: 1, legend: 'Shopping centre' },
+  basin: { fill: '#2f6f8f', label: 'B~', size: 1, legend: 'Canal basin and narrowboats' },
   shop: { fill: '#e0712e', label: 'S', size: 0.6, legend: 'Shop' },
   cafe: { fill: '#8a5a3c', label: 'C', size: 0.6, legend: 'Café' },
   market: { fill: '#3f9a3a', label: 'M', size: 0.6, legend: 'Market' },
@@ -51,6 +53,8 @@ export function townImage(g: Game): HTMLCanvasElement {
   for (const b of g.town.boxes) { x.fillStyle = b.district ? DISTRICTS[b.district].map : PLOT; x.fillRect(b.x - b.hx, b.z - b.hz, b.hx * 2, b.hz * 2); }
   x.fillStyle = PLOT;
   for (const p of g.town.plots) x.fillRect(p.x - PLOT_SOLID, p.z - PLOT_SOLID, PLOT_SOLID * 2, PLOT_SOLID * 2);
+  x.fillStyle = '#5f8fa8'; // the canal and its basin
+  for (const w of WATER) x.fillRect(w.x0, w.z0, w.x1 - w.x0, w.z1 - w.z0);
   x.strokeStyle = '#ffffff';
   x.lineWidth = ROAD_W * 2;
   x.lineCap = 'round';

@@ -6,8 +6,9 @@ import type { CareerId } from '../../schemas/careers.ts';
 import type { Game } from './game.ts';
 import { placeAt, storyPlot } from './quests.ts';
 import { dist, type Vec } from './town.ts';
+import { BASIN } from './waterside.ts';
 
-export type PoiKind = Place['kind'] | 'home' | 'fuel' | 'centre' | 'bus_stop' | 'your_car' | 'lead' | `base_${CareerId}`; // lead: drawn from the case board, not listed here
+export type PoiKind = Place['kind'] | 'home' | 'fuel' | 'centre' | 'bus_stop' | 'your_car' | 'lead' | 'basin' | `base_${CareerId}`; // lead: drawn from the case board, not listed here
 export type Poi = { kind: PoiKind; name: string; at: Vec; road: Vec }; // at: where it is drawn; road: where the sat nav takes you
 
 export function pois(g: Game): Poi[] {
@@ -20,6 +21,7 @@ export function pois(g: Game): Poi[] {
     out.push({ kind: `base_${s.id}`, name: b?.name ?? s.id, at: s, road: s.road });
   }
   if (t.centre) out.push({ kind: 'centre', name: 'Shopping centre', at: t.centre.plot, road: t.centre.plot.road });
+  out.push({ kind: 'basin', name: 'Canal basin', at: { x: (BASIN.x0 + BASIN.x1) / 2, z: (BASIN.z0 + BASIN.z1) / 2 }, road: t.snap({ x: BASIN.x0 - 20, z: (BASIN.z0 + BASIN.z1) / 2 }).point });
   for (const p of t.plots) {
     if (held.includes(p)) continue; // a regular's lot: the map marks it when their story is done
     const place = placeAt(t, g.content.places, p);

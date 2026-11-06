@@ -6,6 +6,7 @@ export type Edge = { a: number; b: number; len: number };
 import type { CrossingKind } from './crossings.ts';
 import drawnFoot from '../data/drawnfoot.json' with { type: 'json' };
 import { DISTRICTS, districtAt, onBuffer, type DistrictId } from './districts.ts';
+import { blocksWaterside, inWater, WATER } from './waterside.ts';
 import { SERVICE_RULES, type ServiceId } from '../../schemas/services.ts';
 
 export type Box = { x: number; z: number; hx: number; hz: number; h: number; hue: number; district?: DistrictId; style?: string; front?: Vec; drawn?: string; turn?: number }; // style: a bench can pin one; front: unit vector to the street
@@ -110,6 +111,8 @@ export class Town {
     if (!opts.bare) this.dress(makeRng(seed + 2));
     this.hide(makeRng(seed + 1)); // its own stream, so adding spots leaves the town's layout alone
     for (const p of this.plots) this.index({ x: p.x, z: p.z, hx: PLOT_SOLID, hz: PLOT_SOLID, h: 0, hue: 0 }); // the building drawn on a plot is solid
+    this.trees = this.trees.filter((t) => !inWater(t.x, t.z, 2)); // nothing growing in the canal
+    for (const w of WATER) this.index({ x: (w.x0 + w.x1) / 2, z: (w.z0 + w.z1) / 2, hx: (w.x1 - w.x0) / 2, hz: (w.z1 - w.z0) / 2, h: 0, hue: 0 }); // the canal's edge stops a car, as its coping does
     const open = this.flood();
     this.spots = this.spots.filter((s) => open.has(this.gridKey(s.x, s.z)));
     if (!opts.bare) this.siteServices();
@@ -313,7 +316,7 @@ export class Town {
           along += halfLong + span(rules.gap) + alley;
           const storeys = rules.storeys[0] + Math.floor(rng() * rng() * (rules.storeys[1] - rules.storeys[0] + 1));
           if (rng() < rules.skip || x < 20 || z < 20 || x > SIZE - 20 || z > SIZE - 20 || along > e.len - 12) continue;
-          if (onBuffer(x, z) || clear.some((c) => dist(c, { x, z }) < r + 18)) continue;
+          if (onBuffer(x, z) || blocksWaterside(x, z, hx, hz) || clear.some((c) => dist(c, { x, z }) < r + 18)) continue; // nothing built on the canal or its towpath
           if (!roadFree(x, z, hx, hz) || !lotFree(x, z, hx, hz, 0.3)) continue;
           const box: Box = { x, z, hx, hz, h: storeys * 3.4, hue: rng(), district, front: { x: uz * side, z: -ux * side } };
           this.boxes.push(box);

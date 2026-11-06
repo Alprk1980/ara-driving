@@ -23,6 +23,19 @@
       wall before it stops, deeper than a hole's 1 m crater leaves room for, and buildings have no insides, so what
       "driving into" one should mean is an open question for the owner. Parked for now (2026-11-06).
 
+## More to do (asked for 2026-11-06: the young-teen ideas, folded into the game for everyone)
+- [x] The school run: children walking to the schools on school days, 20 mph outside them, flashing "School" signs.
+- [x] The town's cases: three gentle whodunnits, solved by asking witnesses round town (`schemas/cases.ts`).
+- [x] Rival cab crews and a three-day season with prizes (`schemas/rivals.ts`, `src/sim/rivals.ts`).
+- [x] Getaway jobs: cartoon capers, chased by the police half the time, never worth more than honest work.
+- [x] The waterside: a canal down the east edge with a towpath, and a basin of narrowboats in the works corner. A
+      Midlands town has canals, not a beach, so this replaces the beach and marina of the edition notes.
+- [ ] The economy guard now sits on its edge: the supercar's fuel is 25% of its earnings against a cap of under 25%,
+      after the canal moved the town a little. Its fuel use was approved in play, so this needs the owner's call:
+      ease the supercar's burn a touch, or let the cap be 26%.
+- [ ] Still to come from the notes: a narrowboat trip, stunts and jumps (the car can't leave the ground yet), the
+      driving test at the police station, and storm and fog nights.
+
 ## The radio (asked for 2026-11-06)
 - [x] Bulletins that are true: the forecast is built from the weather the game will really have (today's seeded rain
       spell, Birmingham's monthly highs, lows, frosts and sunshine from the Met Office's Winterbourne averages) in

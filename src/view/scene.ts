@@ -28,6 +28,7 @@ import { buildServices } from './services.ts';
 import { StreetLife } from './streetlife.ts';
 import { BusSigns, centreSign } from './busstops.ts';
 import { buildShopSigns } from './shopsigns.ts';
+import { buildWaterside } from './waterside.ts';
 import { SchoolSigns } from './schoolsigns.ts';
 import { TownBuildings } from './townblocks.ts';
 import { DrawnBuildings } from './drawn.ts';
@@ -465,6 +466,7 @@ export class View {
     this.you = new YouFigure(this.scene, 0, find);
     buildDoors(this.scene, game.doors);
     this.scene.add(buildShopSigns(game)); // a hanging sign with its name by every shop, café and market
+    this.scene.add(buildWaterside()); // the canal down the east edge and its basin of narrowboats
     this.control = new RoadControl(this.scene, game.town);
     const body = partsGeometry(TRAFFIC_PARTS);
     this.ghost =new THREE.Mesh(body, new THREE.MeshBasicMaterial({ color: '#35e0c2', transparent: true, opacity: 0.4, depthWrite: false }));
