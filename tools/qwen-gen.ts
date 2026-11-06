@@ -8,6 +8,7 @@ import { PLACE_SHOPS, shopErrors, type Shop } from '../schemas/shops.ts';
 import { BASE_SAYS, CALL_CAREERS, CALL_KINDS, callErrors } from '../schemas/careers.ts';
 import { interiorErrors, type InteriorPalette } from '../schemas/interiors.ts';
 import { LINK_KINDS, radioLinkErrors } from '../schemas/radiolinks.ts';
+import { caseErrors, caseSetErrors, type TownCase } from '../schemas/cases.ts';
 import { buildingSetErrors, buildingStyleErrors, type BuildingStyle } from '../schemas/buildings.ts';
 import { carProfileErrors, profileVsCar, type CarBodyProfile } from '../schemas/carprofiles.ts';
 import { FLEET_RULES, fleetErrors } from '../schemas/fleet.ts';
@@ -296,6 +297,20 @@ Write 8 lines with topic travel.` },
     file: 'src/data/radiolinks.json', prompt: 'prompts/radiolinks.txt', errors: radioLinkErrors as Kind['errors'], key: 'id',
     checker: 'These are short links a British local radio presenter reads around the weather, travel and time. Flag any that sound cheesy or gushing, American, stiff, or like nothing a real presenter would say, or two that say the same thing.',
     batches: () => LINK_KINDS.map((kind) => ({ ask: `Write 8 ${kind} links, each different. Start each id with ${kind}_.`, fits: (e: Entry) => (e.kind === kind ? [] : [`every entry here is kind ${kind}`]) })),
+  },
+  // The town's mysteries (schemas/cases.ts): three cases, each solvable by the clues.
+  cases: {
+    file: 'src/data/cases.json', prompt: 'prompts/cases.txt', key: 'id',
+    errors: ((e: TownCase) => caseErrors({ ...e, clues: (e?.clues ?? []).map((k) => ({ ...k, clears: k?.clears ?? undefined })) }, JSON.parse(readFileSync('src/data/regulars.json', 'utf8')), PLACES)) as Kind['errors'],
+    checker: 'These are gentle whodunnits for a family game. For each case, check the clues make sense for the places and witnesses, that the two unnamed clues really fit the culprit, that the alibis are believable, and that nothing is scary or harsh.',
+    batches: () => {
+      const regs = JSON.parse(readFileSync('src/data/regulars.json', 'utf8')) as Regular[], spots = PLACES.filter((p) => p.kind !== 'house');
+      const themes = ['the market trolley that keeps wandering off overnight', 'the library’s returns box being found full of odd things', 'the bandstand bunting going missing before the fete'];
+      return themes.map((theme, i) => ({
+        ask: `Write 1 case about ${theme}. Regulars (id: name, role): ${regs.map((r) => `${r.id}: ${r.name}, ${r.role}`).join('; ')}. Places (id: name, kind): ${spots.map((p) => `${p.id}: ${p.name}, ${p.kind}`).join('; ')}. Use id case_${['trolley', 'returns', 'bunting'][i]}.`,
+        fits: (e: Entry) => [...(e.id === `case_${['trolley', 'returns', 'bunting'][i]}` ? [] : [`the id must be case_${['trolley', 'returns', 'bunting'][i]}`]), ...caseSetErrors([...(JSON.parse(readFileSync('src/data/cases.json', 'utf8')) as TownCase[]).filter((x) => x.id !== e.id), e as unknown as TownCase]).map((m) => `${m}: write that clue afresh`)],
+      }));
+    },
   },
   carprofiles: {
     file: 'src/data/carprofiles.json', prompt: 'prompts/carprofiles.txt', errors: carProfileErrors as Kind['errors'], key: 'id',

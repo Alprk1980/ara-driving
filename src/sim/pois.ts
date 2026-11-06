@@ -7,7 +7,7 @@ import type { Game } from './game.ts';
 import { placeAt, storyPlot } from './quests.ts';
 import { dist, type Vec } from './town.ts';
 
-export type PoiKind = Place['kind'] | 'home' | 'fuel' | 'centre' | 'bus_stop' | 'your_car' | `base_${CareerId}`;
+export type PoiKind = Place['kind'] | 'home' | 'fuel' | 'centre' | 'bus_stop' | 'your_car' | 'lead' | `base_${CareerId}`; // lead: drawn from the case board, not listed here
 export type Poi = { kind: PoiKind; name: string; at: Vec; road: Vec }; // at: where it is drawn; road: where the sat nav takes you
 
 export function pois(g: Game): Poi[] {

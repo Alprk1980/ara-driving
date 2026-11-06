@@ -4,6 +4,8 @@ import { afterEating, afterRun, TIRED_AT } from './energy.ts';
 import { lightFrac, monthOf, RAIN_SPELL_H, sunFor, wetOdds, type Sun } from './almanac.ts';
 import { inPeak, schoolDay, schoolsIn, type School } from './schoolrun.ts';
 import { dayWeather, type Forecast, type TravelFact } from './bulletins.ts';
+import { accuse, clueAt, hear, openCase } from './casebook.ts';
+import { CASE_REWARD, type TownCase } from '../../schemas/cases.ts';
 import { DISTRICTS, districtAt } from './districts.ts';
 import { contactAt, crushLevel, NEUTRAL, PlayerCar, sideOf, type DriveIntent, type DriveState, type Mark, type Side } from './car.ts';
 import type { Find, Goal, GoalKind, TownEventCard } from '../../schemas/content.ts';
@@ -68,7 +70,9 @@ export type GameEvent =
   | { type: 'shift'; what: 'on' | 'off'; career: CareerId; earned: number }
   | { type: 'shiftPaid'; title: string; pay: number; onTime: boolean; note: string }
   | { type: 'shiftPhase'; label: string }
-  | { type: 'careerRank'; career: CareerId; rank: number };
+  | { type: 'careerRank'; career: CareerId; rank: number }
+  | { type: 'caseClue'; title: string; witness: string; text: string }
+  | { type: 'caseSolved'; title: string; ending: string; pay: number };
 
 /** Where the drive was left: the car on the road, the clock, the job and the sat nav. Saved beside the progress, so a
  * reload carries on where it stopped. A job's places are kept as indexes into the town's plots, which a fixed seed rebuilds the same. */
@@ -195,6 +199,35 @@ export class Game {
     if (p.state !== 'Stranded') p.state = 'Parked';
     this.foot = new OnFoot(doorOf(p, this.town));
     this.emit({ type: 'foot', out: true });
+    return true;
+  }
+
+  /** The case you're on, if there's one left to solve. */
+  get openCase(): TownCase | null { return openCase(this.content.cases ?? [], this.progress.cases ?? {}); }
+
+  /** A witness for the open case at this door, if you haven't heard them yet. */
+  clueAtDoor(d: Door): { c: TownCase; index: number } | null {
+    return clueAt(this.content.cases ?? [], this.progress.cases ?? {}, placeAt(this.town, this.content.places, d.plot)?.id);
+  }
+
+  /** Hear what the witness at this door saw. */
+  hearClue(d: Door): boolean {
+    const at = this.clueAtDoor(d);
+    if (!at) return false;
+    hear((this.progress.cases ??= {}), at.c, at.index);
+    const k = at.c.clues[at.index];
+    this.emit({ type: 'caseClue', title: at.c.title, witness: k.witness, text: k.text });
+    return true;
+  }
+
+  /** Name who did it on the open case. Right pays and opens the next case; wrong is only a "not them". */
+  accuse(who: string): boolean {
+    const c = this.openCase;
+    if (!c || !accuse((this.progress.cases ??= {}), c, who)) return false;
+    this.wallet.earn(CASE_REWARD, `Solved: ${c.title}`);
+    this.gainRep(REP_FINALE);
+    this.emit({ type: 'caseSolved', title: c.title, ending: c.ending, pay: CASE_REWARD });
+    this.emit({ type: 'points', points: this.wallet.points() });
     return true;
   }
 

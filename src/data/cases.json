@@ -1,0 +1,137 @@
+[
+  {
+    "id": "case_trolley",
+    "title": "The Wandering Market Trolley",
+    "intro": "Someone keeps borrowing the market's big blue trolley overnight, and the stallholders want to know who.",
+    "culprit": "marrow_gardener",
+    "suspects": [
+      "mira_baker",
+      "sam_bus",
+      "nina_band",
+      "marrow_gardener"
+    ],
+    "clues": [
+      {
+        "place": "corner_bakery",
+        "witness": "a bakery helper",
+        "text": "Mira was here kneading dough all night, flour up to her elbows. She never left the ovens.",
+        "clears": "mira_baker"
+      },
+      {
+        "place": "transit_shed",
+        "witness": "a depot worker",
+        "text": "Sam was here teaching children to wave politely at bus doors, busy until dawn.",
+        "clears": "sam_bus"
+      },
+      {
+        "place": "lantern_library",
+        "witness": "the librarian",
+        "text": "Nina was here reading quietly to the story group, her voice too shy to carry far.",
+        "clears": "nina_band"
+      },
+      {
+        "place": "plant_shed",
+        "witness": "the plant seller",
+        "text": "Whoever moved it left damp soil and a single marrow flower on the floor.",
+        "clears": null
+      },
+      {
+        "place": "fresh_cart",
+        "witness": "a stallholder",
+        "text": "The trolley returned smelling of sweet compost and with one long vine trailing from the handle.",
+        "clears": null
+      }
+    ],
+    "ending": "It was Gwen! She borrowed the trolley to wheel her prize marrow to the show, and she's saying sorry with a basket of veg."
+  },
+  {
+    "id": "case_bunting",
+    "title": "Bandstand Bunting Mix-Up",
+    "intro": "Before the town fete, the bandstand bunting went missing from its crate. Everyone wants it back in time for the music.",
+    "culprit": "nina_band",
+    "suspects": [
+      "nina_band",
+      "school_play_teacher",
+      "marrow_gardener",
+      "sam_bus"
+    ],
+    "clues": [
+      {
+        "place": "pine_hill_school",
+        "witness": "the school caretaker",
+        "text": "Ada was at Pine Hill School all evening, pinning paper trees for the class play.",
+        "clears": "school_play_teacher"
+      },
+      {
+        "place": "plant_shed",
+        "witness": "the plant shed helper",
+        "text": "Gwen stayed in the Plant Shed, tending her prize marrow and checking its soft green leaves.",
+        "clears": "marrow_gardener"
+      },
+      {
+        "place": "transit_shed",
+        "witness": "a depot helper",
+        "text": "Sam was at Transit Shed, polishing an old bus and showing children how the bell rings.",
+        "clears": "sam_bus"
+      },
+      {
+        "place": "duck_pond_park",
+        "witness": "the park keeper",
+        "text": "Near the bandstand path, someone carried folded colour strips while humming a slow march.",
+        "clears": null
+      },
+      {
+        "place": "sun_cup_cafe",
+        "witness": "a cafe helper",
+        "text": "A quiet customer with a music folder and a scarf from last year's band performance left a small bag.",
+        "clears": null
+      }
+    ],
+    "ending": "It was Nina! She quietly borrowed the bunting to practice her singing with a proper bandstand sparkle, and she hung it neatly back before the fete."
+  },
+  {
+    "id": "case_returns",
+    "title": "Odd Things in the Returns Box",
+    "intro": "The library's returns box has been filled with odd little things, and the staff want to know who has been muddling it.",
+    "culprit": "vet_tortoise",
+    "suspects": [
+      "vet_tortoise",
+      "sam_bus",
+      "nina_band",
+      "school_play_teacher"
+    ],
+    "clues": [
+      {
+        "place": "page_nook",
+        "witness": "the librarian",
+        "text": "Sam helped stack books here until late, and I saw him leave with his bus cap and a thermos.",
+        "clears": "sam_bus"
+      },
+      {
+        "place": "quiet_shelf",
+        "witness": "a library helper",
+        "text": "Nina's scarf was left on this shelf, and two staff members heard her rehearsing a soft song in the hall.",
+        "clears": "nina_band"
+      },
+      {
+        "place": "little_sprout",
+        "witness": "a teaching assistant",
+        "text": "Ada stayed at school until ten, pinning fairy wings on play costumes, while the caretaker swept the hall.",
+        "clears": "school_play_teacher"
+      },
+      {
+        "place": "duck_pond_park",
+        "witness": "a park warden",
+        "text": "By the pond, a slow trail of wet footprints led to a muddy box, with bits of lettuce and a little shell.",
+        "clears": null
+      },
+      {
+        "place": "lantern_library",
+        "witness": "the librarian",
+        "text": "The returns box smelled of vet salve, and a tiny tortoise ID tag was tucked inside the lid.",
+        "clears": null
+      }
+    ],
+    "ending": "It was Vera! She stored damp moss, a lettuce leaf, and a tortoise ID tag in the returns box for her tracked tortoise, then tidied it."
+  }
+]

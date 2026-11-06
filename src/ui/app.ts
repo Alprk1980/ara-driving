@@ -40,6 +40,8 @@ import { DISTRICTS, DISTRICT_IDS, type DistrictId } from '../sim/districts.ts';
 import { drawMini, drawWorld, POI_STYLE, poiList, townImage } from './map.ts';
 import { poiNear } from '../sim/pois.ts';
 import { zoneAt } from '../sim/schoolrun.ts';
+import { suspects } from '../sim/casebook.ts';
+import { CASE_REWARD } from '../../schemas/cases.ts';
 import { forecastText, spokenTime, travelText } from '../sim/bulletins.ts';
 import { destinations, distanceText, etaText, GROUP_ORDER, nearestIn, turnText, type Dest, type DestGroup } from '../sim/satnav.ts';
 import { cueKey, type VoiceGuide } from './voice.ts';
@@ -373,6 +375,8 @@ export class App {
         break;
       case 'shiftPaid': this.toast(`${e.title}: +${e.pay} Points${e.onTime ? ', on time' : ''}${e.note ? `. ${e.note}` : ''}`); this.sound.chime(880); this.store(); break;
       case 'shiftPhase': this.ticker(e.label); break;
+      case 'caseClue': this.sound.chime(990); break;
+      case 'caseSolved': this.toast(`Case solved: ${e.title}. +${e.pay} Points`); this.sound.chime(1320); this.store(); break;
       case 'careerRank': { const r = CAREERS[e.career].ranks[e.rank]; this.toast(`Promoted: ${r.title}. ${r.opens}`); this.sound.chime(1320); break; }
     }
   }
@@ -536,9 +540,11 @@ export class App {
     if (d.plot === this.game.town.centre?.plot) return this.openCentre(d);
     const g = this.game, place = placeAt(g.town, g.content.places, d.plot), here = g.offers.filter((o) => o.start === d.plot), shop = shopFor(place?.id);
     const jobs = g.quest ? '<p>Finish the job you are on to take another.</p>' : here.length ? here.map((o) => `<div class="offer"><div><b>${esc(o.title)}</b><span>${esc(o.text)}</span><span>${o.basePay} to ${o.maxPay} Points</span></div><button class="primary" data-id="${o.id}">Take</button></div>`).join('') : '<p>No jobs from here just now.</p>';
-    const kind = esc(place ? place.kind[0].toUpperCase() + place.kind.slice(1) : '');
-    const c = this.sheet('dialog', `<h2>${esc(place?.name ?? 'A front door')}</h2>${shop ? `<p>${esc(shop.line)}</p>${this.counter(shop)}<p>Jobs from here</p>` : `<p>${kind}. The door is shut for now.</p>`}${jobs}<div class="row end"><button class="primary" id="x">Back to the street</button></div>`);
+    const kind = esc(place ? place.kind[0].toUpperCase() + place.kind.slice(1) : ''), lead = g.clueAtDoor(d);
+    const witness = lead ? `<div class="offer"><div><b>${esc(lead.c.title)}</b><span>${esc(lead.c.clues[lead.index].witness[0].toUpperCase() + lead.c.clues[lead.index].witness.slice(1))} here saw something.</span></div><button class="primary" id="ask">Ask</button></div>` : '';
+    const c = this.sheet('dialog', `<h2>${esc(place?.name ?? 'A front door')}</h2>${witness}${shop ? `<p>${esc(shop.line)}</p>${this.counter(shop)}<p>Jobs from here</p>` : `<p>${kind}. The door is shut for now.</p>`}${jobs}<div class="row end"><button class="primary" id="x">Back to the street</button></div>`);
     c.querySelector<HTMLElement>('#x')!.onclick = () => this.close('dialog');
+    c.querySelector<HTMLElement>('#ask')?.addEventListener('click', () => { g.hearClue(d); this.openCaseBoard(); });
     for (const b of c.querySelectorAll<HTMLElement>('[data-id]')) b.onclick = () => { g.accept(Number(b.dataset.id)); this.close('dialog'); };
     this.wireCounter(c, () => this.openDoor(d));
   }
@@ -746,11 +752,40 @@ export class App {
     };
     const streak = g.streak ? `<p>${g.streak} in a row: the next job pays ${Math.round(streakBonus(g.streak) * 100)}% more. A tow, fast travel or a lost job ends it.</p>` : '';
     const rows = g.offers.map((o) => `<div class="offer"><div><b>${esc(o.title)} · ${kinds[o.type]}</b>${tag(o)}<span>${esc(o.text)}</span><span>${o.routeKm.toFixed(1)} km, ${o.basePay} to ${o.maxPay} Points, about ${Math.ceil(o.litres)} L${o.litres > reach ? ' · <em>refuel first</em>' : ''}</span></div><button class="primary" data-id="${o.id}">Take</button></div>`).join('');
-    const c = this.sheet('jobs', `<h2>Jobs nearby</h2>${streak}${rows}<div class="row end"><button class="ghost" id="careers">Careers</button><button class="ghost" id="today">Today</button><button class="ghost" id="x">Close</button></div>`);
+    const c = this.sheet('jobs', `<h2>Jobs nearby</h2>${streak}${rows}<div class="row end"><button class="ghost" id="casebtn">Case board</button><button class="ghost" id="careers">Careers</button><button class="ghost" id="today">Today</button><button class="ghost" id="x">Close</button></div>`);
+    c.querySelector<HTMLElement>('#casebtn')!.onclick = () => this.openCaseBoard();
     c.querySelector<HTMLElement>('#today')!.onclick = () => this.openToday();
     c.querySelector<HTMLElement>('#careers')!.onclick = () => this.openCareers();
     c.querySelector<HTMLElement>('#x')!.onclick = () => this.close('jobs');
     for (const b of c.querySelectorAll<HTMLElement>('[data-id]')) b.onclick = () => { g.accept(Number(b.dataset.id)); this.close('jobs'); };
+  }
+
+  /** The case board: what's gone missing, who's still in the frame, what the witnesses said, where to ask next, and
+   *  naming who did it. */
+  openCaseBoard(note = '') {
+    const g = this.game, c = g.openCase;
+    if (!c) {
+      const s = this.sheet('jobs', `<h2>Case board</h2><p>Every case in town is solved. Well done, detective.</p><div class="row end"><button class="primary" id="x">Close</button></div>`);
+      s.querySelector<HTMLElement>('#x')!.onclick = () => this.close('jobs');
+      return;
+    }
+    const heard = g.progress.cases?.[c.id]?.heard ?? [], left = suspects(c, g.progress.cases ?? {}), regs = g.content.regulars ?? [];
+    const name = (id: string) => regs.find((r) => r.id === id)?.name ?? id, role = (id: string) => regs.find((r) => r.id === id)?.role ?? '';
+    const place = (id: string) => g.content.places.find((p) => p.id === id)?.name ?? id;
+    const who = c.suspects.map((id) => `<div class="offer"><div><b>${esc(name(id))}</b><span>${esc(role(id))}${left.includes(id) ? '' : ', cleared'}</span></div>${left.includes(id) ? `<button class="ghost" data-who="${id}">It was ${esc(name(id))}</button>` : ''}</div>`).join('');
+    const clues = heard.map((i) => `<li><b>${esc(c.clues[i].witness[0].toUpperCase() + c.clues[i].witness.slice(1))}, ${esc(place(c.clues[i].place))}:</b> ${esc(c.clues[i].text)}</li>`).join('');
+    const leads = c.clues.map((k, i) => ({ k, i })).filter(({ i }) => !heard.includes(i)).map(({ k }) => `<button class="ghost" data-lead="${k.place}">Ask at ${esc(place(k.place))}</button>`).join('');
+    const s = this.sheet('jobs', `<h2>${esc(c.title)}</h2><p>${esc(c.intro)}</p>${note ? `<p><b>${esc(note)}</b></p>` : ''}<p>Suspects</p>${who}<p>What the witnesses said (${heard.length} of ${c.clues.length})</p>${clues ? `<ol class="clues">${clues}</ol>` : '<p>Nobody asked yet. Call in at the places below.</p>'}${leads ? `<p>Who to ask</p><div class="row">${leads}</div>` : ''}<p>Solving it pays ${CASE_REWARD} Points.</p><div class="row end"><button class="primary" id="x">Close</button></div>`);
+    s.querySelector<HTMLElement>('#x')!.onclick = () => this.close('jobs');
+    for (const b of s.querySelectorAll<HTMLElement>('[data-who]')) b.onclick = () => {
+      if (g.accuse(b.dataset.who!)) { this.close('jobs'); const sv = this.sheet('dialog', `<h2>Solved</h2><p>${esc(c.ending)}</p><div class="row end"><button class="primary" id="x">Brilliant</button></div>`); sv.querySelector<HTMLElement>('#x')!.onclick = () => this.close('dialog'); }
+      else this.openCaseBoard(`Not ${name(b.dataset.who!)}: they've a good reason to have been elsewhere. Keep asking round.`);
+    };
+    for (const b of s.querySelectorAll<HTMLElement>('[data-lead]')) b.onclick = () => {
+      const plot = g.town.plots.find((p) => placeAt(g.town, g.content.places, p)?.id === b.dataset.lead);
+      if (plot) { g.setWaypoint(plot.road, place(b.dataset.lead!)); this.banner(`Routing to ${place(b.dataset.lead!)}`); }
+      this.close('jobs');
+    };
   }
 
   /** Every career: your rank in it, what it pays, and the way to where you sign on. */

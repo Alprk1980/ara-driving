@@ -1,7 +1,7 @@
 // The mini-map and world map draw from one pre-rendered town image, so a phone redraws only a blit and a few marks.
 import { DISTRICTS, DISTRICT_IDS, districtAt } from '../sim/districts.ts';
 import type { Game } from '../sim/game.ts';
-import { storyPlot } from '../sim/quests.ts';
+import { placeAt, storyPlot } from '../sim/quests.ts';
 import { pois, yourCar, type Poi, type PoiKind } from '../sim/pois.ts';
 import { PLOT_SOLID, ROAD_W, SIZE, type Vec } from '../sim/town.ts';
 
@@ -30,6 +30,7 @@ export const POI_STYLE: Record<PoiKind, { fill: string; label: string; size: num
   house: { fill: '#b07a52', label: 'h', size: 0.5, legend: 'Homes' },
   bus_stop: { fill: '#1f6fd1', label: '', size: 0.35, legend: 'Bus stop' },
   your_car: { fill: '#10131a', label: '', size: 0.6, legend: 'Your car, where you left it' },
+  lead: { fill: '#7a3fd0', label: '?', size: 0.85, legend: 'A witness for the case board' },
 };
 const SMALL = 0.6; // on the mini-map, places shrink to coloured dots without letters, so the road stays readable
 const WASH_M = 30, WASH = 0.4; // the district wash: its grid, and how strong
@@ -120,6 +121,12 @@ function marks(x: CanvasRenderingContext2D, g: Game, r: number) {
     dot(x, p.at, r * st.size, st.fill, mini && st.size < 1 ? undefined : st.label || undefined);
   }
   if (!g.quest) for (const o of g.offers) dot(x, o.start, r * 0.8, '#ffb02e');
+  const c = g.openCase, heard = c ? g.progress.cases?.[c.id]?.heard ?? [] : []; // the case's witnesses still to ask
+  if (c) for (const [i, k] of c.clues.entries()) {
+    if (heard.includes(i)) continue;
+    const plot = g.town.plots.find((p) => placeAt(g.town, g.content.places, p)?.id === k.place);
+    if (plot) dot(x, plot, r * 0.85, '#7a3fd0', '?');
+  }
   const target = g.quest?.target ?? g.waypoint;
   if (target) dot(x, target, r, '#ffd23e');
 }
