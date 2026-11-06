@@ -145,13 +145,15 @@ const KINDS: Record<string, Kind> = {
     file: 'src/data/calls.json', prompt: 'prompts/calls.txt', errors: callErrors as Kind['errors'], key: 'id',
     checker: 'These are 999 and breakdown calls for a family driving game, as JSON. Flag a call whose text does not fit its kind (a bin fire that sounds like a house fire, a category 3 ambulance call that sounds life-threatening), anything frightening for a young child, or two calls that say the same thing.',
     batches: () => CALL_CAREERS.map((career) => {
-      const kinds = Object.keys(CALL_KINDS[career]), n = 8;
+      const have = existing('src/data/calls.json'), shipped = (JSON.parse(readFileSync('src/data/calls.json', 'utf8')) as { career: string; kind: string }[]);
+      const kinds = Object.keys(CALL_KINDS[career]).filter((k) => !shipped.some((c) => c.career === career && c.kind === k)), n = kinds.length * 2; // only kinds with no calls yet, two each
+      void have;
       const slots = Array.from({ length: n }, (_, i) => kinds[i % kinds.length]);
       return {
         ask: `Write ${n} ${career} calls, one per slot, in order:\n${slots.map((k, i) => `${i + 1}. career ${career}, kind ${k}`).join('\n')}`,
         fits: (e: Entry, i: number) => (e.career === career && e.kind === slots[i] ? [] : [`entry ${i + 1} must be career ${career}, kind ${slots[i]}`]),
       };
-    }),
+    }).filter((b) => !b.ask.startsWith('Write 0 ')),
   },
   quests: {
     file: 'src/data/quests.json', prompt: 'prompts/quests.txt', errors: questTextErrors as Kind['errors'], key: 'id',

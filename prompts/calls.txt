@@ -12,6 +12,7 @@ Rules:
   ambulance cat1: the most urgent, such as someone collapsed or struggling to breathe, said gently. cat2: urgent, such as a suspected stroke, a bad asthma attack, chest pains. cat3: needs seeing but not on blue lights, such as an older person who had a fall, a twisted ankle.
   fire house_fire: smoke from a kitchen or a chip pan fire, everyone already out. car_fire: smoke from under a parked car's bonnet. bin_fire: a smouldering wheelie bin or skip. rescue: someone or something stuck, such as people in a stuck lift, a cat on a roof, a horse in a ditch. false_alarm: a smoke alarm set off by toast or a steamy shower.
   police emergency: a crime happening now that is gentle for children, such as a shoplifter running off, a lost child, a car blocking an ambulance. priority: needs a visit soon, such as a stolen bike, a noisy party, a lost dog, a broken garden gate.
+  mechanic workshop jobs are cars booked into the garage, with {place} being where the owner lives or works: mot: a car in for its MOT. service: a car in for a service. brakes: new brake pads, squeaky brakes. clutch: a new clutch.
   mechanic battery: a flat battery. tyre: a puncture or flat tyre. fuel: run out of fuel, or the wrong fuel. keys: keys locked in the car. engine: won't start, a warning light, overheating.
   recovery: a car that can't be mended at the roadside: engine, clutch or gearbox trouble.
 - id: snake_case, unique, specific.

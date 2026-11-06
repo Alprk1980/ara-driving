@@ -3,7 +3,7 @@
 import { afterEating, afterRun, TIRED_AT } from './energy.ts';
 import { contactAt, crushLevel, NEUTRAL, PlayerCar, sideOf, type DriveIntent, type DriveState, type Mark, type Side } from './car.ts';
 import type { Find, Goal, GoalKind, TownEventCard } from '../../schemas/content.ts';
-import { BUS_FARE, carById, RECOVERY_FEE, FIND_ALL_REWARD, FIND_REWARD, FUEL_PRICE, GOAL_REWARD, HOME_TOPUP_PCT, rankOf, rankPay, REGULAR_FINALE, REP_FINALE, REP_GOAL, REP_JOB, REP_SPOTLESS, streakBonus } from './economy.ts';
+import { BUS_FARE, carById, isWorkCar, RECOVERY_FEE, FIND_ALL_REWARD, FIND_REWARD, FUEL_PRICE, GOAL_REWARD, HOME_TOPUP_PCT, rankOf, rankPay, REGULAR_FINALE, REP_FINALE, REP_GOAL, REP_JOB, REP_SPOTLESS, streakBonus } from './economy.ts';
 import { FuelManager } from './fuel.ts';
 import { advance, freshDaily, goalsFor } from './goals.ts';
 import { ActiveQuest, freshProgress, GHOST_KEEP, placeAt, QuestGenerator, storyPlot, type Ghost, type Offer, type Progress, type QuestContent, type QuestState } from './quests.ts';
@@ -18,7 +18,7 @@ import type { RoadMoment } from '../../schemas/services.ts';
 import { Walkers } from './walkers.ts';
 import { doorBlocked, doorOf, OnFoot, STILL_MPS } from './onfoot.ts';
 import type { CarBox } from './collide.ts';
-import { CALL_RING_M, careerBases, Shift, type Base, type ShiftWorld } from './careers.ts';
+import { CALL_RING_M, careerBases, Shift, type Base, type ShiftSave, type ShiftWorld } from './careers.ts';
 import { CAREERS, careerRank, type CareerId } from '../../schemas/careers.ts';
 import type { FleetId } from '../../schemas/fleet.ts';
 
@@ -33,7 +33,7 @@ const HARD_STOP_MPS2 = 11, BUMP_MPS = 4, REPAIR_S = 6; // a stop at the pump men
 const PHONE_STILL_MPS = 2, EMERGENCY_M = 200, HURT = 0.3; // parked up enough to use a phone, and how close or bad things must be for 999 to be genuine
 const ROAD_STEPS = 6; // the driving record looks ten times a second, enough to catch a car crossing a line
 const SOLID_NEAR_M = 9, BOARD_M = 15; // a bus's doors are at its front, up to about 6 m from the pole, or further when it stopped short of a blocked stop
-const BASE_M = 22, SHIFT_REROUTE_S = 3; // close enough to a base's front to sign on; how often the sat nav follows a moving driver
+const BASE_M = 22, SHIFT_REROUTE_S = 3, OWN_NEAR_M = 30; // OWN_NEAR_M: your car is close enough to get straight back in; close enough to a base's front to sign on; how often the sat nav follows a moving driver
 const FIRE_CALL_MPS = 18; // a hit on a building this hard brings the fire service: about 40 mph, where a car stops being repairable, judged
 
 export type GameEvent =
@@ -75,7 +75,11 @@ export type Trip = {
   quest: { offer: Omit<Offer, 'start' | 'end'> & { start: number; end: number }; at: QuestState } | null;
   foot?: { x: number; z: number; heading: number } | null; // out of the car, and where; saves from before walking have none
   energy?: number; // running energy, 0-1; saves from before it existed start full
+  shift?: ShiftSave & { own: OwnCar }; // at work: the shift, and your own car where you left it. x, z and the dents above are the work vehicle's
 };
+
+/** Your own car while you're out in a work vehicle: left where you parked it, as it was. */
+export type OwnCar = { id: string; fuel: number; damage: number; dents: Record<Side, number>; marks: Mark[]; x: number; z: number; heading: number };
 
 /** Where Points live. The app backs this with the shared profile; tests use a number. `why` is what the history shows. */
 export type Wallet = { points(): number; spend(n: number, why?: string): boolean; earn(n: number, why?: string): void };
@@ -106,7 +110,7 @@ export class Game {
   energy = 1; // for running, 0-1: see energy.ts
   ride: { bus: TrafficCar; rang: boolean } | null = null; // on a bus, and whether you've rung for the next stop
   shift: Shift | null = null; // signed on at work, in the service's vehicle
-  private own: { id: string; fuel: number; damage: number; dents: Record<Side, number>; marks: Mark[] } | null = null; // your car, in the staff car park while you work
+  private own: OwnCar | null = null; // your car, parked where you left it while you work
   private baseList: Base[] | null = null;
   private shiftTask: unknown = null;
   private shiftNavAt = 0;
@@ -149,6 +153,7 @@ export class Game {
     this.progress.road ??= freshRoad(); // saves from before the driving record have none
     this.road = new RoadSense(this, this.progress.road);
     this.traffic.onRecovered = () => this.towHome();
+    if (opts.trip?.shift) this.restoreShift(opts.trip);
     this.traffic.onIncident = (w, role) => { const s = this.shift; return !!s && CAREERS[s.career].base === role && s.incident(w, this.player); };
     this.refreshOffers();
   }
@@ -193,6 +198,17 @@ export class Game {
   /** Your own car's fuel and dents, whether you're in it or at work. */
   get yours(): { fuel: number; damage: number } { return this.own ?? { fuel: this.player.fuel, damage: this.player.damage }; }
 
+  /** Your own car, parked, while you're at work in another vehicle: for drawing it and walking round it. */
+  get ownCar(): OwnCar | null { return this.own; }
+
+  /** Your parked car as something solid, for the traffic and for you on foot. */
+  private get ownBox(): CarBox | null {
+    const o = this.own;
+    if (!o) return null;
+    const size = carById(o.id).size;
+    return { x: o.x, z: o.z, heading: o.heading, halfL: size[0] / 2, halfW: size[2] / 2 };
+  }
+
   /** The vehicles a career's rank lets you take out. */
   vehiclesFor(career: CareerId): FleetId[] { return CAREERS[career].ranks[careerRank(this.progress.careers?.[career] ?? 0)].vehicles; }
 
@@ -204,13 +220,14 @@ export class Game {
     const allowed = this.vehiclesFor(career), take = vehicle && allowed.includes(vehicle) ? vehicle : allowed[0];
     this.failQuest('You signed on for a shift');
     const p = this.player;
-    this.own = { id: p.car.id, fuel: p.fuel, damage: p.damage, dents: { ...p.dents }, marks: p.marks.map((m) => ({ ...m })) };
+    this.own = { id: p.car.id, fuel: p.fuel, damage: p.damage, dents: { ...p.dents }, marks: p.marks.map((m) => ({ ...m })), x: p.x, z: p.z, heading: p.heading };
     this.backIn();
     p.car = carById(take);
     p.fuel = p.car.tank;
     p.setDamage(0);
     p.hit = null;
-    p.place(base.at.x, base.at.z, base.heading);
+    const at = this.clearOf(base, this.own);
+    p.place(at.x, at.z, base.heading);
     p.state = 'Parked';
     this.waypoint = null;
     this.dest = null;
@@ -231,7 +248,7 @@ export class Game {
     if (t?.offender) this.traffic.pullOver(t.offender, false);
     this.shift = null;
     this.own = null;
-    const p = this.player;
+    const p = this.player, walkOut = !this.foot || this.ride ? doorOf(p, this.town) : { x: this.foot.x, z: this.foot.z, heading: this.foot.heading }; // out of the cab, or where you are on foot
     p.blue = false;
     p.car = carById(own.id);
     p.fuel = own.fuel;
@@ -239,12 +256,41 @@ export class Game {
     p.dents = own.dents;
     p.marks = own.marks;
     p.hit = null;
-    p.place(s.base.at.x, s.base.at.z, s.base.heading);
-    p.state = 'Parked';
-    this.backIn();
+    p.place(own.x, own.z, own.heading); // where you left it
+    p.state = own.fuel > 0 ? 'Parked' : 'Stranded';
     this.nav = null;
+    if (dist(walkOut, own) < OWN_NEAR_M) this.backIn(); // parked outside: straight back in
+    else {
+      this.ride = null;
+      this.foot = new OnFoot(walkOut);
+      this.setWaypoint(own, 'Your car'); // the walk back, on the sat nav
+    }
     this.emit({ type: 'shift', what: 'off', career: s.career, earned: s.earned });
     this.refreshOffers();
+  }
+
+  /** Where the work vehicle waits: at the base's front, or along the road if your own car is parked on that spot. */
+  private clearOf(base: Base, own: Vec): Vec {
+    if (dist(base.at, own) > 12) return base.at;
+    for (const along of [16, -16, 26, -26]) {
+      const at = { x: base.at.x + Math.sin(base.heading) * along, z: base.at.z + Math.cos(base.heading) * along };
+      if (!this.town.boxAt(at.x, at.z, 1.5)) return at;
+    }
+    return base.at;
+  }
+
+  /** A shift from a save, with your car back where you left it. Nothing happens if the base can't be found. */
+  private restoreShift(t: Trip) {
+    const d = t.shift!, base = this.bases.find((b) => b.career === d.career), p = this.player;
+    if (!base || !isWorkCar(d.vehicle)) return;
+    this.own = { ...d.own, dents: { ...d.own.dents }, marks: d.own.marks.map((m) => ({ ...m })) };
+    p.car = carById(d.vehicle);
+    p.fuel = p.car.tank;
+    p.dents = { ...t.dents };
+    p.marks = t.marks.map((m) => ({ ...m }));
+    p.damage = Math.max(...Object.values(p.dents), 0);
+    this.shift = Shift.restore(d, base, this.shiftWorld(), p);
+    this.shiftTask = null;
   }
 
   /** What a shift reaches into: the town, its people and its traffic. */
@@ -263,13 +309,15 @@ export class Game {
       sendRecovery: (k) => { this.traffic.call('recovery', k, k, null, { kerb: k }); },
       collected: (k) => this.parked.collected(k),
       dropWreck: (w) => this.traffic.dropWreck(w),
+      kerbAt: (i) => this.parked.cars[i],
+      kerbIndex: (k) => this.parked.cars.indexOf(k),
     };
   }
 
   private stepShift() {
     const s = this.shift, p = this.player;
     if (!s) { p.blue = false; return; }
-    for (const e of s.step(STEP, p)) {
+    for (const e of s.step(STEP, p, this.foot && !this.ride ? this.foot : null)) {
       if (e.type === 'phase') this.emit({ type: 'shiftPhase', label: e.label });
       else if (e.type === 'paid') {
         this.wallet.earn(e.pay, `${CAREERS[s.career].name}: ${e.task.title}`);
@@ -479,9 +527,11 @@ export class Game {
 
   snapshot(): Trip {
     const p = this.player, q = this.quest, all = this.allPlots, s = this.shift, own = this.own;
-    if (s && own) return { // a shift isn't saved: a reload finds you back in your own car outside the base
-      car: own.id, x: s.base.at.x, z: s.base.at.z, heading: s.base.heading, time: this.time, streak: this.streak, waypoint: null, dest: null,
-      dents: { ...own.dents }, marks: own.marks.map((m) => ({ ...m })), quest: null, energy: this.energy, foot: null,
+    if (s && own) return { // at work: the work vehicle where it is, and the shift with your car where you left it
+      car: own.id, x: p.x, z: p.z, heading: p.heading, time: this.time, streak: this.streak, waypoint: null, dest: null,
+      dents: { ...p.dents }, marks: p.marks.map((m) => ({ ...m })), quest: null, energy: this.energy,
+      foot: this.foot && !this.ride ? { x: this.foot.x, z: this.foot.z, heading: this.foot.heading } : null,
+      shift: { ...s.toSave(), own: { ...own, dents: { ...own.dents }, marks: own.marks.map((m) => ({ ...m })) } },
     };
     return {
       car: p.car.id, x: p.x, z: p.z, heading: p.heading, time: this.time, streak: this.streak,
@@ -622,6 +672,7 @@ export class Game {
     this.traffic.you = this.walkers.you = walking;
     this.traffic.hailing = this.atStop;
     this.traffic.rider = this.ride;
+    this.traffic.yours = this.ownBox;
     const wall = p.step(STEP, foot ? NEUTRAL : intent, this.town), moving = this.traffic.step(STEP, p, here), kerb = this.parked.step(STEP, p, this.traffic.cars), crash = Math.max(moving, kerb), impact = Math.max(wall, crash);
     this.walkers.step(STEP, p, this.traffic.cars, here);
     if (walking) {
@@ -662,7 +713,8 @@ export class Game {
 
   /** The cars you could walk into: your own, the traffic and those parked at the kerb. */
   private solidNear(at: Vec): CarBox[] {
-    const p = this.player, out: CarBox[] = [{ x: p.x, z: p.z, heading: p.heading, halfL: p.car.size[0] / 2, halfW: p.car.size[2] / 2 }];
+    const p = this.player, out: CarBox[] = [{ x: p.x, z: p.z, heading: p.heading, halfL: p.car.size[0] / 2, halfW: p.car.size[2] / 2 }], mine = this.ownBox;
+    if (mine) out.push(mine);
     for (const c of [...this.traffic.cars, ...this.parked.cars]) if (!('dormant' in c && c.dormant) && dist(c, at) < SOLID_NEAR_M) out.push(c);
     return out;
   }

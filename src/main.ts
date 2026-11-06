@@ -68,6 +68,8 @@ view.bodyStyle = save.body;
 view.you.setLook(save.look, save.driver);
 await loading(82, 'Fetching your car');
 view.setCar(save.designs[save.car] ?? {}, save.driver);
+if (save.wallsTown !== town.layoutKey) save.walls = []; // knocked into a town laid out differently, or before the key existed (the 2026-11-06 places moved buildings): they would land on the wrong ones
+save.wallsTown = town.layoutKey;
 view.replayWalls(save.walls);
 
 const speech = new ClipBackend(new SpeechBackend()); // recorded clips first, the device's own voice for the rest

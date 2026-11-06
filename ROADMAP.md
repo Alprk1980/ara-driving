@@ -76,11 +76,13 @@ Built 2026-11-06. The research and its sources are in `schemas/careers.ts`.
 - [x] More places to drive to, including businesses with deliveries of their own. 39 new places, so all 93 plots have
       a name of their own, among them the recovery yard and the patrol garage; shops and depots send some of the
       delivery work themselves, with their own goods.
-- [ ] Mechanics at the garage as well as the roadside: the patrol base has no workshop work yet.
-- [ ] A shift isn't saved: a reload puts you back in your own car outside the base. Saving one mid-shift would need its
-      tasks, rider and timetable in the trip.
-- [ ] Your car isn't drawn while you work: it waits "in the staff car park" and is outside the base when you sign off,
-      wherever you left it.
+- [x] Mechanics at the garage as well as the roadside: MOTs, services, brakes and clutches at Bolt & Axle Garage, booked
+      their real hours (an MOT 45-60 minutes, a clutch 3-5 hours) and done on foot at the bench.
+- [x] A shift is saved: a reload carries on with the same vehicle, tasks, timetable and a car on the bed. A crash or a
+      traffic stop in progress isn't kept, as the car it follows is gone; the next job is dealt instead.
+- [x] Your car stays where you left it while you work, drawn and solid. Sign off beside it and you're straight back in;
+      sign off anywhere else and you walk back, with the sat nav showing the way.
+- [x] Holes in buildings are dropped from a save made in a differently laid-out town, such as before the new places.
 
 ## Decided
 These differ from real cars and roads on purpose. Played and approved on 2026-10-30, so leave them unless asked.

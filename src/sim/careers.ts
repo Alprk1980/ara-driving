@@ -40,7 +40,9 @@ export const STOP_REASONS = [
 ] as const;
 
 export type Base = { career: CareerId; name: string; at: Vec; heading: number };
-export type TaskKind = 'stop' | 'call' | 'convey' | 'tow' | 'drop' | 'fix' | 'pull' | 'return';
+export type TaskKind = 'stop' | 'call' | 'convey' | 'tow' | 'drop' | 'fix' | 'bench' | 'pull' | 'return';
+/** The work you can do on foot, out of the vehicle: at a scene, under a bonnet, at the bench. Driving tasks need the vehicle there. */
+export const ON_FOOT: readonly TaskKind[] = ['call', 'fix', 'bench'];
 export type Task = {
   kind: TaskKind; at: Vec; title: string; text: string; hold: number; blue: boolean;
   booked: number; // seconds this task is booked to take
@@ -65,7 +67,14 @@ export type ShiftWorld = {
   sendRecovery(k: KerbCar): void;
   collected(k: KerbCar): void;
   dropWreck(w: TrafficCar): void;
+  kerbAt(i: number): KerbCar | undefined; // the parked cars by index, so a save can name one
+  kerbIndex(k: KerbCar): number;
 };
+
+/** A task as a save holds it: places by value, stops by route and index, a call by its id and a parked car by index.
+ *  Tasks that follow a moving car (a crash, a driver to stop) aren't kept: a reload deals the next job instead. */
+export type TaskSave = Omit<Task, 'stop' | 'card' | 'kerb' | 'wreck' | 'offender' | 'reason' | 'at'> & { at: Vec; stop?: [number, number]; card?: string; kerb?: number };
+export type ShiftSave = { career: CareerId; vehicle: FleetId; rankIndex: number; clock: number; earned: number; jobs: number; callsLeft: number; rider: number | null; tasks: TaskSave[] };
 
 const placeName = (w: ShiftWorld, at: Vec) => {
   const p = w.plots.reduce((b, q) => (dist(q.road, at) < dist(b.road, at) ? q : b));
@@ -106,13 +115,41 @@ export class Shift {
   pulled = false; // the driver being stopped has pulled in
   private w: ShiftWorld;
 
-  constructor(career: CareerId, vehicle: FleetId, base: Base, jobsSoFar: number, w: ShiftWorld, from: Vec) {
+  constructor(career: CareerId, vehicle: FleetId, base: Base, jobsSoFar: number, w: ShiftWorld, from: Vec, plan = true) {
     this.career = career;
     this.vehicle = vehicle;
     this.base = base;
     this.rankIndex = careerRank(jobsSoFar);
     this.w = w;
+    if (!plan) return;
     if (career === 'bus') this.planBus(from); else this.deal(from);
+  }
+
+  /** The shift as a save holds it. */
+  toSave(): ShiftSave {
+    const w = this.w, r = this.rider;
+    const tasks = this.tasks.filter((t) => !t.wreck && !t.offender).map((t): TaskSave => {
+      const { stop, card, kerb, wreck, offender, reason, at, ...rest } = t;
+      void wreck; void offender; void reason;
+      return { ...rest, at: { x: at.x, z: at.z }, ...(stop ? { stop: [stop.route, w.town.routes[stop.route].stops.indexOf(stop)] as [number, number] } : {}), ...(card ? { card: card.id } : {}), ...(kerb ? { kerb: w.kerbIndex(kerb) } : {}) };
+    });
+    return { career: this.career, vehicle: this.vehicle, rankIndex: this.rankIndex, clock: this.clock, earned: this.earned, jobs: this.jobs, callsLeft: this.callsLeft, rider: r && 'homeX' in r ? w.kerbIndex(r) : null, tasks };
+  }
+
+  /** A shift picked up from a save. A car on the bed is lifted back onto it; with nothing left to do, the next job is dealt. */
+  static restore(d: ShiftSave, base: Base, w: ShiftWorld, from: Vec): Shift {
+    const s = new Shift(d.career, d.vehicle, base, 0, w, from, false);
+    Object.assign(s, { rankIndex: d.rankIndex, clock: d.clock, earned: d.earned, jobs: d.jobs, callsLeft: d.callsLeft });
+    for (const t of d.tasks) {
+      const { stop, card, kerb, ...rest } = t;
+      const st = stop ? w.town.routes[stop[0]]?.stops[stop[1]] : undefined, c = card ? w.calls.find((x) => x.id === card) : undefined, k = kerb !== undefined ? w.kerbAt(kerb) : undefined;
+      if ((stop && !st) || (kerb !== undefined && !k)) continue; // the town has changed under it
+      s.tasks.push({ ...rest, at: st ?? k ?? rest.at, ...(st ? { stop: st } : {}), ...(c ? { card: c } : {}), ...(k ? { kerb: k } : {}) });
+    }
+    const r = d.rider !== null ? w.kerbAt(d.rider) : undefined;
+    if (r) { s.rider = r; r.riding = true; }
+    if (!s.tasks.length) { if (d.career === 'bus') s.backToBase(from, s.clock); else s.deal(from); }
+    return s;
   }
 
   get rank(): CareerRank { return CAREERS[this.career].ranks[this.rankIndex]; }
@@ -136,13 +173,13 @@ export class Shift {
     this.backToBase(at, t);
   }
 
-  private backToBase(from: Vec, t: number) {
+  backToBase(from: Vec, t: number) {
     const run = runS(this.w.town, from, this.base.at, PACE_MPS.work);
     this.tasks.push({ kind: 'return', at: this.base.at, title: 'Back to base', text: `Take the vehicle back to ${this.base.name}`, hold: 1, blue: false, booked: run, due: t + run * TARGET_SLACK });
   }
 
   /** The next call, somewhere across town from here. */
-  private deal(from: Vec) {
+  deal(from: Vec) {
     if (this.callsLeft-- <= 0) return this.backToBase(from, this.clock);
     const w = this.w, career = this.career as CallCareer;
     if (this.career === 'police' && this.rankIndex >= 1 && w.rng() < 0.4) { // a traffic stop
@@ -156,15 +193,19 @@ export class Shift {
     const pool = w.calls.filter((c) => c.career === career && (!allowed || allowed.includes(c.kind)));
     const card = pool[Math.floor(w.rng() * pool.length)];
     if (!card) return this.backToBase(from, this.clock);
-    const rule = (CALL_KINDS[career] as Record<string, { hold: number; blue?: boolean; fix?: number }>)[card.kind];
+    const rule = (CALL_KINDS[career] as Record<string, { hold?: number; blue?: boolean; fix?: number; hours?: number }>)[card.kind];
+    if (this.career === 'mechanic' && rule.hours) { // booked into the workshop at the base: the job takes its real hours
+      const hold = rule.hours * GAME_HOUR_S, owner = placeName(w, this.callSpot(from));
+      return this.add({ kind: 'bench', at: this.base.at, card, title: card.title, text: `${card.text.replace('{place}', owner)} It's at ${this.base.name}.`, hold, blue: false }, from, PACE_MPS.work);
+    }
     if (this.career === 'mechanic' || this.career === 'recovery') {
       const k = w.breakdown(from);
       if (!k) return this.backToBase(from, this.clock);
       const name = placeName(w, k);
-      return this.add({ kind: this.career === 'mechanic' ? 'fix' : 'tow', at: k, kerb: k, card, fix: rule.fix, title: card.title, text: card.text.replace('{place}', name), hold: this.career === 'recovery' ? LOAD_S : rule.hold, blue: false }, from, PACE_MPS.work);
+      return this.add({ kind: this.career === 'mechanic' ? 'fix' : 'tow', at: k, kerb: k, card, fix: rule.fix, title: card.title, text: card.text.replace('{place}', name), hold: this.career === 'recovery' ? LOAD_S : rule.hold ?? 12, blue: false }, from, PACE_MPS.work);
     }
     const at = this.callSpot(from), name = placeName(w, at);
-    this.add({ kind: 'call', at, card, title: card.title, text: card.text.replace('{place}', name), hold: rule.hold, blue: !!rule.blue }, from, rule.blue ? PACE_MPS.blue : PACE_MPS.work);
+    this.add({ kind: 'call', at, card, title: card.title, text: card.text.replace('{place}', name), hold: rule.hold ?? 12, blue: !!rule.blue }, from, rule.blue ? PACE_MPS.blue : PACE_MPS.work);
   }
 
   private callSpot(from: Vec): Vec {
@@ -186,7 +227,7 @@ export class Shift {
     if (career === 'bus' || career === 'mechanic') return false;
     const name = placeName(this.w, w);
     const call = { police: ['Crash on the road', 'emergency'], ambulance: ['Crash: people to check over', 'cat2'], fire: ['Crash rescue', 'rescue'], recovery: ['Crash to clear', ''] } as const;
-    const [title, kind] = call[career], hold = career === 'recovery' ? LOAD_S : (CALL_KINDS as Record<string, Record<string, { hold: number }>>)[career][kind].hold;
+    const [title, kind] = call[career], hold = career === 'recovery' ? LOAD_S : (CALL_KINDS as unknown as Record<string, Record<string, { hold: number }>>)[career][kind].hold;
     const run = runS(this.w.town, from, w, PACE_MPS.blue);
     this.tasks.unshift({ kind: career === 'recovery' ? 'tow' : 'call', at: w, wreck: w, title, text: `Two cars have bumped near ${name}. Everyone's out and safe.`, hold, blue: career !== 'recovery', booked: run + hold, due: this.clock + run * TARGET_SLACK + hold });
     this.held = 0;
@@ -195,18 +236,19 @@ export class Shift {
   }
 
   /** One step. `you`: the vehicle's place and speed. Returns what happened, for the game to pay and show. */
-  step(dt: number, you: Vec & { speed: number; heading: number }): ShiftEvent[] {
+  step(dt: number, vehicle: Vec & { speed: number; heading: number }, foot: Vec | null = null): ShiftEvent[] {
     this.clock += dt;
     const out: ShiftEvent[] = [], t = this.task;
     if (!t) return out;
-    if (this.rider) this.carry(you);
+    if (this.rider) this.carry(vehicle);
+    const you = foot && ON_FOOT.includes(t.kind) ? { x: foot.x, z: foot.z, speed: 0, heading: vehicle.heading } : vehicle; // out of the van at the bench, or on foot at a scene
     if (t.kind === 'pull') {
       const c = t.offender!;
       t.at = c;
       if (!this.pulled) {
         const behind = (c.x - you.x) * Math.sin(you.heading) + (c.z - you.z) * Math.cos(you.heading);
         if (dist(c, you) < PULL_RANGE_M && behind > 0) { this.pulled = true; this.w.pullOver(c, true); out.push({ type: 'phase', label: 'They have seen your lights and are pulling in' }); }
-        else if (dist(c, you) > LOST_M || c.dormant) { this.tasks.shift(); out.push({ type: 'phase', label: 'Lost them in the traffic' }); this.deal(you); return out; }
+        else if (dist(c, you) > LOST_M || c.dormant) { this.tasks.shift(); out.push({ type: 'phase', label: 'Lost them in the traffic' }); if (!this.tasks.length) this.deal(you); return out; }
       }
     }
     if (t.wreck && t.kind === 'call' && t.wreck.wreck <= 0) { this.tasks.shift(); out.push({ type: 'phase', label: 'Another crew cleared that one' }); return out; }
@@ -298,7 +340,7 @@ export class Shift {
 }
 
 const HOLD_LABEL: Record<TaskKind, string> = {
-  stop: 'Doors open', call: 'On scene', convey: 'Handing over at the clinic', tow: 'Winching it up', drop: 'Letting it down', fix: 'Having a look under the bonnet', pull: 'A word at the window', return: 'Back at base',
+  bench: 'At the bench', stop: 'Doors open', call: 'On scene', convey: 'Handing over at the clinic', tow: 'Winching it up', drop: 'Letting it down', fix: 'Having a look under the bonnet', pull: 'A word at the window', return: 'Back at base',
 };
 
 export const careerName = (id: CareerId) => CAREERS[id].name;

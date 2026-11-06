@@ -1,6 +1,7 @@
 // This game's own save, beside the shared profile: what only ARA Driving cares about.
 import type { SchemeId } from './input/schemes.ts';
-import { CARS } from './sim/economy.ts';
+import { CARS, isWorkCar } from './sim/economy.ts';
+import { CAREER_IDS } from '../schemas/careers.ts';
 import type { Trip } from './sim/game.ts';
 import { freshProgress, type Progress } from './sim/quests.ts';
 import { CHOOSABLE, DEFAULT_VOICES, type VoiceChoice } from './ui/clips.ts';
@@ -39,6 +40,7 @@ export type DriveSave = {
   lastStart: number; // the last game's, so the next one lands somewhere else
   trip: Trip | null; // where the drive was left: the car, the clock, the job and the sat nav
   walls: WallHit[]; // the holes still showing in buildings
+  wallsTown?: string; // the town's layoutKey when they were made; a save without one drops its holes, made before the places changed
   ledger: LedgerLine[]; // the latest Points changes, newest first
   look: number; // which of the town's people you are when you get out of the car
   voices: VoiceChoice; // who reads the sat nav and the radio
@@ -93,6 +95,8 @@ export function tripErrors(t: Trip | null): string[] {
   if (!t.dents || !finite(...Object.values(t.dents)) || !Array.isArray(t.marks)) out.push('trip dents and marks are malformed');
   if (t.foot != null && !finite(t.foot.x, t.foot.z, t.foot.heading)) out.push('trip foot must be a place and heading, or null');
   if (t.energy !== undefined && !(finite(t.energy) && t.energy >= 0 && t.energy <= 1)) out.push('trip energy must be 0-1');
+  const sh = t.shift;
+  if (sh !== undefined && (!sh || !CAREER_IDS.includes(sh.career) || !isWorkCar(sh.vehicle) || !Array.isArray(sh.tasks) || !finite(sh.clock, sh.earned, sh.jobs, sh.callsLeft, sh.rankIndex) || !sh.own || !CARS.some((c) => c.id === sh.own.id) || !finite(sh.own.x, sh.own.z, sh.own.heading, sh.own.fuel, sh.own.damage) || !sh.tasks.every((k) => k && typeof k.kind === 'string' && finite(k.at?.x, k.at?.z, k.hold, k.booked, k.due)))) out.push('trip shift is malformed');
   if (t.quest !== null && (!t.quest?.offer || !Number.isInteger(t.quest.offer.start) || !Number.isInteger(t.quest.offer.end) || !t.quest.at)) out.push('trip quest is malformed');
   return out;
 }

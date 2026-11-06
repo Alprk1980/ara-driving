@@ -640,6 +640,10 @@ export class Town {
   }
 
   /** The closest point on any road, and the edge it lies on. */
+  /** Which buildings stand where, in a few characters: a saved hole names a building by its index here, so a save from a
+   *  town built differently (new places put different buildings on the plots) can tell its holes no longer fit. */
+  get layoutKey(): string { return `${this.boxes.length}:${Math.round(this.boxes.reduce((s, b) => s + b.x * 3 + b.z, 0))}`; }
+
   snap(p: Vec): { point: Vec; edge: number } {
     let best = { d: Infinity, edge: 0, point: p };
     this.edges.forEach((e, k) => {

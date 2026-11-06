@@ -278,5 +278,61 @@
     "kind": "bin_fire",
     "title": "Leaf skip smoke",
     "text": "A small skip of leaves is smouldering near {place}. The garden is safe and clear."
+  },
+  {
+    "id": "hilltop_van_mot",
+    "career": "mechanic",
+    "kind": "mot",
+    "title": "MOT for a Hilltop Van",
+    "text": "A bright blue van booked in from {place} needs its MOT check soon."
+  },
+  {
+    "id": "bakery_car_service",
+    "career": "mechanic",
+    "kind": "service",
+    "title": "Service for Bakery Car",
+    "text": "A little family car from {place} is booked in for a friendly service."
+  },
+  {
+    "id": "school_run_car_brakes",
+    "career": "mechanic",
+    "kind": "brakes",
+    "title": "School Run Car Brakes",
+    "text": "A car from {place} has squeaky brakes and needs new pads fitted."
+  },
+  {
+    "id": "flower_cart_clutch",
+    "career": "mechanic",
+    "kind": "clutch",
+    "title": "Flower Cart Clutch",
+    "text": "A cheerful market cart from {place} needs a new clutch to keep moving."
+  },
+  {
+    "id": "seaside_taxi_mot",
+    "career": "mechanic",
+    "kind": "mot",
+    "title": "Seaside Taxi MOT",
+    "text": "A small taxi from {place} is booked in for a calm MOT appointment."
+  },
+  {
+    "id": "post_van_service",
+    "career": "mechanic",
+    "kind": "service",
+    "title": "Post Van Service",
+    "text": "A post van from {place} is due for its regular service at the garage."
+  },
+  {
+    "id": "family_car_brakes",
+    "career": "mechanic",
+    "kind": "brakes",
+    "title": "Family Car Brakes",
+    "text": "A family car from {place} has squeaky brakes and needs new pads fitted."
+  },
+  {
+    "id": "market_van_clutch",
+    "career": "mechanic",
+    "kind": "clutch",
+    "title": "Market Van Clutch",
+    "text": "A market van from {place} needs a new clutch before it returns to work."
   }
 ]

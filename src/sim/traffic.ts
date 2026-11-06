@@ -106,6 +106,7 @@ export class Traffic {
   /** Where you're waiting at a stop, so the bus pulls in for you; and the bus you're riding, once you've rung the bell. */
   hailing: Vec | null = null;
   rider: { bus: TrafficCar; rang: boolean } | null = null;
+  yours: CarBox | null = null; // your own car, parked where you left it while you're out in a work vehicle
   onRecovered: (() => void) | null = null; // the truck has the player's car
   /** A crash this crew is wanted at, offered to the player when they're on shift in that service: true if they've
    *  taken it, and then no crew of that kind is sent from the station. */
@@ -347,7 +348,7 @@ export class Traffic {
     // Holding a junction while stopped behind another car only blocks it: the car in front may be the one waiting for
     // the junction, and then neither ever moves. So a held-up holder lets the junction go.
     if (c.holding >= 0 && c.blocker && c.blocker.speed < 1 && c.speed < 1) this.release(c);
-    for (const o of this.kerb?.shoved ?? []) { // a car knocked out into the road
+    for (const o of [...(this.kerb?.shoved ?? []), ...(this.yours ? [this.yours] : [])]) { // a car knocked out into the road, or yours left in it
       const at = ahead(o);
       if (at < 0) continue;
       want = Math.min(want, at - c.halfL - o.halfL < QUEUE_GAP_M ? 0 : 3);

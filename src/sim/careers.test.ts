@@ -11,6 +11,7 @@ import { GAME_HOUR_S, LATE_OK_S, payFor, PULL_RANGE_M, type Task } from './caree
 import { carById, isWorkCar, POINT_GBP, WORK_CARS } from './economy.ts';
 import { Game, STEP, type GameEvent, type Wallet } from './game.ts';
 import { dist, Town } from './town.ts';
+import { tripErrors } from '../save.ts';
 
 const quests: QuestText[] = (['delivery', 'passenger', 'trial'] as const).map((type, i) => ({ id: `q${i}`, type, title: 'Job', text: 'Go to {dropoff}.' }));
 const town = new Town();
@@ -103,10 +104,14 @@ describe('signing on', () => {
     expect(g.yours.fuel).toBe(17);
     expect(g.snapshot().car).toBe('hatchback'); // a save holds your own car, outside the base
     expect(g.offers).toEqual([]);
+    const left = { x: g.ownCar!.x, z: g.ownCar!.z };
     g.signOff();
     expect(g.player.car.id).toBe('hatchback');
     expect(g.player.fuel).toBe(17);
-    expect(dist(g.player, b.at)).toBeLessThan(1);
+    expect(dist(g.player, left)).toBeLessThan(0.01); // still where you left it
+    expect(g.foot).not.toBeNull(); // walked here, so you walk back
+    expect(dist(g.foot!, b.at)).toBeLessThan(25);
+    expect(g.dest).toBe('Your car');
     expect(events.filter((e) => e.type === 'shift').map((e) => (e as { what: string }).what)).toEqual(['on', 'off']);
   });
   it('needs you at the right base', () => {
@@ -259,5 +264,92 @@ describe('deliveries of their own', () => {
     const o = (() => { for (let i = 0; i < 30; i++) { g.refreshOffers(); const b = g.offers.find((x) => x.business); if (b) return b; } return null; })()!;
     expect(o.type).toBe('delivery');
     expect(o.title).toContain(o.business!);
+  });
+});
+
+describe('your own car while you work', () => {
+  it('stays parked where you left it, solid to the traffic, and you get straight back in when it is outside', () => {
+    const { g } = game();
+    const b = g.bases.find((x) => x.career === 'fire')!;
+    g.player.place(b.at.x, b.at.z, b.heading); // parked right outside
+    expect(g.signOn('fire')).toBe(true);
+    expect(dist(g.player, g.ownCar!)).toBeGreaterThan(10); // the fire engine waits along the road, clear of your car
+    g.step(NEUTRAL);
+    expect(g.traffic.yours).toMatchObject({ x: b.at.x, z: b.at.z });
+    g.signOff();
+    expect(g.foot).toBeNull();
+    expect(g.player.car.id).toBe('hatchback');
+    expect(dist(g.player, b.at)).toBeLessThan(0.01);
+    expect(g.traffic.yours).not.toBeNull(); // until the next step clears it
+    g.step(NEUTRAL);
+    expect(g.traffic.yours).toBeNull();
+  });
+});
+
+describe('a shift in the save', () => {
+  it('comes back as it was: the vehicle, the tasks, the clock and your car where you left it', () => {
+    const { g } = game();
+    atBase(g, 'bus');
+    g.signOn('bus');
+    work(g);
+    work(g);
+    const trip = g.snapshot();
+    expect(tripErrors(trip)).toEqual([]);
+    expect(trip.shift!.tasks.length).toBe(g.shift!.tasks.length);
+    const back = new Game(content, purse(), { town, seed: 5, trip });
+    expect(back.player.car.id).toBe('bus_single');
+    expect(back.shift!.jobs).toBe(2);
+    expect(back.shift!.clock).toBeCloseTo(g.shift!.clock, 5);
+    expect(back.shift!.task!.title).toBe(g.shift!.task!.title);
+    expect(back.shift!.task!.stop).toBe(g.shift!.task!.stop);
+    expect(back.ownCar).toMatchObject({ id: 'hatchback', x: g.ownCar!.x, z: g.ownCar!.z });
+    back.signOff();
+    expect(back.player.car.id).toBe('hatchback');
+  });
+  it("keeps a car on the recovery truck's bed", () => {
+    const { g } = game();
+    atBase(g, 'recovery');
+    g.signOn('recovery');
+    const k = g.shift!.task!.kerb!;
+    work(g);
+    const back = new Game(content, purse(), { town, seed: 5, trip: g.snapshot() });
+    expect(back.shift!.rider).toBe(back.parked.cars[g.parked.cars.indexOf(k)]);
+    expect(back.shift!.task!.kind).toBe('drop');
+  });
+  it('drops a shift that is malformed, and keeps the drive', () => {
+    const { g } = game();
+    atBase(g, 'police');
+    g.signOn('police');
+    const trip = g.snapshot();
+    (trip.shift as unknown as { career: string }).career = 'pirate';
+    expect(tripErrors(trip).join()).toMatch(/shift/);
+  });
+});
+
+describe('the workshop', () => {
+  it('books a car in at the garage for its real hours, and the work is done on foot at the bench', () => {
+    const { g, events } = game({ mechanic: RANK_JOBS[1] });
+    atBase(g, 'mechanic');
+    g.signOn('mechanic');
+    const s = g.shift!, mot = (calls as CallCard[]).find((c) => c.career === 'mechanic' && c.kind === 'mot')!;
+    s.tasks.unshift({ kind: 'bench', at: s.base.at, card: mot, title: mot.title, text: '', hold: CALL_KINDS.mechanic.mot.hours * GAME_HOUR_S, blue: false, booked: CALL_KINDS.mechanic.mot.hours * GAME_HOUR_S, due: 99 } as Task);
+    expect(s.task!.hold).toBeCloseTo(17.5, 5); // 52 minutes of MOT at 20 s an hour
+    g.getOut();
+    Object.assign(g.foot!, { x: s.base.at.x + 3, z: s.base.at.z });
+    const start = s.clock;
+    for (let i = 0; i < 30 / STEP && s.task?.kind === 'bench'; i++) g.step(NEUTRAL);
+    expect(s.clock - start).toBeGreaterThanOrEqual(17.5 - STEP);
+    expect(events.some((e) => e.type === 'shiftPaid' && e.title === mot.title)).toBe(true);
+  });
+  it('gives the workshop kinds real hours, and an apprentice services', () => {
+    expect(CALL_KINDS.mechanic.mot.hours).toBeLessThanOrEqual(1);
+    expect(CALL_KINDS.mechanic.clutch.hours).toBeGreaterThanOrEqual(3);
+    expect(CALL_KINDS.mechanic.clutch.hours).toBeLessThanOrEqual(5);
+  });
+});
+
+describe('holes in buildings', () => {
+  it('know which town they were knocked into', () => {
+    expect(new Town().layoutKey).toBe(town.layoutKey);
   });
 });

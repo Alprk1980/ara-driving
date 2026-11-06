@@ -148,6 +148,7 @@ export class App {
     this.save.dmg[this.save.car] = this.game.yours.damage;
     this.save.trip = this.game.snapshot();
     this.save.walls = this.view.wallLog;
+    this.save.wallsTown = this.game.town.layoutKey;
     void putGameSave(SAVE_KEY, this.save);
   }
 
@@ -357,7 +358,7 @@ export class App {
         this.view.footChanged();
         this.padLabels();
         if (e.what === 'on') { const s = this.game.shift!; this.toast(`Signed on: ${s.rank.title}, in the ${carById(s.vehicle).name}. ${s.task ? s.task.title : ''}`); }
-        else this.toast(`Signed off. This shift earned ${e.earned} Points`);
+        else this.toast(`Signed off. This shift earned ${e.earned} Points${this.game.foot ? '. Your car is where you left it: the sat nav shows the way' : ''}`);
         this.store();
         break;
       case 'shiftPaid': this.toast(`${e.title}: +${e.pay} Points${e.onTime ? ', on time' : ''}${e.note ? `. ${e.note}` : ''}`); this.sound.chime(880); this.store(); break;
@@ -769,7 +770,7 @@ export class App {
       return;
     }
     const cars = g.vehiclesFor(base.career).map((id) => `<button class="primary" data-car="${id}">Take the ${esc(carById(id).name)}</button>`).join('');
-    const c = this.sheet('dialog', `<h2>${esc(base.name)}</h2><p><b>${esc(k.name)} · ${esc(rank.title)}</b></p><p>${payLine(rank)}. ${esc(rank.opens)}.</p><p>${next !== undefined ? `${n} of ${next} jobs to ${esc(k.ranks[r + 1].title)}: ${esc(k.ranks[r + 1].opens)}.` : 'You are at the top of this career.'}</p><p>Your car waits outside while you work.${g.quest ? ' Signing on hands back the job you are on.' : ''}</p><div class="row end"><button class="ghost" id="x">Not now</button>${cars}</div>`);
+    const c = this.sheet('dialog', `<h2>${esc(base.name)}</h2><p><b>${esc(k.name)} · ${esc(rank.title)}</b></p><p>${payLine(rank)}. ${esc(rank.opens)}.</p><p>${next !== undefined ? `${n} of ${next} jobs to ${esc(k.ranks[r + 1].title)}: ${esc(k.ranks[r + 1].opens)}.` : 'You are at the top of this career.'}</p><p>Your car stays where you left it while you work.${g.quest ? ' Signing on hands back the job you are on.' : ''}</p><div class="row end"><button class="ghost" id="x">Not now</button>${cars}</div>`);
     c.querySelector<HTMLElement>('#x')!.onclick = () => this.close('dialog');
     for (const b of c.querySelectorAll<HTMLElement>('[data-car]')) b.onclick = () => { this.close('dialog'); if (!g.signOn(base.career, b.dataset.car as FleetId)) this.toast('Walk up to the front to sign on'); };
   }
@@ -777,7 +778,7 @@ export class App {
   /** The shift you're on: what's next, what it's paid so far, and the way out. */
   private openShift() {
     const g = this.game, s = g.shift!, t = s.task;
-    const c = this.sheet('jobs', `<h2>${esc(CAREERS[s.career].name)} · ${esc(s.rank.title)}</h2>${t ? `<p><b>${esc(t.title)}</b></p><p>${esc(t.text)}</p>` : ''}<p>${payLine(s.rank)}. This shift: ${s.jobs} done, ${s.earned} Points.</p><p>Head back to ${esc(s.base.name)} to sign off, or end the shift here and the vehicle is taken back for you.</p><div class="row end"><button class="ghost" id="end">End shift now</button><button class="primary" id="x">Keep working</button></div>`);
+    const c = this.sheet('jobs', `<h2>${esc(CAREERS[s.career].name)} · ${esc(s.rank.title)}</h2>${t ? `<p><b>${esc(t.title)}</b></p><p>${esc(t.text)}</p>` : ''}<p>${payLine(s.rank)}. This shift: ${s.jobs} done, ${s.earned} Points.</p><p>Head back to ${esc(s.base.name)} to sign off, or end the shift here: the vehicle is taken back for you, and you walk back to your car.</p><div class="row end"><button class="ghost" id="end">End shift now</button><button class="primary" id="x">Keep working</button></div>`);
     c.querySelector<HTMLElement>('#x')!.onclick = () => this.close('jobs');
     c.querySelector<HTMLElement>('#end')!.onclick = () => { g.signOff(); this.close('jobs'); };
   }

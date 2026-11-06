@@ -52,8 +52,8 @@ export const CAREERS: Record<CareerId, { name: string; who: string; base: string
   mechanic: {
     name: 'Roadside mechanic', who: 'the patrol base', base: 'mechanic',
     ranks: [
-      { title: 'Apprentice', gbpHour: 7.55, vehicles: ['patrol_van'], opens: 'Batteries and tyres' },
-      { title: 'Patrol technician', gbpHour: 16.95, vehicles: ['patrol_van'], opens: 'Every fault' },
+      { title: 'Apprentice', gbpHour: 7.55, vehicles: ['patrol_van'], opens: 'Batteries, tyres and services in the workshop' },
+      { title: 'Patrol technician', gbpHour: 16.95, vehicles: ['patrol_van'], opens: 'Every fault, MOTs, brakes and clutches' },
       { title: 'Master technician', gbpHour: 20, vehicles: ['patrol_van'], opens: 'Better pay' }, // example
     ],
   },
@@ -107,7 +107,13 @@ export const CALL_KINDS = {
   ambulance: { cat1: { blue: true, hold: 16, convey: true }, cat2: { blue: true, hold: 14, convey: true }, cat3: { blue: false, hold: 12, convey: false } },
   fire: { house_fire: { blue: true, hold: 22 }, car_fire: { blue: true, hold: 16 }, bin_fire: { blue: true, hold: 12 }, rescue: { blue: true, hold: 18 }, false_alarm: { blue: true, hold: 8 } },
   police: { emergency: { blue: true, hold: 12 }, priority: { blue: false, hold: 10 } },
-  mechanic: { battery: { hold: 12, fix: 0.95 }, tyre: { hold: 14, fix: 0.9 }, fuel: { hold: 8, fix: 1 }, keys: { hold: 10, fix: 0.8 }, engine: { hold: 16, fix: 0.5 } },
+  mechanic: {
+    battery: { hold: 12, fix: 0.95 }, tyre: { hold: 14, fix: 0.9 }, fuel: { hold: 8, fix: 1 }, keys: { hold: 10, fix: 0.8 }, engine: { hold: 16, fix: 0.5 },
+    // Workshop jobs at the garage, booked their real hours (a game hour is 20 s): an MOT takes 45-60 minutes (the RAC); a
+    // full service up to 90 minutes (the RAC) or 3 hours (Setyres), so 2; brake pads and discs about 1.5, judged; a clutch
+    // 3-5 hours (one garage's figure, weak), so 4.
+    mot: { hours: 0.875, workshop: true }, service: { hours: 2, workshop: true }, brakes: { hours: 1.5, workshop: true }, clutch: { hours: 4, workshop: true },
+  },
   recovery: { engine: { hold: 12 }, clutch: { hold: 12 }, gearbox: { hold: 12 } },
 } as const;
 export type CallCareer = keyof typeof CALL_KINDS;
@@ -115,7 +121,7 @@ export const CALL_CAREERS = Object.keys(CALL_KINDS) as CallCareer[];
 export type CallCard = { id: string; career: CallCareer; kind: string; title: string; text: string };
 
 /** Only the rarer kinds wait for rank: mechanics start on batteries and tyres. */
-export const RANK_KINDS: Partial<Record<CallCareer, string[]>> = { mechanic: ['battery', 'tyre', 'fuel'] };
+export const RANK_KINDS: Partial<Record<CallCareer, string[]>> = { mechanic: ['battery', 'tyre', 'fuel', 'service'] }; // an apprentice also does services in the workshop
 
 // A family game: no hurt described, nothing frightening, no weapons. A call says where with {place}, which the game fills.
 const BANNED = /\b(blood|bleed|bleeding|dead|death|die|dying|kill|killed|gun|knife|stab|weapon|attack|assault|overdose|drunk|crash victim|injur\w*|unconscious|not breathing|cardiac arrest)\b/i;

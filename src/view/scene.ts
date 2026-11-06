@@ -1,6 +1,7 @@
 // The Three.js view: draws the town once, then follows the simulation each frame. It reads the game and
 // never changes it, so the rules stay testable without a browser.
 import * as THREE from 'three';
+import { carById } from '../sim/economy.ts';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { PROP_KINDS, type Landmark, type Part, type Sky, type StoryPlace } from '../../schemas/content.ts';
 import type { Design, Driver } from '../save.ts';
@@ -556,6 +557,24 @@ export class View {
     for (const w of this.rig.wheels) w.castShadow = true;
     this.scene.add(this.rig.root);
     this.applyRig();
+    this.setOwnCar(design, driver);
+  }
+
+  /** Your own car, parked where you left it while you're out in a work vehicle: drawn as it was, engine off, nobody in. */
+  private ownRig: CarRig | null = null;
+  private setOwnCar(design: Design, driver: Driver) {
+    if (this.ownRig) { this.scene.remove(this.ownRig.root); disposeCar(this.ownRig); this.ownRig = null; }
+    const own = this.game.ownCar;
+    if (!own) return;
+    const car = carById(own.id);
+    this.ownRig = this.bodyStyle === 'voxel' && voxelProfileFor(car) ? buildVoxelCar(car, design, driver, this.find) : buildCar(car, design, driver, this.find);
+    new DamageRig(this.ownRig).set(own.dents, own.marks);
+    if (this.ownRig.seat) this.ownRig.seat.visible = false;
+    this.ownRig.dash.visible = false;
+    this.ownRig.root.position.set(own.x, 0, own.z);
+    this.ownRig.root.rotation.y = own.heading;
+    this.ownRig.root.traverse((o) => { if ((o as THREE.Mesh).isMesh) o.castShadow = true; });
+    this.scene.add(this.ownRig.root);
   }
 
   /** You got out or back in: the camera glides across to its new place. */
