@@ -45,10 +45,10 @@ export function serviceErrors(c: unknown): string[] {
   return out;
 }
 
-export const ROAD_MOMENTS = ['red_stop', 'zebra_wait', 'blue_pull', 'stopped_after', 'red_run', 'zebra_run', 'blue_block', 'drove_off', 'pulled_over', 'got_away', 'course', 'phone_use', 'hoax_call', 'recovery_called'] as const;
+export const ROAD_MOMENTS = ['red_stop', 'zebra_wait', 'blue_pull', 'stopped_after', 'red_run', 'zebra_run', 'blue_block', 'drove_off', 'pulled_over', 'got_away', 'course', 'phone_use', 'hoax_call', 'recovery_called', 'school_fast', 'school_calm'] as const;
 export type RoadMoment = (typeof ROAD_MOMENTS)[number];
 export type RoadLine = { id: string; moment: RoadMoment; text: string };
-const WORDS: Partial<Record<RoadMoment, RegExp>> = { red_run: /\b(red|light|lights)\b/i, red_stop: /\b(red|light|lights|waited|wait|stop|stopped)\b/i, zebra_run: /\b(zebra|crossing|pedestrian|pedestrians|walkers|people)\b/i, zebra_wait: /\b(zebra|crossing|pedestrian|pedestrians|waited|people)\b/i, blue_pull: /\b(blue|ambulance|crew|police|fire|siren|way)\b/i, blue_block: /\b(blue|ambulance|crew|police|fire|siren|way)\b/i, stopped_after: /\b(stop|stopped|stopping|stayed)\b/i, drove_off: /\b(stop|stopped|scene|drove|left|leaving)\b/i, course: /\b(course|licence)\b/i, phone_use: /\b(phone|mobile|call|calling)\b/i, hoax_call: /\b(emergency|call|calling|calls)\b/i, recovery_called: /\b(truck|recovery|tow|way)\b/i };
+const WORDS: Partial<Record<RoadMoment, RegExp>> = { red_run: /\b(red|light|lights)\b/i, red_stop: /\b(red|light|lights|waited|wait|stop|stopped)\b/i, zebra_run: /\b(zebra|crossing|pedestrian|pedestrians|walkers|people)\b/i, zebra_wait: /\b(zebra|crossing|pedestrian|pedestrians|waited|people)\b/i, blue_pull: /\b(blue|ambulance|crew|police|fire|siren|way)\b/i, blue_block: /\b(blue|ambulance|crew|police|fire|siren|way)\b/i, stopped_after: /\b(stop|stopped|stopping|stayed)\b/i, drove_off: /\b(stop|stopped|scene|drove|left|leaving)\b/i, course: /\b(course|licence)\b/i, phone_use: /\b(phone|mobile|call|calling)\b/i, hoax_call: /\b(emergency|call|calling|calls)\b/i, recovery_called: /\b(truck|recovery|tow|way)\b/i, school_fast: /\b(school|children|kids|twenty|20|slow)\b/i, school_calm: /\b(school|children|kids|slow|calm|careful)\b/i };
 
 export function roadLineErrors(c: unknown): string[] {
   if (!c || typeof c !== 'object') return ['entry is not an object'];

@@ -184,7 +184,11 @@ const KINDS: Record<string, Kind> = {
   },
   goals: {
     file: 'src/data/goals.json', prompt: 'prompts/goals.txt', errors: goalErrors as Kind['errors'], key: 'id',
-    batches: () => [{ ask: `Write 3 goals for each kind: ${Object.keys(GOAL_KINDS).join(', ')}. Vary the target within its range.` }],
+    batches: () => { // only the kinds with no goals yet, unless asked to redo them
+      const have = existsSync('src/data/goals.json') ? (JSON.parse(readFileSync('src/data/goals.json', 'utf8')) as { kind: string }[]) : [];
+      const open = Object.keys(GOAL_KINDS).filter((k) => replace.size || !have.some((x) => x.kind === k));
+      return open.length ? [{ ask: `Write 3 goals for each kind: ${open.join(', ')}. Vary the target within its range.` }] : [];
+    },
   },
   ranks: {
     file: 'src/data/ranks.json', prompt: 'prompts/ranks.txt', errors: rankErrors as Kind['errors'], key: 'level',

@@ -208,5 +208,35 @@
     "id": "hoax_call_3",
     "moment": "hoax_call",
     "text": "Try the non-emergency number instead."
+  },
+  {
+    "id": "school_calm_1",
+    "moment": "school_calm",
+    "text": "Well done calm school run"
+  },
+  {
+    "id": "school_calm_2",
+    "moment": "school_calm",
+    "text": "Thanks for calm school driving"
+  },
+  {
+    "id": "school_calm_3",
+    "moment": "school_calm",
+    "text": "Proud of your calm school run"
+  },
+  {
+    "id": "school_fast_too_fast",
+    "moment": "school_fast",
+    "text": "Too fast for the school children"
+  },
+  {
+    "id": "school_fast_slow_down",
+    "moment": "school_fast",
+    "text": "Slow down near the school children"
+  },
+  {
+    "id": "school_fast_gentle",
+    "moment": "school_fast",
+    "text": "Please drive gently past the school"
   }
 ]

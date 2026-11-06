@@ -158,7 +158,7 @@ export function guideErrors(g: GuideLine): string[] {
 // kind -> the targets that make a fair day's goal.
 export const GOAL_KINDS = {
   spotless: [1, 3], gold: [1, 2], twist: [1, 2], passenger: [2, 4], delivery: [2, 4], trial: [2, 3],
-  km: [3, 8], find: [1, 2], streak: [3, 4], clean: [2, 3], night: [1, 3], story: [1, 2],
+  km: [3, 8], find: [1, 2], streak: [3, 4], clean: [2, 3], night: [1, 3], story: [1, 2], school: [1, 3], // school: keep to 20 past a school on the run
 } as const;
 export type GoalKind = keyof typeof GOAL_KINDS;
 export type Goal = { id: string; kind: GoalKind; target: number; text: string };

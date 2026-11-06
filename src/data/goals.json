@@ -214,5 +214,23 @@
     "kind": "story",
     "target": 1,
     "text": "Finish a tale for a regular"
+  },
+  {
+    "id": "school_gate_slow",
+    "kind": "school",
+    "target": 1,
+    "text": "Slow down by the school gate"
+  },
+  {
+    "id": "school_run_calm",
+    "kind": "school",
+    "target": 2,
+    "text": "Keep to school speed on the run"
+  },
+  {
+    "id": "school_crossing_watch",
+    "kind": "school",
+    "target": 3,
+    "text": "Stay gentle near the school crossing"
   }
 ]

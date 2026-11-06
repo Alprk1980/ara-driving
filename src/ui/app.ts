@@ -34,11 +34,12 @@ const TREND_SHOWN = 0.5, ROAD_ROWS = 10;
 /** A stop's countdown, as a board shows it: "due" once it's all but there, then the wait. In real seconds, not the game
  *  clock's hours, as that runs 180 times faster and a half-minute wait would read as an hour and a half. */
 const dueText = (s: number | null) => (s === null ? 'not running' : s < 10 ? 'due' : s < 60 ? `in ${Math.round(s / 10) * 10} s` : `in ${Math.round(s / 60)} min`);
-const ROAD_NAMES: Record<RoadMoment, string> = { red_stop: 'Waited at a red', zebra_wait: 'Stopped at a zebra', blue_pull: 'Pulled over for a blue light', stopped_after: 'Stopped after a knock', red_run: 'Ran a red light', zebra_run: 'Drove over a busy zebra', blue_block: 'Held up a blue light', drove_off: 'Drove off after a knock', pulled_over: 'Stopped by the police', got_away: 'Lost the police', course: 'Went on a course', phone_use: 'Used a phone at the wheel', hoax_call: 'Called 999 with no emergency', recovery_called: 'Called for recovery' };
+const ROAD_NAMES: Record<RoadMoment, string> = { red_stop: 'Waited at a red', zebra_wait: 'Stopped at a zebra', blue_pull: 'Pulled over for a blue light', stopped_after: 'Stopped after a knock', red_run: 'Ran a red light', zebra_run: 'Drove over a busy zebra', blue_block: 'Held up a blue light', drove_off: 'Drove off after a knock', pulled_over: 'Stopped by the police', got_away: 'Lost the police', course: 'Went on a course', phone_use: 'Used a phone at the wheel', hoax_call: 'Called 999 with no emergency', recovery_called: 'Called for recovery', school_fast: 'Too fast past a school', school_calm: 'Took it slow past a school' };
 import { CAMERA_NAMES, type View } from '../view/scene.ts';
 import { DISTRICTS, DISTRICT_IDS, type DistrictId } from '../sim/districts.ts';
 import { drawMini, drawWorld, POI_STYLE, poiList, townImage } from './map.ts';
 import { poiNear } from '../sim/pois.ts';
+import { zoneAt } from '../sim/schoolrun.ts';
 import { destinations, distanceText, etaText, GROUP_ORDER, nearestIn, turnText, type Dest, type DestGroup } from '../sim/satnav.ts';
 import { cueKey, type VoiceGuide } from './voice.ts';
 
@@ -103,6 +104,7 @@ export class App {
   private ranks: Rank[];
   private stories: StoryPlace[];
   private jobsDone = 0;
+  private lastZone: unknown = null;
   private boarded = 0; // the offer whose Active phase has already been greeted
   held: Held = { left: false, right: false, go: false, brake: false };
   schemes: Record<SchemeId, InputScheme>;
@@ -394,6 +396,8 @@ export class App {
     $('speed').textContent = g.ride ? `On the ${g.rideRoute!.name}` : board ? board.map((b) => `${b.name} ${dueText(b.due)}`).join(', ') : g.foot ? `On foot${g.foot.running ? ', running' : ''}` : `${Math.round(p.kmh)} km/h`;
     if (this.save.input === 'gamepad' && this.padAction.pressed()) this.door();
     const stop = g.atStop;
+    const zone = g.schoolRun && !g.foot ? zoneAt(g.schools, p) : null; // into a school's 20 mph stretch while children are about
+    if (zone !== this.lastZone) { this.lastZone = zone; if (zone) this.banner(`${zone.name}: children about, 20 mph`, false, 4); }
     if (stop !== this.lastStop) { this.lastStop = stop; if (stop) this.banner(`Bus stop for the ${g.town.routesAt(stop).map((r) => r.name).join(' and ')}. Wait here and the bus pulls in for you: a single is ${g.busFare} ${g.busFare === 1 ? 'Point' : 'Points'}`, false, 4); }
     const pct = g.foot ? g.energy : p.fuel / p.car.tank; // out of the car, the chip shows your energy for running
     $('fuelfill').style.width = `${pct * 100}%`;

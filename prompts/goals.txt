@@ -14,6 +14,7 @@ The kinds, what they count, and the allowed targets:
 - clean: jobs finished with no bumps at all, target 2-3.
 - night: jobs finished after dark, target 1-3.
 - story: story jobs finished for the town's regulars, target 1-2.
+- school: times keeping to 20 mph past a school while the school run is on, target 1-3.
 Rules:
 - text: at most 50 characters. Playful, plain words. No digits, no prices, never the words points, coins or pay. No emoji.
 - id: snake_case, starting with the kind.

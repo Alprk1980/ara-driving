@@ -10,6 +10,7 @@ import { districtAt, type DistrictId } from './districts.ts';
 import { crossTimeFor } from './signals.ts';
 import { CrossingLight } from './crossings.ts';
 import { dist, ROAD_W, type BusStop, type Rng, type Town, type Vec, type Zebra } from './town.ts';
+import { KIDS_NEAR_M, KIDS_SHARE } from './schoolrun.ts';
 
 export const WALK_MPS: [number, number] = [1.05, 1.55];
 const COUNT = 70, SPAWN_MIN = 45, SPAWN_MAX = 210, DESPAWN = 250;
@@ -26,13 +27,15 @@ const YOU_STRIPES_M = 2.5, YOU_CLEAR_M = 0.7; // half a zebra's width, give or t
 const CROSS_SHARE = 0.4, CALM_MPS2 = 3, STOP_MARGIN_M = 7, KERB_WAIT_S = 12; // the share of people who want the far side is judged; after this long they stop waiting for a gap and just go, as traffic has stopped for them by now
 
 type Near = { x: number; z: number; speed: number; heading: number };
-export type Walker = { x: number; z: number; heading: number; speed: number; edge: number; to: number; along: number; side: 1 | -1; aside: number; phase: number; look: number; tall: number; zebra: Zebra | null; off: number; waited: number; onRoad: boolean; corner: number; over: boolean; queue: BusStop | null };
+export type Walker = { x: number; z: number; heading: number; speed: number; edge: number; to: number; along: number; side: 1 | -1; aside: number; phase: number; look: number; tall: number; zebra: Zebra | null; off: number; waited: number; onRoad: boolean; corner: number; over: boolean; queue: BusStop | null; kid?: boolean }; // kid: a child on the school run
 
 export class Walkers {
   people: Walker[] = [];
   private town: Town;
   private rng: Rng;
   private clock = 0;
+  /** The school gates near you while the school run is on: children walk to and from them (schoolrun.ts). */
+  schools: Vec[] = [];
   /** The pelicans' and puffins' signals, which the people waiting at them work by pressing the button. */
   lights = new Map<Zebra, CrossingLight>();
   /** The player, when out of the car: a zebra is busy while you're at it, and you press the button at a pelican or puffin. */
@@ -85,14 +88,19 @@ export class Walkers {
 
   private place(w: Walker, near: Vec) {
     const { edges, nodes } = this.town;
+    const school = this.schools.length && this.rng() < KIDS_SHARE ? this.schools[Math.floor(this.rng() * this.schools.length)] : null;
     let k = 0, spot = near;
     for (let t = 0; t < 60; t++) {
       k = Math.floor(this.rng() * edges.length);
       const e = edges[k], a = nodes[e.a], b = nodes[e.b], s = this.rng();
       spot = { x: a.x + (b.x - a.x) * s, z: a.z + (b.z - a.z) * s };
       const d = dist(spot, near);
-      if (d > SPAWN_MIN && d < SPAWN_MAX && this.rng() < BUSY[districtAt(spot.x, spot.z)]) break;
+      if (school ? dist(spot, school) < KIDS_NEAR_M && d > SPAWN_MIN * 0.5 && d < SPAWN_MAX : d > SPAWN_MIN && d < SPAWN_MAX && this.rng() < BUSY[districtAt(spot.x, spot.z)]) break;
     }
+    // Children on the school run are smaller: UK children of 5-16 stand about 1.1-1.7 m against an adult's 1.7, so 0.68-0.95 of the figure (from memory of the UK growth charts)
+    const kid = !!school && dist(spot, school) < KIDS_NEAR_M;
+    if (kid !== !!w.kid) w.tall = kid ? 0.68 + this.rng() * 0.27 : 0.92 + this.rng() * 0.16;
+    w.kid = kid;
     const e = edges[k];
     w.edge = k;
     w.to = this.rng() < 0.5 ? e.a : e.b;

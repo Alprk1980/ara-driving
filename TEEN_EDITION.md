@@ -131,6 +131,10 @@ hand-edited; the validator holds the rating rules so generated content cannot dr
   little kids, is *kept* here, which is why this edition is a thin overlay, not a fork.
 
 ## Decided
+**Changed 2026-11-06:** there is no separate edition or mode flag. The owner wants these ideas folded into the main
+game as more to do and more fun, so they're built for everyone, still held to the PEGI 7 lines below. The notes and
+TEEN_SCOPE.md stay as the research and the plan; where they say `teenMode()`, read "the game".
+
 Approved by the owner on 2026-11-03, so leave them unless asked.
 - The edition is a **mode of this game**, switched by a teen flag on the shared hub profile (`kit/` change
   first). The systems barely change, and Points and the ARA World bridge keep working.

@@ -28,6 +28,7 @@ import { buildServices } from './services.ts';
 import { StreetLife } from './streetlife.ts';
 import { BusSigns, centreSign } from './busstops.ts';
 import { buildShopSigns } from './shopsigns.ts';
+import { SchoolSigns } from './schoolsigns.ts';
 import { TownBuildings } from './townblocks.ts';
 import { DrawnBuildings } from './drawn.ts';
 import { WallDamage } from './walls.ts';
@@ -341,6 +342,7 @@ export class View {
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(62, 1, 0.12, 1400);
   rig!: CarRig;
+  private schoolSigns!: SchoolSigns;
   index = 0;
   bodyStyle: 'voxel' | 'blocks' = 'voxel'; // set before setCar; a missing profile still falls back to blocks
   private inGarage = false;
@@ -456,6 +458,8 @@ export class View {
     this.life = new StreetLife(this.scene, game.town, game.traffic, game.walkers, game.parked);
     this.busSigns = new BusSigns(game.town, game.traffic);
     this.scene.add(this.busSigns.group);
+    this.schoolSigns = new SchoolSigns(game);
+    this.scene.add(this.schoolSigns.group);
     const sign = centreSign(game.town);
     if (sign) this.scene.add(sign);
     this.you = new YouFigure(this.scene, 0, find);
@@ -749,6 +753,7 @@ export class View {
 
   private drawTraffic(dt: number) {
     this.busSigns.draw();
+    this.schoolSigns.update();
     this.life.draw(dt, this.game.traffic, this.game.walkers, this.game.parked, this.attract ? this.stand : this.game.here);
     this.control.draw(dt, this.game.traffic.clock, this.game.walkers.lights);
     for (const c of this.game.traffic.cars) { // a car that's taken a real hit smokes where it stands

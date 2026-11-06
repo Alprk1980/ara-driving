@@ -2,6 +2,7 @@
 // screens or sound, so tests and headless reviews run the same rules the player gets.
 import { afterEating, afterRun, TIRED_AT } from './energy.ts';
 import { lightFrac, monthOf, RAIN_SPELL_H, sunFor, wetOdds, type Sun } from './almanac.ts';
+import { inPeak, schoolDay, schoolsIn, type School } from './schoolrun.ts';
 import { contactAt, crushLevel, NEUTRAL, PlayerCar, sideOf, type DriveIntent, type DriveState, type Mark, type Side } from './car.ts';
 import type { Find, Goal, GoalKind, TownEventCard } from '../../schemas/content.ts';
 import { busFareOn, carById, isWorkCar, RECOVERY_FEE, FIND_ALL_REWARD, FIND_REWARD, FUEL_PRICE, GOAL_REWARD, HOME_TOPUP_PCT, rankOf, rankPay, REGULAR_FINALE, REP_FINALE, REP_GOAL, REP_JOB, REP_SPOTLESS, streakBonus } from './economy.ts';
@@ -86,7 +87,7 @@ export type OwnCar = { id: string; fuel: number; damage: number; dents: Record<S
 export type Wallet = { points(): number; spend(n: number, why?: string): boolean; earn(n: number, why?: string): void };
 
 /** What each moment on the road reads as in the Points history. */
-const ROAD_WHY: Partial<Record<RoadMoment, string>> = { red_stop: 'Waited at a red light', zebra_wait: 'Waited at a zebra', blue_pull: 'Made way for blue lights', pulled_over: 'Police fine', course: 'Driver course', recovery_called: 'Recovery truck' };
+const ROAD_WHY: Partial<Record<RoadMoment, string>> = { red_stop: 'Waited at a red light', zebra_wait: 'Waited at a zebra', blue_pull: 'Made way for blue lights', pulled_over: 'Police fine', course: 'Driver course', recovery_called: 'Recovery truck', school_calm: 'Slow past a school', school_fast: 'Speeding by a school' };
 
 export class Game {
   town: Town;
@@ -111,6 +112,8 @@ export class Game {
   energy = 1; // for running, 0-1: see energy.ts
   sun: Sun = sunFor(''); // today's sunrise and sunset, from the date the game was opened
   busFare = busFareOn(''); // the single fare on that date: the national cap changes with the year
+  private day = '';
+  private schoolList: School[] | null = null;
   month = 3;
   ride: { bus: TrafficCar; rang: boolean } | null = null; // on a bus, and whether you've rung for the next stop
   shift: Shift | null = null; // signed on at work, in the service's vehicle
@@ -143,6 +146,7 @@ export class Game {
     const day = opts.day ?? '';
     this.sun = sunFor(day);
     this.busFare = busFareOn(day);
+    this.day = day;
     this.month = monthOf(day);
     if (this.progress.daily.day !== day) this.progress.daily = freshDaily(day);
     this.goals = goalsFor(content.goals ?? [], day);
@@ -191,6 +195,12 @@ export class Game {
     this.emit({ type: 'foot', out: true });
     return true;
   }
+
+  /** The town's schools and their gates. */
+  get schools(): School[] { return (this.schoolList ??= schoolsIn(this.town, this.content.places, (p) => placeAt(this.town, this.content.places, p))); }
+
+  /** The school run is on: a school day, in the hour or so before school or after it (schoolrun.ts). */
+  get schoolRun(): boolean { return schoolDay(this.day) && inPeak(this.dayFrac); }
 
   /** Where each career signs on. */
   get bases(): Base[] { return (this.baseList ??= careerBases(this.town, this.content.places, (p) => placeAt(this.town, this.content.places, p))); }
@@ -449,6 +459,7 @@ export class Game {
 
   /** Something the driving record has to say, with its reward or its fine. */
   roadEvent(e: { moment: RoadMoment; pay: number; points: number }) {
+    if (e.moment === 'school_calm') this.goalStep('school');
     const why = ROAD_WHY[e.moment] ?? 'On the road';
     if (e.pay > 0) this.wallet.earn(e.pay, why);
     else if (e.pay < 0) this.wallet.spend(Math.min(-e.pay, this.wallet.points()), why);
@@ -694,6 +705,7 @@ export class Game {
     this.traffic.rider = this.ride;
     this.traffic.yours = this.ownBox;
     const wall = p.step(STEP, foot ? NEUTRAL : intent, this.town), moving = this.traffic.step(STEP, p, here), kerb = this.parked.step(STEP, p, this.traffic.cars), crash = Math.max(moving, kerb), impact = Math.max(wall, crash);
+    this.walkers.schools = this.schoolRun ? this.schools.filter((s) => dist(s.gate, here) < 400).map((s) => s.gate) : []; // children walk to the schools near you
     this.walkers.step(STEP, p, this.traffic.cars, here);
     if (walking) {
       const was = { x: walking.x, z: walking.z };

@@ -17,3 +17,5 @@ The moments:
 - phone_use: the player used their phone while driving, instead of pulling over first
 - hoax_call: the player called 999 when there was no emergency
 - recovery_called: the player phoned for a recovery truck, which is on its way
+- school_fast: the player drove faster than 20 mph past a school while children were going in or out (gentle telling-off, mention the school or children)
+- school_calm: the player kept to 20 mph all the way past a school on the school run (warm thanks, mention the school or children)

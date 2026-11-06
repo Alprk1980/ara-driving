@@ -6,14 +6,15 @@
 // "should" in the Highway Code (rule 219), not "must", so blocking one costs score but no licence points.
 // Friendly on purpose: 12 points means a ban in life, and here a course, as a ban would stop the game. Points last 3 game
 // days for 3 real years. Police who catch you have a word and a fine: they never ram, block or hurt anyone.
+import { FAST_S, SCHOOL_KMH, ZONE_M, zoneAt } from './schoolrun.ts';
 import type { Game } from './game.ts';
 import { signalFor, STOP_LINE_M, type Aspect } from './signals.ts';
 import { dist, ROAD_W, type Vec, type Zebra } from './town.ts';
 import type { TrafficCar } from './traffic.ts';
 import type { RoadMoment } from '../../schemas/services.ts';
 
-export type Offence = 'red_run' | 'zebra_run' | 'blue_block' | 'drove_off' | 'phone_use' | 'hoax_call';
-export type Merit = 'red_stop' | 'zebra_wait' | 'blue_pull' | 'stopped_after';
+export type Offence = 'red_run' | 'zebra_run' | 'blue_block' | 'drove_off' | 'phone_use' | 'hoax_call' | 'school_fast';
+export type Merit = 'red_stop' | 'zebra_wait' | 'blue_pull' | 'stopped_after' | 'school_calm';
 export type RoadEntry = { moment: RoadMoment; at: number; by: number }; // what happened, when on the record's clock, and how far it moved the score
 export type RoadRecord = { score: number; marks: { kind: Offence; at: number }[]; clock: number; good: number; bad: number; log?: RoadEntry[] }; // log: missing from older saves
 
@@ -21,8 +22,8 @@ export const START_SCORE = 50, LICENCE_LIMIT = 12, MARK_DAYS = 3, COURSE_COST = 
 // Driving well pays as you go: each clean kilometre, with no knock, sharp stop or offence, earns a little. Twice the fuel a
 // kilometre burns, well short of a job's pay, so it rewards care without replacing the work. A game number, not a real one.
 export const CLEAN_KM = 1, CLEAN_PAY = 4;
-export const OFFENCES: Record<Offence, { points: number; drop: number }> = { red_run: { points: 3, drop: 6 }, zebra_run: { points: 3, drop: 6 }, blue_block: { points: 0, drop: 3 }, drove_off: { points: 6, drop: 10 }, phone_use: { points: 6, drop: 8 }, hoax_call: { points: 0, drop: 5 } }; // the score drops were halved after play (2026-11-02); the licence points are the real ones: a hand-held phone at the wheel is 6 points since 2017, and a hoax call costs score: the offence exists, but the search couldn't confirm its terms
-export const MERITS: Record<Merit, { pay: number; rise: number }> = { red_stop: { pay: 5, rise: 1 }, zebra_wait: { pay: 8, rise: 2 }, blue_pull: { pay: 15, rise: 3 }, stopped_after: { pay: 0, rise: 0 } }; // only thanks, so a bump is never worth having
+export const OFFENCES: Record<Offence, { points: number; drop: number }> = { red_run: { points: 3, drop: 6 }, zebra_run: { points: 3, drop: 6 }, blue_block: { points: 0, drop: 3 }, drove_off: { points: 6, drop: 10 }, phone_use: { points: 6, drop: 8 }, hoax_call: { points: 0, drop: 5 }, school_fast: { points: 3, drop: 4 } }; // the score drops were halved after play (2026-11-02); the licence points are the real ones: a hand-held phone at the wheel is 6 points since 2017, and a hoax call costs score: the offence exists, but the search couldn't confirm its terms
+export const MERITS: Record<Merit, { pay: number; rise: number }> = { red_stop: { pay: 5, rise: 1 }, zebra_wait: { pay: 8, rise: 2 }, blue_pull: { pay: 15, rise: 3 }, stopped_after: { pay: 0, rise: 0 }, school_calm: { pay: 10, rise: 2 } }; // school_fast: speeding in a 20 mph zone is the usual 3 points; school_calm thanks you for keeping to it past a school on the run // only thanks, so a bump is never worth having
 const SIGNAL_SHOWN_M = 80; // how far ahead the dash shows a signal: judged, about two junction spacings in Old Town
 const LOG_KEEP = 30, TREND_EVERY_S = 30, TREND_SAMPLES = 5; // the arrow compares now with about two minutes ago
 const SMOOTH_PER_KM = 0.6, HARD_STOP_DROP = 1, BUMP_DROP = 2, COOLDOWN_S = 15, BLOCK_S = 4, MOVING_MPS = 1.5, STILL_MPS = 1;
@@ -241,7 +242,23 @@ export class RoadSense {
     this.crews();
     this.stopping(dt);
     this.chase(dt);
+    this.school(dt);
     this.last = { x: this.g.player.x, z: this.g.player.z };
+  }
+
+  /** Past a school while the run is on: over 20 mph for long is speeding, and a calm pass all the way through is thanked. */
+  private zoneIn: { at: Vec; calm: boolean; fast: number } | null = null;
+  private school(dt: number) {
+    const g = this.g, p = g.player, zone = g.schoolRun ? zoneAt(g.schools, p) : null;
+    if (!zone) {
+      const z = this.zoneIn;
+      if (z && z.calm && dist(z.at, p) > ZONE_M * 0.8) this.merit('school_calm'); // through it and out the other side
+      this.zoneIn = null;
+      return;
+    }
+    const z = (this.zoneIn ??= { at: { x: p.x, z: p.z }, calm: true, fast: 0 });
+    z.fast = Math.abs(p.speed) * 3.6 > SCHOOL_KMH ? z.fast + dt : 0;
+    if (z.fast > FAST_S) { z.calm = false; z.fast = 0; this.offence('school_fast'); }
   }
 
   /** The signal on the road ahead and how far to its stop line, as a car's traffic light display shows it. */
