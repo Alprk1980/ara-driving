@@ -40,6 +40,7 @@ import { DISTRICTS, DISTRICT_IDS, type DistrictId } from '../sim/districts.ts';
 import { drawMini, drawWorld, POI_STYLE, poiList, townImage } from './map.ts';
 import { poiNear } from '../sim/pois.ts';
 import { zoneAt } from '../sim/schoolrun.ts';
+import { forecastText, spokenTime, travelText } from '../sim/bulletins.ts';
 import { destinations, distanceText, etaText, GROUP_ORDER, nearestIn, turnText, type Dest, type DestGroup } from '../sim/satnav.ts';
 import { cueKey, type VoiceGuide } from './voice.ts';
 
@@ -129,6 +130,13 @@ export class App {
     this.game = game; this.view = view; this.wallet = wallet; this.save = save;
     this.router = router; this.voice = voice; this.sound = sound; this.catalogue = catalogue;
     this.radio = radio; this.stations = stations;
+    const days = () => game.dayFrac * 24;
+    radio.setFacts({ // what the presenter reads is what the game is really doing
+      forecast: () => forecastText(game.forecast, days()),
+      travel: () => travelText(game.travelFacts),
+      time: () => spokenTime(days()),
+      station: () => this.stations[this.save.radio]?.name ?? 'the radio',
+    });
     this.ranks = extra.ranks; this.stories = extra.stories;
     this.riders = new Passengers(extra.chatter);
     this.guide = new Guide(extra.guide, save.guide, (text) => { const c = $('coach'); c.textContent = text ?? ''; c.style.display = text ? 'block' : 'none'; });

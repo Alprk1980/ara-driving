@@ -23,6 +23,18 @@
       wall before it stops, deeper than a hole's 1 m crater leaves room for, and buildings have no insides, so what
       "driving into" one should mean is an open question for the owner. Parked for now (2026-11-06).
 
+## The radio (asked for 2026-11-06)
+- [x] Bulletins that are true: the forecast is built from the weather the game will really have (today's seeded rain
+      spell, Birmingham's monthly highs, lows, frosts and sunshine from the Met Office's Winterbourne averages) in
+      Met Office wording; the travel news reads what's really on the roads (roadworks, a parade, market day, a crash,
+      the school run) in BBC local radio's place, problem and advice shape; the time is said as presenters say it.
+      Qwen writes only the presenter's links round the facts, behind `schemas/radiolinks.ts`, which refuses
+      greetings-card words and any weather or road claim of its own. Chat is shout-outs, questions and the presenter's
+      own news, and adverts say what's sold and where, with no claims about today.
+- [ ] The bulletins change with the game, so they can't be recorded ahead: they're read by the device's own voice,
+      and the presenter's other lines by Kokoro. Recording the forecast and travel phrases as pieces would fix it.
+- [ ] Street names, so the travel news can say "on Station Road" rather than "the road by Corner Bakery".
+
 ## Life in town (asked for 2026-11-02)
 Get out of the car, live in the town on foot, ride the buses, work real jobs for the services, and spend what you earn.
 Each stage needs its own research pass first: how each job really runs, and the real numbers behind it.

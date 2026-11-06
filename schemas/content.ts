@@ -331,6 +331,9 @@ export const RADIO_WORD: Partial<Record<RadioTopic, RegExp>> = {
   weather: /\b(sunny spells|sunny intervals|sunshine|sun|cloud|cloudy|bright|dry|breeze|breezy|mild|chilly|fresh|mist|misty|fog|foggy|frost|frosty|overcast|clear|warm|cool|grey)\b/i,
 };
 const RADIO_WORDS = 20;
+// Greetings-card words, and the claims about today only the bulletins can make truly (schemas/radiolinks.ts).
+const RADIO_MOOD = /\b(cosy|cozy|lovely|magical|magic|sparkl\w*|cheerful|delightful|wonderful|enchant\w*|dreamy|twinkl\w*|glorious|charming|bliss\w*|vibes|smiles)\b/i;
+const RADIO_CLAIM = /\b(rain\w*|showers?|drizzle|sunny|sunshine|cloud\w*|frost\w*|fog\w*|traffic|queues?|jams?|roadworks|heaving|buzzing|busy|quiet|packed|rammed|crowded)\b/i;
 
 /** The town's places that would advertise on local radio: its shops, cafés, markets and depots. */
 export const adPlaces = (places: readonly Place[]) => places.filter((p) => ['shop', 'cafe', 'market', 'depot'].includes(p.kind)).map((p) => p.name);
@@ -349,6 +352,9 @@ export function radioErrors(r: RadioLine, places: readonly string[] = []): strin
   if (word && !word.test(r.text)) out.push(`${r.id}: a ${r.topic} line must say something like ${word.source}`);
   if (r.topic === 'weather' && RAIN_WORD.test(r.text)) out.push(`${r.id}: weather lines play when it's dry; rain has its own topic`);
   if (r.topic !== 'night' && /\b(morning|afternoon|lunchtime|evening|tonight|night)\b/i.test(r.text)) out.push(`${r.id}: lines play at any time of day, so don't name one (only night lines may): say "today", "now" or nothing`);
+  if ((r.topic === 'chat' || r.topic === 'ad') && RADIO_MOOD.test(r.text)) out.push(`${r.id}: plain words, as a real presenter talks: no "${RADIO_MOOD.exec(r.text)![0]}"`);
+  if (r.topic === 'chat' && RADIO_CLAIM.test(r.text)) out.push(`${r.id}: chat can't say what the weather or the roads or the market are doing, which may not be true: the bulletins say that. No "${RADIO_CLAIM.exec(r.text)![0]}"`);
+  if (r.topic === 'ad' && !/\b(pop (in|along|by|over)|call in|drop (in|by)|visit|head (in|over|down)|find (them|it|us|it)|on the high street|by the|next to|round the corner|in (Old Town|the Business Quarter|Garden Suburb|the Works)|open (from|till|until|every|daily|six|seven))\b/i.test(r.text)) out.push(`${r.id}: a local advert says where it is or asks you in ("pop in", "on the high street", "in Old Town", "open daily")`);
   if (r.topic === 'ad' && places.length && !places.some((p) => r.text.includes(p))) out.push(`${r.id}: an advert is for one of the town's own businesses, named exactly: ${places.join(', ')}`);
   return out;
 }

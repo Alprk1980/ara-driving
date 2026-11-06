@@ -7,6 +7,7 @@ import { adPlaces, CAR_JOB_TYPES, carJobErrors, catalogueErrors, chatterErrors, 
 import { PLACE_SHOPS, shopErrors, type Shop } from '../schemas/shops.ts';
 import { BASE_SAYS, CALL_CAREERS, CALL_KINDS, callErrors } from '../schemas/careers.ts';
 import { interiorErrors, type InteriorPalette } from '../schemas/interiors.ts';
+import { LINK_KINDS, radioLinkErrors } from '../schemas/radiolinks.ts';
 import { buildingSetErrors, buildingStyleErrors, type BuildingStyle } from '../schemas/buildings.ts';
 import { carProfileErrors, profileVsCar, type CarBodyProfile } from '../schemas/carprofiles.ts';
 import { FLEET_RULES, fleetErrors } from '../schemas/fleet.ts';
@@ -289,6 +290,12 @@ Write 8 lines with topic travel.` },
     errors: ((e: InteriorPalette) => interiorErrors(e, CARS.map((c) => c.id))) as Kind['errors'],
     checker: 'These are the cabin colours of six British cars in a family game, as JSON. Flag a palette that would look odd or ugly from the driver’s seat, colours that clash, or two cars that look the same.',
     batches: () => [{ ask: `Write one palette for each car, in this order: ${CARS.map((c) => `${c.id} (${c.perk})`).join(', ')}.`, fits: (e: Entry, i: number) => (e.id === CARS[i]?.id ? [] : [`entry ${i + 1} must be id ${CARS[i]?.id}`]) }],
+  },
+  // The presenter's links round the radio's facts (schemas/radiolinks.ts): eight of each kind.
+  radiolinks: {
+    file: 'src/data/radiolinks.json', prompt: 'prompts/radiolinks.txt', errors: radioLinkErrors as Kind['errors'], key: 'id',
+    checker: 'These are short links a British local radio presenter reads around the weather, travel and time. Flag any that sound cheesy or gushing, American, stiff, or like nothing a real presenter would say, or two that say the same thing.',
+    batches: () => LINK_KINDS.map((kind) => ({ ask: `Write 8 ${kind} links, each different. Start each id with ${kind}_.`, fits: (e: Entry) => (e.kind === kind ? [] : [`every entry here is kind ${kind}`]) })),
   },
   carprofiles: {
     file: 'src/data/carprofiles.json', prompt: 'prompts/carprofiles.txt', errors: carProfileErrors as Kind['errors'], key: 'id',

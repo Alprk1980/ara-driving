@@ -1,18 +1,4 @@
 {
- "29826280": {
-  "text": "Plant Shed fills baskets with cheerful greenery and easy chats.",
-  "role": "dj",
-  "voices": {
-   "bm_george": 4.31,
-   "bf_emma": 3.51,
-   "bf_isabella": 3.61,
-   "bf_alice": 3.83,
-   "bf_lily": 3.8,
-   "bm_fable": 4.37,
-   "bm_lewis": 4.09,
-   "bm_daniel": 3.66
-  }
- },
  "50527811": {
   "text": "The school fun day is on, and teachers love deliveries!",
   "role": "dj",
@@ -174,174 +160,6 @@
    "bm_daniel": 1.52
   }
  },
- "af9bbd3a": {
-  "text": "Corner Bakery has warm rolls and smiles by the till.",
-  "role": "dj",
-  "voices": {
-   "bm_george": 3.92,
-   "bf_emma": 2.97,
-   "bf_isabella": 3.05,
-   "bf_alice": 3.22,
-   "bf_lily": 3.3,
-   "bm_fable": 3.71,
-   "bm_lewis": 3.66,
-   "bm_daniel": 3.22
-  }
- },
- "960f63eb": {
-  "text": "Toy Nook keeps little hands busy and big imaginations happy.",
-  "role": "dj",
-  "voices": {
-   "bm_george": 4.52,
-   "bf_emma": 3.69,
-   "bf_isabella": 3.84,
-   "bf_alice": 3.96,
-   "bf_lily": 3.9,
-   "bm_fable": 4.42,
-   "bm_lewis": 4.36,
-   "bm_daniel": 3.85
-  }
- },
- "f0985ef5": {
-  "text": "Sewing Basket has buttons, ribbons, and friendly help.",
-  "role": "dj",
-  "voices": {
-   "bm_george": 3.77,
-   "bf_emma": 3.12,
-   "bf_isabella": 3.19,
-   "bf_alice": 3.36,
-   "bf_lily": 3.39,
-   "bm_fable": 3.97,
-   "bm_lewis": 3.66,
-   "bm_daniel": 3.24
-  }
- },
- "5647bfa8": {
-  "text": "Candle Loft sells lovely candles, so pop in for a cosy glow.",
-  "role": "dj",
-  "voices": {
-   "bm_george": 4.38,
-   "bf_emma": 3.8,
-   "bf_isabella": 3.98,
-   "bm_fable": 4.12,
-   "bf_alice": 3.96,
-   "bf_lily": 3.93,
-   "bm_lewis": 4.2,
-   "bm_daniel": 3.89
-  }
- },
- "d5234157": {
-  "text": "Sun Cup Cafe pours friendly chats with your cuppa.",
-  "role": "dj",
-  "voices": {
-   "bm_george": 3.54,
-   "bm_fable": 3.62,
-   "bf_emma": 2.91,
-   "bf_isabella": 2.98,
-   "bf_alice": 3.08,
-   "bf_lily": 3.07,
-   "bm_lewis": 3.24,
-   "bm_daniel": 3.03
-  }
- },
- "83d884d4": {
-  "text": "Maple Mug makes mugs feel like a hug in a cup.",
-  "role": "dj",
-  "voices": {
-   "bm_george": 3.7,
-   "bm_fable": 3.59,
-   "bf_emma": 2.79,
-   "bf_isabella": 2.86,
-   "bf_alice": 3.18,
-   "bf_lily": 3.16,
-   "bm_lewis": 3.2,
-   "bm_daniel": 3.06
-  }
- },
- "0abf41d7": {
-  "text": "Berry Lane Cafe serves toast, cakes, and a warm hello.",
-  "role": "dj",
-  "voices": {
-   "bm_george": 4.07,
-   "bm_fable": 4.07,
-   "bf_emma": 3.13,
-   "bf_isabella": 3.19,
-   "bf_alice": 3.46,
-   "bf_lily": 3.42,
-   "bm_lewis": 3.87,
-   "bm_daniel": 3.38
-  }
- },
- "256e5027": {
-  "text": "Fresh Cart has crisp veggies, bread, and cheerful greetings.",
-  "role": "dj",
-  "voices": {
-   "bm_george": 4.02,
-   "bm_fable": 4.03,
-   "bf_emma": 3.16,
-   "bf_isabella": 3.12,
-   "bf_alice": 3.43,
-   "bf_lily": 3.44,
-   "bm_lewis": 3.81,
-   "bm_daniel": 3.32
-  }
- },
- "0b5a0a1e": {
-  "text": "Sunday Market is a lovely wander for treats and chats.",
-  "role": "dj",
-  "voices": {
-   "bm_george": 3.74,
-   "bm_fable": 3.74,
-   "bf_emma": 3.05,
-   "bf_isabella": 3.12,
-   "bf_alice": 3.37,
-   "bf_lily": 3.41,
-   "bm_lewis": 3.54,
-   "bm_daniel": 3.18
-  }
- },
- "2948f71e": {
-  "text": "Market's heaving today, so if you're after the good bread, I'd get a shift on.",
-  "role": "dj",
-  "voices": {
-   "bm_george": 4.74,
-   "bm_fable": 4.6,
-   "bf_emma": 4.11,
-   "bf_isabella": 4.3,
-   "bf_alice": 4.14,
-   "bf_lily": 4.22,
-   "bm_lewis": 4.55,
-   "bm_daniel": 4.02
-  }
- },
- "c508701f": {
-  "text": "School run's busy near the Garden Suburb, so take the long route and have a cheeky cuppa.",
-  "role": "dj",
-  "voices": {
-   "bm_george": 5.71,
-   "bm_fable": 5.28,
-   "bf_emma": 4.79,
-   "bf_isabella": 4.83,
-   "bf_alice": 5.16,
-   "bf_lily": 5.04,
-   "bm_lewis": 5.56,
-   "bm_daniel": 4.9
-  }
- },
- "b4e7ae9a": {
-  "text": "High street's buzzing, but the bus'll be stuck, so I'd walk and wave at the Fresh Cart.",
-  "role": "dj",
-  "voices": {
-   "bm_george": 5.47,
-   "bm_fable": 4.9,
-   "bf_emma": 4.5,
-   "bf_isabella": 4.54,
-   "bf_alice": 4.8,
-   "bf_lily": 4.66,
-   "bm_lewis": 5.43,
-   "bm_daniel": 4.66
-  }
- },
  "d0c6647f": {
   "text": "I've just grabbed a mug from the Sun Cup Cafe, and it's doing its job.",
   "role": "dj",
@@ -354,34 +172,6 @@
    "bf_lily": 3.94,
    "bm_lewis": 4.25,
    "bm_daniel": 3.99
-  }
- },
- "efa3f389": {
-  "text": "Corner Bakery's queue's snaking round, but the smell makes the wait feel like a lovely little holiday.",
-  "role": "dj",
-  "voices": {
-   "bm_george": 6.42,
-   "bm_fable": 5.74,
-   "bf_emma": 5.5,
-   "bf_isabella": 5.5,
-   "bf_alice": 5.9,
-   "bf_lily": 5.71,
-   "bm_lewis": 6.14,
-   "bm_daniel": 5.53
-  }
- },
- "6426e2eb": {
-  "text": "Parcel Depot's busy again, and I saw a dog guarding the boxes like a tiny security guard.",
-  "role": "dj",
-  "voices": {
-   "bm_george": 6.55,
-   "bm_fable": 5.77,
-   "bf_emma": 5.47,
-   "bf_isabella": 5.57,
-   "bf_alice": 5.9,
-   "bf_lily": 5.8,
-   "bm_lewis": 6.27,
-   "bm_daniel": 5.58
   }
  },
  "5ffe40f2": {
@@ -424,20 +214,6 @@
    "bf_lily": 4.26,
    "bm_lewis": 4.43,
    "bm_daniel": 4.16
-  }
- },
- "c0e8f946": {
-  "text": "Delivery Bay's packed, but drivers wave, so it's cheerful chaos rather than a proper fuss.",
-  "role": "dj",
-  "voices": {
-   "bm_george": 5.88,
-   "bm_fable": 5.59,
-   "bf_emma": 4.95,
-   "bf_isabella": 5.06,
-   "bf_alice": 5.2,
-   "bf_lily": 5.19,
-   "bm_lewis": 5.93,
-   "bm_daniel": 4.92
   }
  },
  "f6f17ae1": {
@@ -1649,6 +1425,230 @@
    "bm_fable": 1.5,
    "bm_lewis": 1.29,
    "bm_daniel": 1.37
+  }
+ },
+ "8841fc9e": {
+  "text": "Corner Bakery has warm rolls on the high street, so pop in for breakfast.",
+  "role": "dj",
+  "voices": {
+   "bf_emma": 4.1,
+   "bf_isabella": 4.23,
+   "bf_alice": 4.25,
+   "bf_lily": 4.12,
+   "bm_george": 4.88,
+   "bm_fable": 4.71,
+   "bm_lewis": 4.51,
+   "bm_daniel": 4.2
+  }
+ },
+ "8f18dc73": {
+  "text": "Toy Nook sells toys and games, open daily, so pop in.",
+  "role": "dj",
+  "voices": {
+   "bf_emma": 3.41,
+   "bf_isabella": 3.52,
+   "bf_alice": 3.61,
+   "bf_lily": 3.55,
+   "bm_george": 4.15,
+   "bm_fable": 4.12,
+   "bm_lewis": 3.89,
+   "bm_daniel": 3.55
+  }
+ },
+ "9c1615dc": {
+  "text": "Plant Shed has greenery and easy chats, so pop in on the high street.",
+  "role": "dj",
+  "voices": {
+   "bf_emma": 3.94,
+   "bf_isabella": 4.09,
+   "bf_alice": 4.17,
+   "bf_lily": 4.15,
+   "bm_george": 4.74,
+   "bm_fable": 4.45,
+   "bm_lewis": 4.33,
+   "bm_daniel": 3.97
+  }
+ },
+ "5663c94b": {
+  "text": "Sewing Basket sells buttons and ribbons, on the high street, so pop in.",
+  "role": "dj",
+  "voices": {
+   "bf_emma": 3.82,
+   "bf_isabella": 4.03,
+   "bf_alice": 4.27,
+   "bf_lily": 4.25,
+   "bm_george": 4.77,
+   "bm_fable": 4.68,
+   "bm_lewis": 4.69,
+   "bm_daniel": 4.15
+  }
+ },
+ "a521d429": {
+  "text": "Candle Loft sells scented candles on the high street, so pop in.",
+  "role": "dj",
+  "voices": {
+   "bf_emma": 3.63,
+   "bf_isabella": 3.76,
+   "bf_alice": 3.84,
+   "bf_lily": 3.82,
+   "bm_george": 4.35,
+   "bm_fable": 4.37,
+   "bm_lewis": 4.15,
+   "bm_daniel": 3.76
+  }
+ },
+ "eebeb7e6": {
+  "text": "Sun Cup Cafe serves coffee and cakes, open for breakfast, so pop in.",
+  "role": "dj",
+  "voices": {
+   "bf_emma": 4.19,
+   "bf_isabella": 4.26,
+   "bf_alice": 4.46,
+   "bf_lily": 4.31,
+   "bm_george": 4.91,
+   "bm_fable": 4.77,
+   "bm_lewis": 4.69,
+   "bm_daniel": 4.26
+  }
+ },
+ "91c9d15a": {
+  "text": "Maple Mug serves tea and toast, open mornings, so pop in.",
+  "role": "dj",
+  "voices": {
+   "bf_emma": 3.51,
+   "bf_isabella": 3.52,
+   "bf_alice": 3.8,
+   "bf_lily": 3.78,
+   "bm_george": 4.3,
+   "bm_fable": 4.29,
+   "bm_lewis": 4.02,
+   "bm_daniel": 3.71
+  }
+ },
+ "511d1eea": {
+  "text": "Berry Lane Cafe serves bacon rolls, open early, so pop in.",
+  "role": "dj",
+  "voices": {
+   "bf_emma": 3.83,
+   "bf_isabella": 3.96,
+   "bf_alice": 4.04,
+   "bf_lily": 3.99,
+   "bm_george": 4.67,
+   "bm_fable": 4.54,
+   "bm_lewis": 4.34,
+   "bm_daniel": 3.98
+  }
+ },
+ "4c0cc59a": {
+  "text": "Fresh Cart has crisp veggies and bread, so pop in on the high street.",
+  "role": "dj",
+  "voices": {
+   "bf_emma": 3.81,
+   "bf_isabella": 3.91,
+   "bf_alice": 4.01,
+   "bf_lily": 3.96,
+   "bm_george": 4.51,
+   "bm_fable": 4.32,
+   "bm_lewis": 4.18,
+   "bm_daniel": 3.85
+  }
+ },
+ "724745d5": {
+  "text": "Sunday Market sells treats on the high street, so pop in for a wander.",
+  "role": "dj",
+  "voices": {
+   "bf_emma": 3.87,
+   "bf_isabella": 4.04,
+   "bf_alice": 4.1,
+   "bf_lily": 4.03,
+   "bm_george": 4.57,
+   "bm_fable": 4.54,
+   "bm_lewis": 4.31,
+   "bm_daniel": 3.95
+  }
+ },
+ "50913ecf": {
+  "text": "I've just had a biscuit and a cuppa, hoping you're having a good one.",
+  "role": "dj",
+  "voices": {
+   "bf_emma": 3.46,
+   "bf_isabella": 3.53,
+   "bf_alice": 3.66,
+   "bf_lily": 3.63,
+   "bm_george": 4.09,
+   "bm_fable": 4,
+   "bm_lewis": 4.01,
+   "bm_daniel": 3.49
+  }
+ },
+ "d1f1d269": {
+  "text": "I dropped my niece at school and left the lunchbox on the kitchen table.",
+  "role": "dj",
+  "voices": {
+   "bf_emma": 3.57,
+   "bf_isabella": 3.77,
+   "bf_alice": 3.91,
+   "bf_lily": 3.93,
+   "bm_george": 4.61,
+   "bm_fable": 4.42,
+   "bm_lewis": 4.29,
+   "bm_daniel": 3.75
+  }
+ },
+ "cdc3f5e5": {
+  "text": "What's your favourite high street shop? Message me and I'll shout you out.",
+  "role": "dj",
+  "voices": {
+   "bf_emma": 3.94,
+   "bf_isabella": 3.98,
+   "bf_alice": 4.04,
+   "bf_lily": 3.93,
+   "bm_george": 4.36,
+   "bm_fable": 4.2,
+   "bm_lewis": 4.13,
+   "bm_daniel": 3.79
+  }
+ },
+ "d66f988e": {
+  "text": "A big hello to Sue, who's working at Corner Bakery today.",
+  "role": "dj",
+  "voices": {
+   "bf_emma": 3.07,
+   "bf_isabella": 3.23,
+   "bf_alice": 3.42,
+   "bf_lily": 3.45,
+   "bm_george": 3.89,
+   "bm_fable": 3.72,
+   "bm_lewis": 3.7,
+   "bm_daniel": 3.33
+  }
+ },
+ "2c2c4887": {
+  "text": "I saw a dog guarding boxes at Parcel Depot, like a tiny security guard.",
+  "role": "dj",
+  "voices": {
+   "bf_emma": 4.63,
+   "bf_isabella": 4.81,
+   "bf_alice": 5,
+   "bf_lily": 4.87,
+   "bm_george": 5.29,
+   "bm_fable": 5.1,
+   "bm_lewis": 5.06,
+   "bm_daniel": 4.75
+  }
+ },
+ "d7f604d3": {
+  "text": "I waved at a driver in the delivery bay and spilled my tea.",
+  "role": "dj",
+  "voices": {
+   "bf_emma": 3.24,
+   "bf_isabella": 3.39,
+   "bf_alice": 3.57,
+   "bf_lily": 3.44,
+   "bm_george": 3.94,
+   "bm_fable": 3.98,
+   "bm_lewis": 3.75,
+   "bm_daniel": 3.37
   }
  }
 }

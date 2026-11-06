@@ -2,67 +2,67 @@
   {
     "id": "ad_corner_bakery",
     "topic": "ad",
-    "text": "Corner Bakery has warm rolls and smiles by the till."
+    "text": "Corner Bakery has warm rolls on the high street, so pop in for breakfast."
   },
   {
     "id": "ad_toy_nook",
     "topic": "ad",
-    "text": "Toy Nook keeps little hands busy and big imaginations happy."
+    "text": "Toy Nook sells toys and games, open daily, so pop in."
   },
   {
     "id": "ad_plant_shed",
     "topic": "ad",
-    "text": "Plant Shed fills baskets with cheerful greenery and easy chats."
+    "text": "Plant Shed has greenery and easy chats, so pop in on the high street."
   },
   {
     "id": "ad_sewing_basket",
     "topic": "ad",
-    "text": "Sewing Basket has buttons, ribbons, and friendly help."
+    "text": "Sewing Basket sells buttons and ribbons, on the high street, so pop in."
   },
   {
     "id": "ad_candle_loft",
     "topic": "ad",
-    "text": "Candle Loft sells lovely candles, so pop in for a cosy glow."
+    "text": "Candle Loft sells scented candles on the high street, so pop in."
   },
   {
     "id": "ad_sun_cup_cafe",
     "topic": "ad",
-    "text": "Sun Cup Cafe pours friendly chats with your cuppa."
+    "text": "Sun Cup Cafe serves coffee and cakes, open for breakfast, so pop in."
   },
   {
     "id": "ad_maple_mug",
     "topic": "ad",
-    "text": "Maple Mug makes mugs feel like a hug in a cup."
+    "text": "Maple Mug serves tea and toast, open mornings, so pop in."
   },
   {
     "id": "ad_berry_lane_cafe",
     "topic": "ad",
-    "text": "Berry Lane Cafe serves toast, cakes, and a warm hello."
+    "text": "Berry Lane Cafe serves bacon rolls, open early, so pop in."
   },
   {
     "id": "ad_fresh_cart",
     "topic": "ad",
-    "text": "Fresh Cart has crisp veggies, bread, and cheerful greetings."
+    "text": "Fresh Cart has crisp veggies and bread, so pop in on the high street."
   },
   {
     "id": "ad_sunday_market",
     "topic": "ad",
-    "text": "Sunday Market is a lovely wander for treats and chats."
+    "text": "Sunday Market sells treats on the high street, so pop in for a wander."
   },
   {
     "id": "chat_market_morning",
     "topic": "chat",
-    "text": "Market's heaving today, so if you're after the good bread, I'd get a shift on."
+    "text": "I've just had a biscuit and a cuppa, hoping you're having a good one."
   },
   {
     "id": "chat_school_run",
     "topic": "chat",
-    "text": "School run's busy near the Garden Suburb, so take the long route and have a cheeky cuppa."
+    "text": "I dropped my niece at school and left the lunchbox on the kitchen table."
   },
   {
     "id": "chat_high_street",
     "topic": "chat",
-    "text": "High street's buzzing, but the bus'll be stuck, so I'd walk and wave at the Fresh Cart."
+    "text": "What's your favourite high street shop? Message me and I'll shout you out."
   },
   {
     "id": "chat_cuppa",
@@ -72,12 +72,12 @@
   {
     "id": "chat_corner_bakery",
     "topic": "chat",
-    "text": "Corner Bakery's queue's snaking round, but the smell makes the wait feel like a lovely little holiday."
+    "text": "A big hello to Sue, who's working at Corner Bakery today."
   },
   {
     "id": "chat_parcel_dog",
     "topic": "chat",
-    "text": "Parcel Depot's busy again, and I saw a dog guarding the boxes like a tiny security guard."
+    "text": "I saw a dog guarding boxes at Parcel Depot, like a tiny security guard."
   },
   {
     "id": "chat_toy_nook",
@@ -97,7 +97,7 @@
   {
     "id": "chat_delivery_bay",
     "topic": "chat",
-    "text": "Delivery Bay's packed, but drivers wave, so it's cheerful chaos rather than a proper fuss."
+    "text": "I waved at a driver in the delivery bay and spilled my tea."
   },
   {
     "id": "travel_old_town_queue",

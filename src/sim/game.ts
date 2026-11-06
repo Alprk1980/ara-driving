@@ -3,6 +3,8 @@
 import { afterEating, afterRun, TIRED_AT } from './energy.ts';
 import { lightFrac, monthOf, RAIN_SPELL_H, sunFor, wetOdds, type Sun } from './almanac.ts';
 import { inPeak, schoolDay, schoolsIn, type School } from './schoolrun.ts';
+import { dayWeather, type Forecast, type TravelFact } from './bulletins.ts';
+import { DISTRICTS, districtAt } from './districts.ts';
 import { contactAt, crushLevel, NEUTRAL, PlayerCar, sideOf, type DriveIntent, type DriveState, type Mark, type Side } from './car.ts';
 import type { Find, Goal, GoalKind, TownEventCard } from '../../schemas/content.ts';
 import { busFareOn, carById, isWorkCar, RECOVERY_FEE, FIND_ALL_REWARD, FIND_REWARD, FUEL_PRICE, GOAL_REWARD, HOME_TOPUP_PCT, rankOf, rankPay, REGULAR_FINALE, REP_FINALE, REP_GOAL, REP_JOB, REP_SPOTLESS, streakBonus } from './economy.ts';
@@ -499,11 +501,39 @@ export class Game {
   /** How hard it is raining, 0 to 1. The first stretch of a session always stays dry. */
   get rain() {
     if (this.time < DRY_START_S) return 0;
-    const days = DAY_START + this.time / DAY_S, day = Math.floor(days), into = (days - day) * DAY_S;
-    const rng = makeRng(day * 31 + this.month * 7 + 1); // the same day rains the same way on a replay
-    if (rng() > wetOdds(this.month)) return 0; // a dry day, as about two in three are (Met Office, Birmingham)
-    const spell = (RAIN_SPELL_H / 24) * DAY_S, t = into - rng() * (DAY_S - spell);
-    return t < 0 || t > spell ? 0 : Math.min(1, t / RAIN_FADE_S, (spell - t) / RAIN_FADE_S);
+    const days = DAY_START + this.time / DAY_S, day = Math.floor(days), h = (days - day) * 24, spell = this.rainSpell(day);
+    if (!spell || h < spell.from || h > spell.to) return 0;
+    const fade = (RAIN_FADE_S / DAY_S) * 24;
+    return Math.min(1, (h - spell.from) / fade, (spell.to - h) / fade);
+  }
+
+  /** When it rains on a given day of the session (0 is the first), in hours on the clock, or null for a dry day: seeded,
+   *  so a replay rains the same way and the radio's forecast is true. */
+  rainSpell(day: number): { from: number; to: number } | null {
+    const rng = makeRng(day * 31 + this.month * 7 + 1);
+    if (rng() > wetOdds(this.month)) return null; // a dry day, as about two in three are (Met Office, Birmingham)
+    const from = rng() * (24 - RAIN_SPELL_H);
+    return { from, to: from + RAIN_SPELL_H };
+  }
+
+  /** Today's and tomorrow's weather, for the radio. */
+  get forecast(): Forecast {
+    const day = Math.floor(DAY_START + this.time / DAY_S), w = (d: number) => dayWeather(this.month, this.rainSpell(d), makeRng(d * 97 + this.month * 13 + 5));
+    return { today: w(day), tomorrow: w(day + 1), month: this.month, sun: this.sun };
+  }
+
+  /** What's really happening on the roads, for the travel news. */
+  get travelFacts(): TravelFact[] {
+    const t = this.town, out: TravelFact[] = [], near = (v: Vec) => placeAt(t, this.content.places, t.plots.reduce((a, b) => (dist(b.road, v) < dist(a.road, v) ? b : a)))?.name ?? 'the high street';
+    const where = (v: Vec) => ({ near: near(v), district: DISTRICTS[districtAt(v.x, v.z)].name });
+    for (const c of this.traffic.cars) if (c.wreck > 0 && !c.riding && !c.dormant) { out.push({ kind: 'crash', ...where(c) }); break; }
+    if (t.rough >= 0 && this.event) {
+      const e = t.edges[t.rough], mid = { x: (t.nodes[e.a].x + t.nodes[e.b].x) / 2, z: (t.nodes[e.a].z + t.nodes[e.b].z) / 2 };
+      out.push({ kind: this.event.kind === 'parade' ? 'parade' : 'roadworks', ...where(mid) });
+    }
+    if (this.event?.kind === 'market') { const m = t.plots.find((p) => placeAt(t, this.content.places, p)?.kind === (this.event!.boost ?? 'market')); if (m) out.push({ kind: 'market', near: near(m.road) }); }
+    if (this.schoolRun) out.push({ kind: 'school', near: this.schools.slice(0, 2).map((s) => s.name) });
+    return out;
   }
 
   on(h: (e: GameEvent) => void) { this.handlers.push(h); }

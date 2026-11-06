@@ -11,9 +11,10 @@ real presenter could plausibly say.
 Answer with ONLY a JSON array. Each entry: {"id":"chat_market_busy","topic":"chat","text":"Market's heaving this morning, so if you're after the good bread, I'd get a shift on."}
 
 Topics:
-- chat: a short link about town life: the market, the school run, someone's dog, the high street, the bus, a cuppa.
-- ad: a short advert for ONE of the town's own businesses, named exactly as given in the request. What they sell and
-  why you'd pop in. Warm, a little playful, with no prices or offers in numbers.
+- chat: what real local radio presenters say between songs that isn't news: a shout-out to a listener by first name ("a big hello to Sue, on her way to work at the bakery"), a question for listeners to message in about, what's coming up on the show, a bit of the presenter's own life (their dog, their tea, their allotment). Never say what the weather, the roads or the market are doing today: the bulletins say that, and chat could be wrong.
+- ad: a short advert for ONE of the town's own businesses, named exactly as given in the request, in the shape real local radio
+  ads use: the business's name, one real thing it sells or does, where it is or when it's open, and a call to action
+  ("pop in", "find them on the high street"). Plain and specific, no prices or offers in numbers, no greetings-card words.
 - travel: the travel news for the town's roads: queues, roadworks, a busy junction, the lights, the roundabout, the
   school run, things moving nicely. Name streets or districts only from the request. Calm, never about crashes or injury.
 - weather: a forecast for a DRY spell, in the Met Office's own words: sunny spells, sunny intervals, bright, cloudy,

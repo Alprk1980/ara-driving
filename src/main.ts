@@ -12,6 +12,8 @@ import guideLines from './data/guide.json';
 import landmarks from './data/landmarks.json';
 import places from './data/places.json';
 import calls from './data/calls.json';
+import radioLinks from './data/radiolinks.json';
+import type { RadioLink } from '../schemas/radiolinks.ts';
 import type { CallCard } from '../schemas/careers.ts';
 import quests from './data/quests.json';
 import radioLines from './data/radio.json';
@@ -79,7 +81,7 @@ let app: App;
 const voice = new VoiceGuide(voiceLines as VoiceLine[], speech, (text, key) => app?.banner(text, key === 'fuel_critical'), () => sound.chime());
 voice.muted = sound.muted = save.muted;
 const router = new InputRouter(new FloatingJoystick(freshHeld()), (id) => app?.toast(`${id === 'tilt' ? 'Tilt' : id} is not available here`));
-app = new App(game, view, wallet, save, router, voice, sound, items, new RadioHost(radioLines as RadioLine[]), stations as Station[], { guide: guideLines as GuideLine[], chatter: chatter as ChatterLine[], ranks: ranks as Rank[], stories: stories as StoryPlace[] });
+app = new App(game, view, wallet, save, router, voice, sound, items, new RadioHost(radioLines as RadioLine[], Math.random, radioLinks as RadioLink[]), stations as Station[], { guide: guideLines as GuideLine[], chatter: chatter as ChatterLine[], ranks: ranks as Rank[], stories: stories as StoryPlace[] });
 
 app.padLabels(); // a save left on foot opens on foot
 app.clips = speech;

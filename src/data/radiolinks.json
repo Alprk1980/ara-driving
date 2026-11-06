@@ -1,0 +1,162 @@
+[
+  {
+    "id": "weather_heres_the_forecast",
+    "kind": "weather",
+    "text": "Here's the forecast for the town. {forecast}."
+  },
+  {
+    "id": "weather_area_forecast",
+    "kind": "weather",
+    "text": "Here's the area forecast. {forecast}."
+  },
+  {
+    "id": "weather_check_forecast",
+    "kind": "weather",
+    "text": "Let's check the forecast now. {forecast}."
+  },
+  {
+    "id": "weather_station_forecast",
+    "kind": "weather",
+    "text": "Your forecast is next on {station}. {forecast}."
+  },
+  {
+    "id": "weather_coming_up_forecast",
+    "kind": "weather",
+    "text": "The forecast is coming up soon. {forecast}."
+  },
+  {
+    "id": "weather_to_hand",
+    "kind": "weather",
+    "text": "Have the forecast to hand. {forecast}."
+  },
+  {
+    "id": "weather_road_forecast",
+    "kind": "weather",
+    "text": "For the roads, here's the forecast. {forecast}."
+  },
+  {
+    "id": "weather_on_station_forecast",
+    "kind": "weather",
+    "text": "On {station}, the forecast is here. {forecast}."
+  },
+  {
+    "id": "time_check",
+    "kind": "time",
+    "text": "It's {time}."
+  },
+  {
+    "id": "time_on_station",
+    "kind": "time",
+    "text": "It's {time} on {station}."
+  },
+  {
+    "id": "time_again",
+    "kind": "time",
+    "text": "{time} again."
+  },
+  {
+    "id": "time_now",
+    "kind": "time",
+    "text": "Now it's {time}."
+  },
+  {
+    "id": "time_radio",
+    "kind": "time",
+    "text": "You're on {station}, and it's {time}."
+  },
+  {
+    "id": "time_quick_check",
+    "kind": "time",
+    "text": "A quick check, {time}."
+  },
+  {
+    "id": "time_still",
+    "kind": "time",
+    "text": "Still {time}, on {station}."
+  },
+  {
+    "id": "time_on_the_dot",
+    "kind": "time",
+    "text": "{time} on the dot."
+  },
+  {
+    "id": "ident_alpha",
+    "kind": "ident",
+    "text": "This is {station}, the sound of the town."
+  },
+  {
+    "id": "ident_bravo",
+    "kind": "ident",
+    "text": "You're listening to {station}."
+  },
+  {
+    "id": "ident_charlie",
+    "kind": "ident",
+    "text": "{station} is on, keeping you company."
+  },
+  {
+    "id": "ident_delta",
+    "kind": "ident",
+    "text": "Stay with {station} for the rest of the journey."
+  },
+  {
+    "id": "ident_echo",
+    "kind": "ident",
+    "text": "Back to {station} after the break."
+  },
+  {
+    "id": "ident_foxtrot",
+    "kind": "ident",
+    "text": "You're with {station} now."
+  },
+  {
+    "id": "ident_golf",
+    "kind": "ident",
+    "text": "This is {station}, still talking to you."
+  },
+  {
+    "id": "ident_hotel",
+    "kind": "ident",
+    "text": "Keep {station} on the dial, please."
+  },
+  {
+    "id": "travel_first_check",
+    "kind": "travel",
+    "text": "Let's get into it. {travel}."
+  },
+  {
+    "id": "travel_road_check",
+    "kind": "travel",
+    "text": "We're checking for you now. {travel}."
+  },
+  {
+    "id": "travel_live_update",
+    "kind": "travel",
+    "text": "Here's your update. {travel}."
+  },
+  {
+    "id": "travel_quick_look",
+    "kind": "travel",
+    "text": "Quick look before you set off. {travel}."
+  },
+  {
+    "id": "travel_next_bullets",
+    "kind": "travel",
+    "text": "Straight after this, the latest. {travel}."
+  },
+  {
+    "id": "travel_station_travel",
+    "kind": "travel",
+    "text": "You're with {station}, and here's what's happening. {travel}."
+  },
+  {
+    "id": "travel_head_out",
+    "kind": "travel",
+    "text": "If you're heading out, here's what you need. {travel}."
+  },
+  {
+    "id": "travel_traffic_now",
+    "kind": "travel",
+    "text": "We've got it sorted. {travel}."
+  }
+]
