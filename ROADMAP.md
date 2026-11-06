@@ -21,7 +21,7 @@
       The sizes are judged from typical British buildings; no standard covers them.
 - [ ] Driving into the holes you knock in buildings: they're saved already. The car's nose reaches about 0.8 m into a
       wall before it stops, deeper than a hole's 1 m crater leaves room for, and buildings have no insides, so what
-      "driving into" one should mean is an open question for the owner.
+      "driving into" one should mean is an open question for the owner. Parked for now (2026-11-06).
 
 ## Life in town (asked for 2026-11-02)
 Get out of the car, live in the town on foot, ride the buses, work real jobs for the services, and spend what you earn.
