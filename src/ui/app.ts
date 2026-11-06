@@ -10,7 +10,6 @@ import { isNight, type Game, type GameEvent, type Wallet } from '../sim/game.ts'
 import { Guide, Passengers } from './coach.ts';
 import { dist } from '../sim/town.ts';
 import { STILL_MPS } from '../sim/onfoot.ts';
-import { BUS_FARE as FARE } from '../sim/economy.ts';
 import { allGoods, centreUnits, eatGood, goodById, shopFor, slotOf } from '../sim/shops.ts';
 import { goodKey, isFood, type Good, type Shop } from '../../schemas/shops.ts';
 import { PAD_ACTION, PadButton } from '../input/schemes.ts';
@@ -395,7 +394,7 @@ export class App {
     $('speed').textContent = g.ride ? `On the ${g.rideRoute!.name}` : board ? board.map((b) => `${b.name} ${dueText(b.due)}`).join(', ') : g.foot ? `On foot${g.foot.running ? ', running' : ''}` : `${Math.round(p.kmh)} km/h`;
     if (this.save.input === 'gamepad' && this.padAction.pressed()) this.door();
     const stop = g.atStop;
-    if (stop !== this.lastStop) { this.lastStop = stop; if (stop) this.banner(`Bus stop for the ${g.town.routesAt(stop).map((r) => r.name).join(' and ')}. Wait here and the bus pulls in for you: a single is ${FARE} Points`, false, 4); }
+    if (stop !== this.lastStop) { this.lastStop = stop; if (stop) this.banner(`Bus stop for the ${g.town.routesAt(stop).map((r) => r.name).join(' and ')}. Wait here and the bus pulls in for you: a single is ${g.busFare} ${g.busFare === 1 ? 'Point' : 'Points'}`, false, 4); }
     const pct = g.foot ? g.energy : p.fuel / p.car.tank; // out of the car, the chip shows your energy for running
     $('fuelfill').style.width = `${pct * 100}%`;
     $('fueltext').textContent = g.foot ? `Energy ${Math.round(g.energy * 100)}%` : g.shift ? 'Fuel: on the depot' : `Fuel ${Math.round(p.fuel)} L`;
@@ -515,8 +514,8 @@ export class App {
   }
 
   private boardBus() {
-    const fare = this.save.debug ? 0 : FARE;
-    if (!this.game.board(fare)) this.toast(`The fare is ${FARE} Points, and you have ${this.wallet.points()}`);
+    const fare = this.save.debug ? 0 : this.game.busFare;
+    if (!this.game.board(fare)) this.toast(`The fare is ${this.game.busFare} Points, and you have ${this.wallet.points()}`);
   }
 
   /** At a place's front door: its counter, if it's a shop, and the jobs that start here. Going inside is a counter
@@ -619,7 +618,7 @@ export class App {
     if (low) add('Route to station', () => { g.routeToStation(); this.banner('Routing to the nearest station'); });
     if (out) add('Get out', () => this.door());
     if (back) add('Get in', () => this.door(), 'primary');
-    if (bus) add(`Get on, ${FARE} Points`, () => this.boardBus(), 'primary');
+    if (bus) add(`Get on, ${g.busFare} ${g.busFare === 1 ? 'Point' : 'Points'}`, () => this.boardBus(), 'primary');
     if (door && !back) add(door.plot === g.town.centre?.plot ? 'Shopping centre' : placeAt(g.town, g.content.places, door.plot)?.name ?? 'Door', () => this.openDoor(door));
     if (ride && stopped) add('Get off', () => g.getOff(), 'primary');
     else if (ride && !ride.rang) add('Ring the bell', () => g.ringBell(), 'primary');

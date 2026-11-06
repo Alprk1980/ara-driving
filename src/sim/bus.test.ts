@@ -180,3 +180,16 @@ describe('a car parked at the kerb by the stop', () => {
     }, 60000);
   }
 });
+
+describe('the fare cap', () => {
+  it('is £3 (2 Points) until the end of 2026, and £2 (1 Point) through 2027, as GOV.UK announced', async () => {
+    const { busFareOn, POINT_GBP } = await import('./economy.ts');
+    expect(busFareOn('2026-12-31')).toBe(2);
+    expect(busFareOn('2027-01-01')).toBe(1);
+    expect(busFareOn('2027-12-31')).toBe(1);
+    expect(busFareOn('2028-01-01')).toBe(2);
+    expect(Math.round(2 / POINT_GBP)).toBe(1);
+    const g = new Game({ places, quests }, purse(5), { town, seed: 9, day: '2027-03-01' });
+    expect(g.busFare).toBe(1);
+  });
+});

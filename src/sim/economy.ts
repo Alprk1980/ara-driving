@@ -11,6 +11,11 @@ export const FUEL_PRICE = 1; // Points per litre
 // (the national fare cap, from operators' and councils' notices). Fuel here is a Point a litre, against roughly £1.40
 // at the pump, so a Point is worth about £1.40 and the £3 fare comes to 2 Points. London's own single is £1.75.
 export const BUS_FARE = 2;
+// Confirmed 22 July 2026 (GOV.UK, "Cheaper travel for millions with a third off fares"): the cap drops to £2 for all of
+// 2027, and £2 at £1.40 a Point is 1.4 Points, so 1. After 2027 nothing is announced, so it goes back to the £3 cap.
+export const BUS_FARE_2027 = 1;
+/** The single fare on the date given as YYYY-MM-DD. */
+export const busFareOn = (day: string) => (day >= '2027-01-01' && day <= '2027-12-31' ? BUS_FARE_2027 : BUS_FARE);
 export const POINT_GBP = 1.4; // what a Point is worth, from the fuel price above: shop prices and career pay use it
 export const REPAIR_RATE = 1; // Points per 1% of bodywork damage at the garage
 // Fuel runs well above a real car's 6 L/100 km on purpose: the town is 3 km across, so the bill has to mean something, but

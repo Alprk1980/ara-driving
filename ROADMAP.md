@@ -38,8 +38,8 @@ Each stage needs its own research pass first: how each job really runs, and the 
 ### Stage B: buses as a passenger
 - [x] Wait at a stop, flag the bus, pay the fare (2 Points, from England's £3 cap), ride, ring the bell, get off at the
       next stop. Stops are request stops: a bus only pulls in for someone waiting, someone getting off, or the bell.
-- [ ] The fare cap drops to £2 on 1 January 2027. At a Point to about £1.40 that's 1.4 Points, so `BUS_FARE` should
-      go down to 1 then (confirm the new cap has started first).
+- [x] The fare cap drops to £2 on 1 January 2027, confirmed by GOV.UK on 22 July 2026 for the whole of 2027. The fare
+      follows the real date: 2 Points now, 1 Point through 2027, and back to 2 after that unless a new cap is announced.
 - [x] Which bus is which: route numbers on the buses and stops, and when the next one is due. The two loops are the 1
       (Outer Circle) and 2 (Inner Circle), C clockwise and A anticlockwise as Birmingham numbers its circles. Each bus
       lights its number front and back, each stop has a flag listing its routes, and the HUD counts down to the bus in

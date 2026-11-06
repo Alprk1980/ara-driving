@@ -4,7 +4,7 @@ import { afterEating, afterRun, TIRED_AT } from './energy.ts';
 import { lightFrac, monthOf, RAIN_SPELL_H, sunFor, wetOdds, type Sun } from './almanac.ts';
 import { contactAt, crushLevel, NEUTRAL, PlayerCar, sideOf, type DriveIntent, type DriveState, type Mark, type Side } from './car.ts';
 import type { Find, Goal, GoalKind, TownEventCard } from '../../schemas/content.ts';
-import { BUS_FARE, carById, isWorkCar, RECOVERY_FEE, FIND_ALL_REWARD, FIND_REWARD, FUEL_PRICE, GOAL_REWARD, HOME_TOPUP_PCT, rankOf, rankPay, REGULAR_FINALE, REP_FINALE, REP_GOAL, REP_JOB, REP_SPOTLESS, streakBonus } from './economy.ts';
+import { busFareOn, carById, isWorkCar, RECOVERY_FEE, FIND_ALL_REWARD, FIND_REWARD, FUEL_PRICE, GOAL_REWARD, HOME_TOPUP_PCT, rankOf, rankPay, REGULAR_FINALE, REP_FINALE, REP_GOAL, REP_JOB, REP_SPOTLESS, streakBonus } from './economy.ts';
 import { FuelManager } from './fuel.ts';
 import { advance, freshDaily, goalsFor } from './goals.ts';
 import { ActiveQuest, freshProgress, GHOST_KEEP, placeAt, QuestGenerator, storyPlot, type Ghost, type Offer, type Progress, type QuestContent, type QuestState } from './quests.ts';
@@ -110,6 +110,7 @@ export class Game {
   foot: OnFoot | null = null; // out of the car and walking; the car stays where it was left
   energy = 1; // for running, 0-1: see energy.ts
   sun: Sun = sunFor(''); // today's sunrise and sunset, from the date the game was opened
+  busFare = busFareOn(''); // the single fare on that date: the national cap changes with the year
   month = 3;
   ride: { bus: TrafficCar; rang: boolean } | null = null; // on a bus, and whether you've rung for the next stop
   shift: Shift | null = null; // signed on at work, in the service's vehicle
@@ -141,6 +142,7 @@ export class Game {
     this.events = opts.events ?? [];
     const day = opts.day ?? '';
     this.sun = sunFor(day);
+    this.busFare = busFareOn(day);
     this.month = monthOf(day);
     if (this.progress.daily.day !== day) this.progress.daily = freshDaily(day);
     this.goals = goalsFor(content.goals ?? [], day);
@@ -385,7 +387,7 @@ export class Game {
   }
 
   /** On, and pay the driver. False if there's no bus or not enough Points. */
-  board(fare = BUS_FARE): boolean {
+  board(fare = this.busFare): boolean {
     const bus = this.busHere;
     if (!bus || (fare > 0 && !this.wallet.spend(fare, 'Bus fare'))) return false;
     this.ride = { bus, rang: false };
