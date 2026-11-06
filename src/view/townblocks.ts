@@ -122,6 +122,7 @@ function emitParts(high: Buf, low: Buf, b: Box, p: Plan) {
     default:
       slab(b.x, p.top, b.z, hx * 2 + 0.8, 0.5, hz * 2 + 0.8, roof);
   }
+  if (b.front) streetFront(high, low, b, p);
   if (p.ground) {
     low.box(b.x, p.ground - 0.05, b.z, b.hx * 2 + 0.3, CORNICE, b.hz * 2 + 0.3, new THREE.Color(style.ground.kind === 'shopfront' ? style.ground.main : style.trim));
     if (style.ground.kind === 'shopfront') {
@@ -133,6 +134,55 @@ function emitParts(high: Buf, low: Buf, b: Box, p: Plan) {
     }
   }
 }
+
+// What faces the street. Judged sizes, from typical British buildings rather than a standard: a Victorian or Edwardian
+// bay projects 0.6-0.9 m and fills most of a ground-floor room's width; a roof dormer is about 1.6 m wide and 1.4 tall;
+// a loading door's dock shelter, the black seal a lorry backs into, stands about 0.6 m proud of the wall, under a canopy.
+const BAY_DEEP = 0.75, BAY_W = 2.2, DORMER_W = 1.6, DORMER_H = 1.35, SHELTER_DEEP = 0.6, CANOPY_DEEP = 1.8;
+const BAY_SHARE = 0.6, DORMER_SHARE = 0.4; // how many houses have them: judged
+
+/** Bay windows, dormers and loading bays on the side of a building that faces the street. */
+function streetFront(high: Buf, low: Buf, b: Box, p: Plan) {
+  const f = b.front!, onX = Math.abs(f.x) > Math.abs(f.z), wide = onX ? b.hz : b.hx, deep = onX ? b.hx : b.hz;
+  const sx = onX ? Math.sign(f.x) : 0, sz = onX ? 0 : Math.sign(f.z), roll = hashOf(b.x, b.z);
+  const at = (across: number, out: number) => ({ x: b.x + sx * (deep + out) + (onX ? 0 : across), z: b.z + sz * (deep + out) + (onX ? across : 0) });
+  const piece = (buf: Buf, across: number, out: number, y: number, w: number, h: number, d: number, c: THREE.Color) => {
+    const q = at(across, out);
+    buf.box(q.x, y, q.z, onX ? d : w, h, onX ? w : d, c);
+  };
+  const wall = new THREE.Color(p.wall), glass = new THREE.Color(p.style.glass), trim = new THREE.Color(p.style.trim);
+  if (b.district === 'garden' && p.style.roof.kind === 'pitched' && roll < BAY_SHARE) { // a bay on each side of the front door
+    const room = Math.min(p.style.storey, 2.9) - 0.4;
+    for (const side of wide > 4.2 ? [-1, 1] : [1]) {
+      const across = side * Math.min(wide - BAY_W / 2 - 0.4, wide * 0.5);
+      piece(low, across, BAY_DEEP / 2, 0, BAY_W, room + 0.35, BAY_DEEP, wall); // the bay's body, to its sills and roof
+      piece(low, across, BAY_DEEP + 0.02, 0.75, BAY_W - 0.3, room - 0.75, 0.04, glass); // its glass
+      piece(low, across, BAY_DEEP / 2, room + 0.35, BAY_W + 0.1, 0.12, BAY_DEEP + 0.1, trim); // and its little roof
+    }
+  }
+  const along = b.hx >= b.hz, frontSlope = along ? !onX : onX; // the roof's slopes face across its ridge: is one of them the street's?
+  if ((b.district === 'garden' || b.district === 'oldtown') && p.style.roof.kind === 'pitched' && frontSlope && hashOf(b.z, b.x) < DORMER_SHARE) {
+    const half = onX ? b.hx : b.hz, rise = half * 0.72, back = half * 0.45, y = p.top + rise * (back / half) - DORMER_H * 0.45; // the roof's height this far in from the eaves, with the dormer's foot set into the slope
+    piece(high, wide * 0.2, -back - 0.7, y, DORMER_W, DORMER_H, 1.4, wall);
+    piece(high, wide * 0.2, -back + 0.02, y + 0.25, DORMER_W - 0.5, DORMER_H - 0.45, 0.04, glass);
+    piece(high, wide * 0.2, -back - 0.7, y + DORMER_H, DORMER_W + 0.2, 0.14, 1.6, new THREE.Color(p.style.roof.color));
+  }
+  if (p.style.ground.kind === 'loading') { // a dock shelter round each loading door, and a canopy over the lot
+    const bays = baysOn(wide * 2, Math.max(p.style.bay, 3.2)), cell = (wide * 2) / bays, door = p.ground * 0.82, seal = new THREE.Color('#1c1e22');
+    for (let c = 0; c < bays; c += 2) {
+      const across = -wide + (c + 0.5) * cell, open = cell * 0.84;
+      for (const e of [-1, 1]) piece(low, across + e * (open / 2 + 0.12), SHELTER_DEEP / 2, 0, 0.24, door + 0.2, SHELTER_DEEP, seal);
+      piece(low, across, SHELTER_DEEP / 2, door, open + 0.48, 0.3, SHELTER_DEEP, seal);
+    }
+    piece(high, 0, CANOPY_DEEP / 2, p.ground * 0.95, wide * 2, 0.16, CANOPY_DEEP, trim);
+  }
+}
+
+const hashOf = (a: number, b: number) => {
+  let h = Math.imul(Math.round(a * 10) * 73856093 ^ Math.round(b * 10) * 19349663, 0x5bd1e995);
+  h ^= h >>> 13;
+  return (Math.imul(h, 0x5bd1e995) >>> 0) / 4294967296;
+};
 
 type Range = { start: number; count: number };
 type Slot = { upper: Range; ground: Range; low: Range };

@@ -8,7 +8,6 @@
       Royal Mail pillar boxes (a Type K, 1.6 m by 0.49, red with a slot), spaced so nowhere is beyond Ofcom's half mile,
       and yellow 200 L grit bins at some junctions. Each car has its own cabin, with a dark dash top so it doesn't
       reflect in the windscreen, a light headlining, and coloured seats only in the coupe and supercar.
-- [ ] Drive into the holes you make in buildings, and save that damage.
 - [x] Finish the research pass: prices, pay, weather and day length (2026-11-06, `src/sim/almanac.ts`).
       The sun rises and sets on Birmingham's times for the real date, British Summer Time included: 07:12-16:30 in
       early November, 04:45-21:34 at midsummer. Rain follows the Met Office's 1991-2020 Winterbourne averages, 132.5
@@ -16,7 +15,13 @@
       1 mm an hour, so it rains about 9% of the time rather than the 30% before. Fuel at £1.40 a Point still fits the
       pumps (132-138p a litre in 2026, RAC). Freelance jobs pay about 8 Points a game hour, some £11, near the National
       Living Wage of £12.21, so their pay stands; careers pay their own researched rates. A game day stays 8 minutes.
-- [ ] More street variety: dormers, bay windows, deeper loading bays, shop signs.
+- [x] More street variety: dormers, bay windows, deeper loading bays, shop signs. Bays either side of the door on most
+      suburban houses, dormers on the street side of some pitched roofs, black dock shelters and a canopy on the works'
+      loading doors, and a hanging sign with its own name by every shop, café and market, clear of heads at 2.6 m.
+      The sizes are judged from typical British buildings; no standard covers them.
+- [ ] Driving into the holes you knock in buildings: they're saved already. The car's nose reaches about 0.8 m into a
+      wall before it stops, deeper than a hole's 1 m crater leaves room for, and buildings have no insides, so what
+      "driving into" one should mean is an open question for the owner.
 
 ## Life in town (asked for 2026-11-02)
 Get out of the car, live in the town on foot, ride the buses, work real jobs for the services, and spend what you earn.
