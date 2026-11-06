@@ -38,7 +38,8 @@ const dueText = (s: number | null) => (s === null ? 'not running' : s < 10 ? 'du
 const ROAD_NAMES: Record<RoadMoment, string> = { red_stop: 'Waited at a red', zebra_wait: 'Stopped at a zebra', blue_pull: 'Pulled over for a blue light', stopped_after: 'Stopped after a knock', red_run: 'Ran a red light', zebra_run: 'Drove over a busy zebra', blue_block: 'Held up a blue light', drove_off: 'Drove off after a knock', pulled_over: 'Stopped by the police', got_away: 'Lost the police', course: 'Went on a course', phone_use: 'Used a phone at the wheel', hoax_call: 'Called 999 with no emergency', recovery_called: 'Called for recovery' };
 import { CAMERA_NAMES, type View } from '../view/scene.ts';
 import { DISTRICTS, DISTRICT_IDS, type DistrictId } from '../sim/districts.ts';
-import { drawMini, drawWorld, townImage } from './map.ts';
+import { drawMini, drawWorld, POI_STYLE, poiList, townImage } from './map.ts';
+import { poiNear } from '../sim/pois.ts';
 import { destinations, distanceText, etaText, GROUP_ORDER, nearestIn, turnText, type Dest, type DestGroup } from '../sim/satnav.ts';
 import { cueKey, type VoiceGuide } from './voice.ts';
 
@@ -789,7 +790,8 @@ export class App {
     const c = this.sheet('mapsheet', `<div id="worldwrap"><canvas id="world" width="1000" height="1000"></canvas><div id="mapside">
       <h2>Map</h2>
       <button class="primary" id="satnav-open">Sat nav: go to a place</button>
-      <p>Or tap a road to set a waypoint. H is home, F is a petrol station.</p>
+      <p>Or tap a place, or any road, to set a waypoint.</p>
+      <details class="legend"><summary>What the marks mean</summary>${legend()}</details>
       <p>Fast travel</p>
       <button class="ghost" id="ft-home">Home</button>
       <button class="ghost" id="ft-station">Nearest station</button>
@@ -804,7 +806,8 @@ export class App {
     draw();
     w.onpointerdown = (e) => {
       const r = w.getBoundingClientRect();
-      g.setWaypoint({ x: ((e.clientX - r.left) / r.width) * 3000, z: ((e.clientY - r.top) / r.height) * 3000 });
+      const at = { x: ((e.clientX - r.left) / r.width) * 3000, z: ((e.clientY - r.top) / r.height) * 3000 }, poi = poiNear(poiList(g), at, TAP_POI_M);
+      if (poi) { g.setWaypoint(poi.road, poi.name); this.banner(`Routing to ${poi.name}`); } else g.setWaypoint(at);
       draw();
     };
     c.querySelector<HTMLElement>('#x')!.onclick = () => this.close('mapsheet');
@@ -1067,4 +1070,11 @@ export class App {
 /** A rank's pay, as the real hourly rate and what it comes to in Points for each game hour (20 s) of booked work. */
 function payLine(r: CareerRank) {
   return `£${r.gbpHour.toFixed(2)} an hour, about ${(r.gbpHour / POINT_GBP).toFixed(1)} Points every ${GAME_HOUR_S} s of booked work`;
+}
+
+const TAP_POI_M = 45; // a tap this close to a mark means that place: about a fingertip on a phone's map
+
+/** The map's key: one swatch and letter for each kind of mark, from the same table the map draws with. */
+function legend() {
+  return `<ul class="legend">${Object.values(POI_STYLE).map((st) => `<li><i style="background:${st.fill}">${esc(st.label)}</i>${esc(st.legend)}</li>`).join('')}</ul>`;
 }

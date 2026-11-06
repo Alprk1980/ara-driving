@@ -156,3 +156,27 @@ describe('which bus is which', () => {
     expect(t).toBeLessThan(said * 1.6 + 10);
   });
 });
+
+describe('a car parked at the kerb by the stop', () => {
+  /** Your car left at the kerb this far before the stop, as a player might, and a bus coming up behind it. */
+  function parkedBy(before: number) {
+    const { g, bus, s } = atStop();
+    const l = town.routes[bus.route].legs[s.leg], e = town.edges[l.edge], to = town.nodes[l.to], from = town.nodes[e.a === l.to ? e.b : e.a];
+    const ux = (to.x - from.x) / e.len, uz = (to.z - from.z) / e.len, along = s.along - before, kerb = 4.4; // +uz,-ux is the driver's left
+    g.player.place(from.x + ux * along + uz * kerb, from.z + uz * along - ux * kerb, Math.atan2(ux, uz));
+    put(g, bus, s, before + 45);
+    return { g, bus, s };
+  }
+  for (const before of [22, 12, 4, 0, -6, -14]) { // negative: just past the stop, where the bus pulls back out
+    it(`doesn't stop the bus for good, ${before} m before the stop`, () => {
+      const { g, bus, s } = parkedBy(before);
+      run(g, 40, () => bus.dwell > 0);
+      expect(bus.dwell, 'the bus pulled in for you').toBeGreaterThan(0);
+      run(g, 30, () => bus.dwell <= 0);
+      const at = { x: bus.x, z: bus.z };
+      run(g, 30);
+      expect(dist(bus, at), 'and drove on').toBeGreaterThan(40);
+      void s;
+    }, 60000);
+  }
+});

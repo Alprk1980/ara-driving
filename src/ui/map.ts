@@ -2,10 +2,36 @@
 import { DISTRICTS, DISTRICT_IDS, districtAt } from '../sim/districts.ts';
 import type { Game } from '../sim/game.ts';
 import { storyPlot } from '../sim/quests.ts';
+import { pois, yourCar, type Poi, type PoiKind } from '../sim/pois.ts';
 import { PLOT_SOLID, ROAD_W, SIZE, type Vec } from '../sim/town.ts';
 
 const SCALE = 0.6, PLOT = '#c4bcaa'; // image pixels per metre, and the colour of a place's plot
-const SERVICE_MARK = { fire: { fill: '#c8201e', label: 'FS' }, ambulance: { fill: '#1f9a54', label: 'A' }, police: { fill: '#2f4f8f', label: 'P' } } as const;
+/** How each kind of point of interest is marked: its colour, the letter on it, and how big against the map's base size.
+ *  The legend in the map sheet is drawn from this same table, so the two can't disagree. */
+export const POI_STYLE: Record<PoiKind, { fill: string; label: string; size: number; legend: string }> = {
+  home: { fill: '#3d6fd1', label: 'H', size: 1.1, legend: 'Home garage' },
+  fuel: { fill: '#e8483f', label: 'F', size: 1, legend: 'Petrol station' },
+  base_fire: { fill: '#c8201e', label: 'FS', size: 1, legend: 'Fire station: sign on' },
+  base_ambulance: { fill: '#1f9a54', label: 'A', size: 1, legend: 'Ambulance station: sign on' },
+  base_police: { fill: '#2f4f8f', label: 'P', size: 1, legend: 'Police station: sign on' },
+  base_bus: { fill: '#e0a000', label: 'B', size: 1, legend: 'Bus garage: sign on' },
+  base_recovery: { fill: '#f08a24', label: 'R', size: 1, legend: 'Recovery yard: sign on' },
+  base_mechanic: { fill: '#5b6b7a', label: 'G', size: 1, legend: 'Patrol garage: sign on' },
+  centre: { fill: '#9b4fd0', label: 'SC', size: 1, legend: 'Shopping centre' },
+  shop: { fill: '#e0712e', label: 'S', size: 0.6, legend: 'Shop' },
+  cafe: { fill: '#8a5a3c', label: 'C', size: 0.6, legend: 'Café' },
+  market: { fill: '#3f9a3a', label: 'M', size: 0.6, legend: 'Market' },
+  school: { fill: '#d4a017', label: 'Sc', size: 0.6, legend: 'School' },
+  park: { fill: '#2e8b57', label: 'Pk', size: 0.6, legend: 'Park' },
+  office: { fill: '#607d9a', label: 'O', size: 0.6, legend: 'Office' },
+  clinic: { fill: '#d64545', label: '+', size: 0.6, legend: 'Clinic' },
+  library: { fill: '#7a5cc4', label: 'L', size: 0.6, legend: 'Library' },
+  depot: { fill: '#6d6a60', label: 'D', size: 0.6, legend: 'Depot' },
+  house: { fill: '#b07a52', label: 'h', size: 0.5, legend: 'Homes' },
+  bus_stop: { fill: '#1f6fd1', label: '', size: 0.35, legend: 'Bus stop' },
+  your_car: { fill: '#10131a', label: '', size: 0.6, legend: 'Your car, where you left it' },
+};
+const SMALL = 0.6; // on the mini-map, places shrink to coloured dots without letters, so the road stays readable
 const WASH_M = 30, WASH = 0.4; // the district wash: its grid, and how strong
 
 export function townImage(g: Game): HTMLCanvasElement {
@@ -56,6 +82,17 @@ const dot = (x: CanvasRenderingContext2D, p: Vec, r: number, fill: string, label
   }
 };
 
+// Small things first, so the bases and home sit on top where they crowd together.
+const DRAW_ORDER = Object.keys(POI_STYLE).sort((a, b) => POI_STYLE[a as PoiKind].size - POI_STYLE[b as PoiKind].size) as PoiKind[];
+const fixed = new WeakMap<Game, Poi[]>();
+/** The points of interest: the town's own once per game, and your car wherever it is now. */
+export function poiList(g: Game): Poi[] {
+  let list = fixed.get(g);
+  if (!list) { list = pois(g).filter((p) => p.kind !== 'your_car'); fixed.set(g, list); }
+  const car = yourCar(g);
+  return car ? [...list, car] : list;
+}
+
 function marks(x: CanvasRenderingContext2D, g: Game, r: number) {
   if (g.nav) {
     x.strokeStyle = '#17b897';
@@ -75,9 +112,13 @@ function marks(x: CanvasRenderingContext2D, g: Game, r: number) {
     x.stroke();
   }
   (g.content.regulars ?? []).forEach((reg, i) => { if ((g.progress.arcs[reg.id] ?? 0) >= reg.jobs.length) dot(x, storyPlot(g.town, i), r * 0.9, '#c04fd0', '*'); });
-  for (const s of g.town.stations) dot(x, s, r, '#e8483f', 'F');
-  for (const s of g.town.services) dot(x, s, r, SERVICE_MARK[s.id].fill, SERVICE_MARK[s.id].label);
-  dot(x, g.town.home, r * 1.1, '#3d6fd1', 'H');
+  const mini = r < 20, list = poiList(g);
+  for (const kind of DRAW_ORDER) for (const p of list) {
+    if (p.kind !== kind) continue;
+    const st = POI_STYLE[kind];
+    if (mini && st.size < SMALL) { if (kind !== 'house') dot(x, p.at, r * 0.45, st.fill); continue; } // a dot on the mini-map; homes left off it
+    dot(x, p.at, r * st.size, st.fill, mini && st.size < 1 ? undefined : st.label || undefined);
+  }
   if (!g.quest) for (const o of g.offers) dot(x, o.start, r * 0.8, '#ffb02e');
   const target = g.quest?.target ?? g.waypoint;
   if (target) dot(x, target, r, '#ffd23e');
@@ -115,7 +156,6 @@ export function drawMini(c: HTMLCanvasElement, g: Game, img: HTMLCanvasElement) 
   x.translate(-p.x, -p.z);
   x.drawImage(img, 0, 0, SIZE, SIZE);
   marks(x, g, 7);
-  if (g.foot) { x.beginPath(); x.arc(g.player.x, g.player.z, 5, 0, 7); x.fillStyle = '#3d6fd1'; x.fill(); x.lineWidth = 2; x.strokeStyle = '#fff'; x.stroke(); }
   car(x, g, g.foot ? 4 : 6);
 }
 

@@ -33,7 +33,7 @@ const HARD_STOP_MPS2 = 11, BUMP_MPS = 4, REPAIR_S = 6; // a stop at the pump men
 const PHONE_STILL_MPS = 2, EMERGENCY_M = 200, HURT = 0.3; // parked up enough to use a phone, and how close or bad things must be for 999 to be genuine
 const ROAD_STEPS = 6; // the driving record looks ten times a second, enough to catch a car crossing a line
 const SOLID_NEAR_M = 9, BOARD_M = 15; // a bus's doors are at its front, up to about 6 m from the pole, or further when it stopped short of a blocked stop
-const BASE_M = 22, SHIFT_REROUTE_S = 3, OWN_NEAR_M = 30; // OWN_NEAR_M: your car is close enough to get straight back in; close enough to a base's front to sign on; how often the sat nav follows a moving driver
+const BASE_M = 22, SHIFT_REROUTE_S = 3, OWN_NEAR_M = 30, TURN_ROUND_GAIN_M = 40; // TURN_ROUND_GAIN_M: the other way must be this much shorter to start the vehicle facing it; // OWN_NEAR_M: your car is close enough to get straight back in; close enough to a base's front to sign on; how often the sat nav follows a moving driver
 const FIRE_CALL_MPS = 18; // a hit on a building this hard brings the fire service: about 40 mph, where a car stops being repairable, judged
 
 export type GameEvent =
@@ -232,6 +232,12 @@ export class Game {
     this.waypoint = null;
     this.dest = null;
     this.shift = new Shift(career, take, base, this.progress.careers?.[career] ?? 0, this.shiftWorld(), base.at);
+    const first = this.shift.task; // face the way the first job goes, as a crew leaves the yard: a long vehicle can't turn in the road
+    if (first) {
+      const dir = (h: number) => ({ x: Math.sin(h), z: Math.cos(h) });
+      const ahead = route(this.town, at, first.at, dir(base.heading)).length, behind = route(this.town, at, first.at, dir(base.heading + Math.PI)).length;
+      if (behind < ahead - TURN_ROUND_GAIN_M) p.place(at.x, at.z, base.heading + Math.PI);
+    }
     this.shiftTask = null;
     this.offers = [];
     this.emit({ type: 'offers' });

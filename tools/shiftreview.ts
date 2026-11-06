@@ -17,7 +17,7 @@ const content = { places: read<Place[]>('src/data/places.json'), quests: read<Qu
 const town = new Town();
 const clock = (t: number) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
 const at = (v: Vec) => `${Math.round(v.x)},${Math.round(v.z)}`;
-const LIMIT_S = 720, STUCK_S = 90;
+const LIMIT_S = 720, STUCK_S = 75, STUCK_M = 15; // stuck: under 15 m of progress in 75 s, longer than a red light, away from the task
 
 export function digest(session: number): string {
   const career = CAREER_IDS[session % CAREER_IDS.length], rank = Math.floor(session / CAREER_IDS.length) % 3;
@@ -37,19 +37,19 @@ export function digest(session: number): string {
   g.getOut();
   Object.assign(g.foot!, { x: base.at.x, z: base.at.z });
   if (!g.signOn(career, CAREERS[career].ranks[rank].vehicles.at(-1))) return [...lines, `end: could not sign on at ${base.name}`].join('\n');
-  let task = g.shift!.task, since = g.time, best = Infinity;
+  let task = g.shift!.task, mark = { x: g.player.x, z: g.player.z, t: g.time };
   const tell = () => { const t = g.shift?.task; if (t) say(`task: ${t.kind} "${t.title}" (${t.text}), ${Math.round(dist(t.at, g.player))} m away, booked ${Math.round(t.booked)} s, due in ${Math.round(t.due - g.shift!.clock)} s${t.blue ? ', blue lights' : ''}`); };
   tell();
   for (let i = 0; i < LIMIT_S / STEP && g.shift; i++) {
     const t = g.shift.task;
-    if (t !== task) { task = t; since = g.time; best = Infinity; tell(); }
+    if (t !== task) { task = t; tell(); }
     if (!t) { say('CHECK: on shift with no task'); break; }
     const d = dist(t.at, g.player);
-    best = Math.min(best, d);
     const close = d < AT_M - 2 && t.kind !== 'pull';
     g.step(close ? { steer: 0, throttle: 0, brake: g.player.speed > 0.3 ? 1 : 0 } : drive(g, CASUAL)); // let go once stopped: held, the brake reverses
     if (Math.round(g.time / STEP) % 60 === 0 && g.player.blue !== (t.blue && g.shift?.held === 0 && !(t.kind === 'pull' && g.shift?.pulled))) say(`CHECK: blue lights ${g.player.blue ? 'on' : 'off'} on a ${t.kind} task`);
-    if (g.time - since > STUCK_S && best > AT_M * 2) { say(`STUCK: ${STUCK_S} s on "${t.title}" and never nearer than ${Math.round(best)} m; now ${Math.round(d)} m off at ${at(g.player)}, speed ${g.player.speed.toFixed(1)}`); since = g.time; best = Infinity; }
+    if (dist(g.player, mark) > STUCK_M || d < AT_M * 2 || g.shift?.held) mark = { x: g.player.x, z: g.player.z, t: g.time };
+    else if (g.time - mark.t > STUCK_S) { say(`STUCK: under ${STUCK_M} m in ${STUCK_S} s on "${t.title}", ${Math.round(d)} m off at ${at(g.player)}, speed ${g.player.speed.toFixed(1)}, stop line ahead ${g.road.stopAhead()?.toFixed(1) ?? 'none'}`); mark = { x: g.player.x, z: g.player.z, t: g.time }; }
   }
   if (g.shift) say(`end: still on shift after ${LIMIT_S} s, ${g.shift.jobs} jobs done, task ${g.shift.task?.kind}`);
   lines.push(`end: ${points} Points`);
@@ -58,7 +58,7 @@ export function digest(session: number): string {
 }
 
 const PRIMER = `You review playtest logs from ARA Driving, a game of a small British town. These sessions test careers: a script signs on at a station or depot, drives the service's vehicle on an autopilot to each task the shift deals, stops for the work, and drives back to the base, where the shift ends by itself.
-Rules: a bus shift is 8 stops on a timetable, then back to the garage; at a timing point an early bus waits for its time. Other careers get 3 calls, then go back to base. An ambulance call in category 1 or 2 adds a run to the clinic. A recovery tow adds a run back to the yard. A crash in town can jump to the front of the list for the crew on duty. Each task is paid when it's finished: the rank's hourly wage for the task's booked time, plus 15% if on time. Being late is still paid. Blue lights are on only on the way to an emergency, never at the scene. The autopilot drives cautiously and is slower than a player, so "late" is common and not a fault. Lines marked CHECK or STUCK are things that should not happen, though STUCK can be the autopilot's limit.
+Rules: a bus shift is 8 stops on a timetable, then back to the garage; at a timing point an early bus waits for its time. Other careers get 3 calls, then go back to base. An ambulance call in category 1 or 2 adds a run to the clinic. A recovery tow adds a run back to the yard. A crash in town can jump to the front of the list for the crew on duty. Each task is paid when it's finished: the rank's hourly wage for the task's booked time, plus 15% if on time. Being late is still paid. The last task, Back to base, is not paid: it only ends the shift. A traffic stop can take a while, as the script has to catch the driver up. Blue lights are on only on the way to an emergency, never at the scene. The autopilot drives cautiously and is slower than a player, so "late" is common and not a fault. Lines marked CHECK or STUCK are things that should not happen, though STUCK can be the autopilot's limit.
 Flag only things that look like real problems: a CHECK or STUCK line, a task paid nothing or an absurd amount, a shift that never ends, a vehicle wrong for the rank, the player not back in their own car after signing off.
 Answer with ONLY a JSON array, empty if nothing is wrong: [{"session":3,"time":"4:12","problem":"one sentence","evidence":"the exact log line"}]`;
 

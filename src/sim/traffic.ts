@@ -792,12 +792,12 @@ export class Traffic {
   }
 
   /** The nearest car squarely in the way of a point heading along `dir`, within `range` metres. */
-  blocker(p: Vec, dir: Vec, range: number): { gap: number; speed: number } | null {
-    let best: { gap: number; speed: number } | null = null;
+  blocker(p: Vec, dir: Vec, range: number, wide = 1.8): { gap: number; speed: number; halfL: number } | null {
+    let best: { gap: number; speed: number; halfL: number } | null = null;
     for (const c of this.cars) {
       if (c.dormant) continue;
       const dx = c.x - p.x, dz = c.z - p.z, along = dx * dir.x + dz * dir.z;
-      if (along > 0 && along < range && Math.abs(dx * dir.z - dz * dir.x) < 1.8 && (!best || along < best.gap)) best = { gap: along, speed: c.speed };
+      if (along > 0 && along < range && Math.abs(dx * dir.z - dz * dir.x) < wide && (!best || along < best.gap)) best = { gap: along, speed: c.speed, halfL: c.halfL };
     }
     return best;
   }

@@ -107,6 +107,10 @@
   #mapside { display: flex; flex-direction: column; gap: 6px; flex: 0 1 210px; min-width: 170px; max-height: min(68vh, 72vw); overflow-y: auto; touch-action: pan-y; }
   #mapside h2, #mapside p { margin: 2px 0; }
   #mapside button { padding: 7px 10px; flex: none; }
+  #mapside .legend { margin: 0; padding: 0; list-style: none; font-size: 12px; }
+  #mapside .legend li { display: flex; align-items: center; gap: 6px; margin: 2px 0; }
+  #mapside .legend i { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; border-radius: 9px; border: 2px solid #fff; color: #fff; font: 800 9px system-ui; font-style: normal; flex: none; }
+  #mapside details summary { cursor: pointer; font-weight: 700; }
   @media (max-width: 640px) { #mapside { max-height: none; flex-basis: 100%; } }
   #garage.sheet { background: none; justify-content: flex-end; padding: 0; pointer-events: none; }
   body[data-hand="left"] #garage.sheet { justify-content: flex-start; }
