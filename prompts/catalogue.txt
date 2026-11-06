@@ -7,3 +7,5 @@ Answer with ONLY a JSON array with one entry for every slot listed in the reques
 - colors: lowercase #rrggbb. Pick colours that suit the name and look good together on a low-poly car or character.
 - decals also carry "shape", copied from the slot. Other items have no shape field.
 - id: snake_case version of the name, unique.
+- wheels: one colour, the finish of a set of four wheels. steel wheels are plain painted silver, grey or black (no bright colours). alloy and sport wheels come in real finishes: silver, gunmetal, gloss black, white, gold, bronze, and now and then a bold colour for sport.
+- lights: one colour, the headlamps' white. By law headlamps shine white, so every channel is 200 or more and close together. halogen is a warm white with red a little above blue, like #fff1d6. led and drl are a cool white with blue level with red or slightly above, never more than 30 above, like #f2f6ff. Name them like lamps (Moonbeam, Dawn Glow), not colours that aren't white.

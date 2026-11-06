@@ -9,6 +9,7 @@ import type { Car } from '../sim/economy.ts';
 import { carProfileErrors, profileVsCar, type CarBodyProfile } from '../../schemas/carprofiles.ts';
 import { foldSkin, skinNormals, surfaceNet } from './carsurface.ts';
 import { addLamps, box, buildCockpit, buildDriver, type Lookup } from './cockpit.ts';
+import { addDrl, headGlow, rimParts, wheelLook } from './carparts.ts';
 import { carFittings, carVoxels, GLASS, HEAD, TAIL } from './voxels.ts';
 import { DEFAULT_PAINT, paintTexture, TAIL_DIM, type CarRig } from './carmesh.ts';
 
@@ -55,7 +56,7 @@ export function buildVoxelCar(car: Car, design: Design, driver: Driver, find: Lo
   const basePaint = find(design.paint)?.colors[0] ?? DEFAULT_PAINT;
   const kit = find(design.body);
   const trim = kit ? new THREE.MeshLambertMaterial({ color: kit.colors[0] }) : dark;
-  const heads = new THREE.MeshBasicMaterial({ color: '#fff3c0' }), tails = new THREE.MeshBasicMaterial({ color: TAIL_DIM });
+  const heads = new THREE.MeshBasicMaterial({ color: headGlow(design, find) }), tails = new THREE.MeshBasicMaterial({ color: TAIL_DIM });
   const glassMat = new THREE.MeshLambertMaterial({ color: '#8fd0ea', transparent: true, opacity: 0.32 });
 
   const mats = new Map<string, THREE.Material>();
@@ -116,6 +117,7 @@ export function buildVoxelCar(car: Car, design: Design, driver: Driver, find: Lo
     bolt(stripe, s > 0 ? 'left' : 'right');
   }
   if (car.id === 'taxi') body.add(box(0.7, 0.2, 0.26, new THREE.MeshLambertMaterial({ color: '#ffd23e', emissive: '#a07a00' }), 0, roof + 0.1, cabZ));
+  addDrl(body, design, find, { wide: wide * 0.3, y: fit.deck - 0.08, z: len / 2 + 0.02, across: wide * 0.22 }); // along the top of the nose, where a DRL strip runs
 
   // Bumpers and mirrors the DamageRig can pop off.
   const fragile: { mesh: THREE.Object3D; side: 'front' | 'back' | 'left' | 'right' }[] = [];
@@ -144,14 +146,12 @@ export function buildVoxelCar(car: Car, design: Design, driver: Driver, find: Lo
 
   // Round wheels: a steer group holding a roll group, so rig.front steers and rig.wheels spins.
   const wheels: THREE.Object3D[] = [], front: THREE.Object3D[] = [];
-  const tyreMat = new THREE.MeshLambertMaterial({ color: '#1b1b1f' }), rimMat = new THREE.MeshLambertMaterial({ color: '#c8c8cc' });
+  const tyreMat = new THREE.MeshLambertMaterial({ color: '#1b1b1f' }), look = wheelLook(design, find);
   const r = sculpt.wheelRadius, wd = sculpt.wheelWidth;
-  const tyre = new THREE.CylinderGeometry(r, r, wd, 28).rotateZ(Math.PI / 2), rim = new THREE.CylinderGeometry(r * 0.62, r * 0.62, wd + 0.02, 24).rotateZ(Math.PI / 2);
-  const spoke = new THREE.BoxGeometry(wd + 0.05, r * 0.16, r * 1.1);
+  const tyre = new THREE.CylinderGeometry(r, r, wd, 28).rotateZ(Math.PI / 2);
   for (const w of sculpt.wheels) {
     const steer = new THREE.Group(), roll = new THREE.Group();
-    roll.add(new THREE.Mesh(tyre, tyreMat), new THREE.Mesh(rim, rimMat));
-    for (let i = 0; i < 3; i++) { const s = new THREE.Mesh(spoke, dark); s.rotation.x = (i * Math.PI) / 3; roll.add(s); }
+    roll.add(new THREE.Mesh(tyre, tyreMat), ...rimParts(look, r, wd, dark));
     steer.add(roll);
     steer.position.set(w.x, r, w.z - len / 2);
     root.add(steer);

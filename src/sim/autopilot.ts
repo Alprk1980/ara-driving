@@ -39,9 +39,10 @@ export function drive(g: Game, style: Style = CASUAL): DriveIntent {
   const stopAtEnd = next?.kind === 'arrive' && !(g.quest?.offer.type === 'trial' && g.quest.phase === 'Active');
   const target = next && next.kind !== 'arrive' ? style.corner : stopAtEnd ? 1.5 : 1e9;
   const safe = Math.sqrt(target * target + (2 * 9 * Math.max(0, toTurn - 6)) / style.care);
-  const ahead = g.traffic.blocker(p, p.dir, 6 + Math.abs(p.speed) * style.care);
+  const nose = p.car.size[0] / 2; // the gaps were set for a hatchback's 1.9 m; a bus's nose is 5.4 m ahead of its middle
+  const ahead = g.traffic.blocker(p, p.dir, 4 + nose + Math.abs(p.speed) * style.care);
   const rules = stopAt === null ? Infinity : Math.sqrt(2 * STOP_MPS2 * Math.max(0, stopAt));
-  const limit = Math.min(p.vMax, safe, rules, ahead ? ahead.speed + Math.max(0, ahead.gap - 5) * 0.8 : Infinity); // eases off behind a car, as a player would
+  const limit = Math.min(p.vMax, safe, rules, ahead ? ahead.speed + Math.max(0, ahead.gap - nose - 3) * 0.8 : Infinity); // eases off behind a car, as a player would
   const facing = Math.abs(err) < 1.2;
   const over = p.speed - limit;
   return {

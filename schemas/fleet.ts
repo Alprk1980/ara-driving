@@ -3,9 +3,9 @@
 // 18 t gross. Fire pumps from Royal Berkshire and South Yorkshire's published lists: 7.7-8.5 m long, 2.46-2.55 wide,
 // 3.3-3.4 tall, 12.5-13 t. A box ambulance on a Sprinter or Ducato chassis has no one published size, so its row is a
 // judged range around a 6.4 m van. Liveries are fixed here: Battenburg colours are a rule, not a design choice.
-export const FLEET_IDS = ['bus_single', 'bus_double', 'police_car', 'police_van', 'ambulance', 'fire_engine', 'recovery_truck'] as const;
+export const FLEET_IDS = ['bus_single', 'bus_double', 'police_car', 'police_van', 'ambulance', 'fire_engine', 'recovery_truck', 'patrol_van', 'rrv'] as const;
 export type FleetId = (typeof FLEET_IDS)[number];
-export type Role = 'bus' | 'police' | 'ambulance' | 'fire' | 'recovery';
+export type Role = 'bus' | 'police' | 'ambulance' | 'fire' | 'recovery' | 'patrol'; // patrol: a roadside mechanic's van
 
 export type Pane = { z0: number; z1: number; y0: number; y1: number };
 export type FleetVehicle = {
@@ -28,6 +28,11 @@ export const FLEET_RULES: Record<FleetId, Rule> = {
   police_van: { length: [5.2, 6], half: [0.98, 1.05], top: [2.2, 2.6], wheel: 0.35, kg: 3200, role: 'police' },
   ambulance: { length: [6, 7], half: [1.08, 1.2], top: [2.7, 3], wheel: 0.36, kg: 4600, role: 'ambulance' },
   fire_engine: { length: [7.7, 8.6], half: [1.2, 1.28], top: [3.1, 3.4], wheel: 0.5, kg: 12500, role: 'fire' },
+  // A roadside patrol van, the size of a Transit Custom L1: 4.97 m long, 1.99 wide without mirrors, about 2 tall, 3 t
+  // gross (Ford's published dimensions, from memory). A rapid response car is an estate, like the police one: Skoda
+  // Octavia and Volvo V90 estates are what UK trusts run, about 4.7-4.95 m, with kit aboard.
+  patrol_van: { length: [4.8, 5.1], half: [0.95, 1.02], top: [1.9, 2.1], wheel: 0.34, kg: 2800, role: 'patrol' },
+  rrv: { length: [4.6, 5], half: [0.88, 0.96], top: [1.42, 1.62], wheel: 0.33, kg: 1900, role: 'ambulance' },
   recovery_truck: { length: [7.4, 8.4], half: [1.12, 1.25], top: [2.4, 3], wheel: 0.42, kg: 7500, role: 'recovery' }, // a 7.5 t slide-bed truck, as UK fleets run on the Isuzu N-Series, with a 5.6 m bed. Its overall length and height are judged round that
 };
 
@@ -38,6 +43,7 @@ export const LIVERY: Record<Exclude<Role, 'bus'>, { paint: string; a: string; b:
   ambulance: { paint: '#f5e94a', a: '#d9e021', b: '#1f9a54', beacon: '#3a7bff' },
   fire: { paint: '#c8201e', a: '#e6e021', b: '#c8201e', beacon: '#3a7bff' },
   recovery: { paint: '#f0a81e', a: '#f0a81e', b: '#d8241e', beacon: '#ffa21f', plain: true }, // no Battenburg: recovery trucks aren't an emergency service, and show amber, not blue
+  patrol: { paint: '#eef0f2', a: '#eef0f2', b: '#2f8f5b', beacon: '#ffa21f', plain: true }, // a roadside patrol: amber beacons like recovery, in the town's own plain colours rather than any real firm's
 };
 
 const num = (n: unknown): n is number => typeof n === 'number' && Number.isFinite(n);

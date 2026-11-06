@@ -15,7 +15,7 @@ export const CAR_JOB_TYPES = { pickup: 'delivery', taxi: 'passenger', coupe: 'tr
 export type JobCar = keyof typeof CAR_JOB_TYPES;
 export type QuestText = { id: string; type: QuestType; title: string; text: string; twist?: Twist; car?: JobCar };
 
-export type CatalogueKind = 'paint' | 'pattern' | 'decal' | 'body' | 'outfit' | 'accessory';
+export type CatalogueKind = 'paint' | 'pattern' | 'decal' | 'body' | 'wheels' | 'lights' | 'outfit' | 'accessory';
 export type CatalogueItem = { id: string; kind: CatalogueKind; style: string; tier: Tier; name: string; price: number; colors: string[]; shape?: string };
 
 // style -> the tier the design document gives it and how many colours it reads.
@@ -27,6 +27,13 @@ export const STYLES: Record<CatalogueKind, Record<string, { tier: Tier; colors: 
   },
   decal: { small: { tier: 'common', colors: 1 }, large: { tier: 'rare', colors: 1 } },
   body: { spoiler: { tier: 'epic', colors: 1 }, sport_kit: { tier: 'epic', colors: 1 }, signature: { tier: 'legendary', colors: 2 } },
+  // Wheels: a set of four. Real 17-inch aftermarket alloys cost about £570-680 a set (Wheelbase, 2026 listings), some 400-490
+  // Points at the game's £1.40 a Point; parts stay scaled down on purpose, as paint does (decided 2026-11-05), so they
+  // keep the catalogue's tier prices. Steel wheels with trims are what a base car leaves the factory on.
+  wheels: { steel: { tier: 'common', colors: 1 }, alloy: { tier: 'rare', colors: 1 }, sport: { tier: 'epic', colors: 1 } },
+  // Lights: the headlamps' glow. Only the colour of white changes: UK law wants white headlamps (UN R112/R98), white
+  // daytime running lamps (R87, on every new car since 2011 under EU 2008/89/EC) and red tail lamps, so tails stay red.
+  lights: { halogen: { tier: 'common', colors: 1 }, led: { tier: 'rare', colors: 1 }, drl: { tier: 'epic', colors: 1 } },
   outfit: { jacket: { tier: 'rare', colors: 2 }, themed: { tier: 'epic', colors: 2 }, costume: { tier: 'legendary', colors: 2 } },
   accessory: { cap: { tier: 'common', colors: 1 }, gloves: { tier: 'common', colors: 1 }, sunglasses: { tier: 'rare', colors: 1 } },
 };
@@ -372,6 +379,25 @@ export function stationErrors(s: Station): string[] {
   return out;
 }
 
+const rgb = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+// What counts as white light: every channel bright and close together. A warm halogen (about 3,200 K) leans red over
+// blue; an LED or DRL (5,500-6,500 K) is cool, but a lamp bluer than that fails the MOT as not white (DVSA testers do
+// fail "too blue" bulbs). The thresholds are judged to sit inside those colour temperatures, not measured.
+export const WHITE_MIN = 200, WHITE_SPREAD = 55, WARM_LEAN = 20, BLUE_MAX_LEAN = 30;
+// Steel wheels come painted silver, grey or black: little colour, at most this spread between channels.
+export const STEEL_SPREAD = 30;
+
+function partColourErrors(c: CatalogueItem): string[] {
+  const [r, g, b] = rgb(c.colors[0]), spread = Math.max(r, g, b) - Math.min(r, g, b);
+  if (c.kind === 'lights') {
+    if (Math.min(r, g, b) < WHITE_MIN || spread > WHITE_SPREAD) return [`${c.id}: headlamps must shine white by law: every channel ${WHITE_MIN} or more and within ${WHITE_SPREAD} of each other`];
+    if (c.style === 'halogen' && r - b < WARM_LEAN) return [`${c.id}: a halogen is warm white: red at least ${WARM_LEAN} above blue`];
+    if (c.style !== 'halogen' && (b < r - 10 || b - r > BLUE_MAX_LEAN)) return [`${c.id}: an ${c.style} is cool white: blue at least red minus 10, and no more than ${BLUE_MAX_LEAN} above red, or it fails the MOT as blue`];
+  }
+  if (c.kind === 'wheels' && c.style === 'steel' && spread > STEEL_SPREAD) return [`${c.id}: steel wheels are silver, grey or black: channels within ${STEEL_SPREAD} of each other`];
+  return [];
+}
+
 export function catalogueErrors(c: CatalogueItem): string[] {
   if (!c || typeof c !== 'object') return ['item is not an object'];
   const out: string[] = [];
@@ -382,6 +408,7 @@ export function catalogueErrors(c: CatalogueItem): string[] {
   if (c.tier !== rule.tier) out.push(`${c.id}: ${c.kind} ${c.style} must be tier ${rule.tier}`);
   if (c.price !== TIER_PRICE[rule.tier]) out.push(`${c.id}: price must be ${TIER_PRICE[rule.tier]} for tier ${rule.tier}`);
   if (!Array.isArray(c.colors) || c.colors.length !== rule.colors || c.colors.some((h) => !HEX.test(h))) out.push(`${c.id}: colors must be exactly ${rule.colors} lowercase #rrggbb value(s)`);
+  if (Array.isArray(c.colors) && c.colors.every((h) => HEX.test(h))) out.push(...partColourErrors(c));
   if (c.kind === 'decal' ? !DECAL_SHAPES.includes(c.shape as (typeof DECAL_SHAPES)[number]) : c.shape !== undefined) out.push(`${c.id}: shape is required on decals (one of ${DECAL_SHAPES.join(', ')}) and banned elsewhere`);
   return out;
 }

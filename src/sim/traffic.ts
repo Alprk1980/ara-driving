@@ -69,6 +69,7 @@ export type TrafficCar = {
   chase: boolean; replan: number; returning: boolean; // following the player; heading back to the station
   amber: boolean; load: Rider | null; loading: number; // a recovery truck's beacons, what's on its bed, and the seconds left winching it up
   riding: boolean; lift: number; // on a recovery truck's bed, and how high off the road
+  pulled: boolean; // stopped at the kerb by the player's police car, for a word at the window
 };
 
 /** One town car model per traffic car, in turn, so the sim collides with what's drawn. */
@@ -106,6 +107,9 @@ export class Traffic {
   hailing: Vec | null = null;
   rider: { bus: TrafficCar; rang: boolean } | null = null;
   onRecovered: (() => void) | null = null; // the truck has the player's car
+  /** A crash this crew is wanted at, offered to the player when they're on shift in that service: true if they've
+   *  taken it, and then no crew of that kind is sent from the station. */
+  onIncident: ((w: TrafficCar, role: Exclude<Role, 'bus'>) => boolean) | null = null;
   private held = new Map<number, TrafficCar>(); // junction -> the car crossing it
 
   constructor(town: Town, rng: Rng, near: Vec) {
@@ -131,7 +135,7 @@ export class Traffic {
   }
 
   private blank(colour: number, size: { halfL: number; halfW: number }, id: FleetId | null = null): TrafficCar {
-    return { x: -1000, z: -1000, heading: 0, speed: 0, cruise: 0, want: 0, colour, edge: 0, to: 0, along: 0, nextEdge: 0, nextTo: 0, lane: LANE, laneGoal: LANE, waiting: 0, passing: 0, holding: -1, cool: 0, braking: false, vx: 0, vz: 0, spin: 0, dents: { front: 0, back: 0, left: 0, right: 0 }, damage: 0, wreck: 0, ...size, signal: 0, role: id ? FLEET_RULES[id].role : 'car', fleet: id, kg: id ? FLEET_RULES[id].kg : CAR_KG, plan: null, leg: 0, route: 0, dwell: 0, served: -1, callAt: -1, calling: false, blocker: null, ignore: null, ignoreFor: 0, blue: false, scene: 0, job: null, dormant: false, chase: false, replan: 0, returning: false, amber: false, load: null, loading: 0, riding: false, lift: 0 };
+    return { x: -1000, z: -1000, heading: 0, speed: 0, cruise: 0, want: 0, colour, edge: 0, to: 0, along: 0, nextEdge: 0, nextTo: 0, lane: LANE, laneGoal: LANE, waiting: 0, passing: 0, holding: -1, cool: 0, braking: false, vx: 0, vz: 0, spin: 0, dents: { front: 0, back: 0, left: 0, right: 0 }, damage: 0, wreck: 0, ...size, signal: 0, role: id ? FLEET_RULES[id].role : 'car', fleet: id, kg: id ? FLEET_RULES[id].kg : CAR_KG, plan: null, leg: 0, route: 0, dwell: 0, served: -1, callAt: -1, calling: false, blocker: null, ignore: null, ignoreFor: 0, blue: false, scene: 0, job: null, dormant: false, chase: false, replan: 0, returning: false, amber: false, load: null, loading: 0, riding: false, lift: 0, pulled: false };
   }
 
   /** Where on its route this bus's driver would see someone waiting: the stop being hailed, if it's on this route. */
@@ -336,6 +340,10 @@ export class Traffic {
         if (fwd > -2 && side < GIVE_WAY_SIDE_M) yielding = true;
       }
     }
+    if (!c.blue && player.blue && player.speed > 2 && dist(player, c) < GIVE_WAY_M) { // the player on blue lights, as any crew
+      const dx = c.x - player.x, dz = c.z - player.z, fwd = dx * Math.sin(player.heading) + dz * Math.cos(player.heading), side = Math.abs(dx * Math.cos(player.heading) - dz * Math.sin(player.heading));
+      if (fwd > -2 && side < GIVE_WAY_SIDE_M) yielding = true;
+    }
     // Holding a junction while stopped behind another car only blocks it: the car in front may be the one waiting for
     // the junction, and then neither ever moves. So a held-up holder lets the junction go.
     if (c.holding >= 0 && c.blocker && c.blocker.speed < 1 && c.speed < 1) this.release(c);
@@ -380,6 +388,7 @@ export class Traffic {
     if (((!c.blue && c.laneGoal <= PASS_LANE) || (c.blue && c.laneGoal !== BLUE_LANE)) && !blocked && c.scene <= 0) want = Math.max(want, 6);
     if (c.blue && c.laneGoal !== BLUE_LANE && blocked && c.scene <= 0) want = Math.max(want, CREEP_MPS); // a car at a standstill can't change lane, so a crew edges forward as it leans round
     if (yielding) { want = c.lane < YIELD_LANE - 0.3 ? Math.min(want, PULL_IN_MPS) : 0; c.laneGoal = YIELD_LANE; } // still rolling while they move over: a stopped car can't
+    if (c.pulled) { want = c.lane < STOP_LANE - 0.3 ? Math.min(want, PULL_IN_MPS) : 0; c.laneGoal = STOP_LANE; c.signal = -1; } // pulled in for the police, as the Highway Code's rule 106 asks
 
     c.want = want;
     c.braking = want < c.speed - 0.5;
@@ -550,10 +559,32 @@ export class Traffic {
 
   /** Who comes to a crash: police and an ambulance always, and the fire service when it's bad. */
   private respond(w: TrafficCar) {
-    this.call('police', w, w, w);
-    this.call('ambulance', w, w, w);
-    if (w.damage >= HEAVY_WRECK) this.call('fire', w, w, w);
-    this.call('recovery', w, w, w);
+    for (const role of ['police', 'ambulance', 'fire', 'recovery'] as const) {
+      if (role === 'fire' && w.damage < HEAVY_WRECK) continue;
+      if (!this.onIncident?.(w, role)) this.call(role, w, w, w);
+    }
+  }
+
+  /** A driver for a traffic stop: an ordinary car on the move, a little way off. */
+  offender(near: Vec): TrafficCar | null {
+    const list = this.cars.filter((c) => c.role === 'car' && !c.dormant && c.wreck <= 0 && !c.riding && !c.pulled && c.speed > 3 && dist(c, near) > 40 && dist(c, near) < 260);
+    return list.length ? list[Math.floor(this.rng() * list.length)] : null;
+  }
+
+  /** Pulled in at the kerb for the police, or let go again. */
+  pullOver(c: TrafficCar, on: boolean) {
+    c.pulled = on;
+    if (on) this.release(c); else c.laneGoal = LANE;
+  }
+
+  /** A wreck the player's recovery truck has dropped at the yard: gone for good, and its slot back in the traffic. */
+  dropWreck(w: TrafficCar) {
+    w.riding = false;
+    w.lift = 0;
+    w.wreck = 0;
+    w.dents = { front: 0, back: 0, left: 0, right: 0 };
+    w.damage = 0;
+    this.place(w, this.seen);
   }
 
   /** Which way the car turns at the end of its road: -1 left, 1 right, 0 straight on. */

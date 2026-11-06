@@ -1,0 +1,282 @@
+[
+  {
+    "id": "lost_child_market",
+    "career": "police",
+    "kind": "emergency",
+    "title": "Lost child near market",
+    "text": "A small child has wandered from a market stall in {place} and needs help finding a parent."
+  },
+  {
+    "id": "stolen_bike_school",
+    "career": "police",
+    "kind": "priority",
+    "title": "Stolen bike at school",
+    "text": "A child's bike has gone missing from the bike rack in {place} and the family wants help."
+  },
+  {
+    "id": "ambulance_lane_blocked",
+    "career": "police",
+    "kind": "emergency",
+    "title": "Ambulance lane blocked",
+    "text": "A parked van is blocking the lane needed by an ambulance in {place} and traffic needs clearing."
+  },
+  {
+    "id": "lost_dog_playground",
+    "career": "police",
+    "kind": "priority",
+    "title": "Lost dog at park",
+    "text": "A friendly lost dog was last seen near the playground in {place} and its owner is worried."
+  },
+  {
+    "id": "bakery_shoplifter",
+    "career": "police",
+    "kind": "emergency",
+    "title": "Shoplifter at bakery",
+    "text": "A person has taken a box of biscuits and left a bakery in {place} without paying, but no one is upset."
+  },
+  {
+    "id": "community_hall_noisy_party",
+    "career": "police",
+    "kind": "priority",
+    "title": "Noisy party at hall",
+    "text": "A loud music and giggling party at the community hall in {place} is keeping neighbours awake."
+  },
+  {
+    "id": "missing_grandparent_pond",
+    "career": "police",
+    "kind": "emergency",
+    "title": "Missing grandparent",
+    "text": "A grandparent has not returned from a walk near the pond in {place} and family wants help."
+  },
+  {
+    "id": "loose_allotment_gate",
+    "career": "police",
+    "kind": "priority",
+    "title": "Loose garden gate",
+    "text": "A garden gate has come loose near the allotments in {place} and a family wants it checked."
+  },
+  {
+    "id": "flat_van_battery",
+    "career": "mechanic",
+    "kind": "battery",
+    "title": "Car battery is flat",
+    "text": "A small van near {place} has a flat battery and cannot start for a delivery."
+  },
+  {
+    "id": "soft_rear_tyre",
+    "career": "mechanic",
+    "kind": "tyre",
+    "title": "Tyre has gone soft",
+    "text": "A family car near {place} has a soft rear tyre after a small puncture."
+  },
+  {
+    "id": "empty_petrol_tank",
+    "career": "mechanic",
+    "kind": "fuel",
+    "title": "Petrol tank empty",
+    "text": "A hatchback parked near {place} has run out of fuel and needs a top-up."
+  },
+  {
+    "id": "keys_locked_in_car",
+    "career": "mechanic",
+    "kind": "keys",
+    "title": "Keys locked in car",
+    "text": "Someone's keys are locked inside a parked car near {place} and need unlocking."
+  },
+  {
+    "id": "engine_warning_light",
+    "career": "mechanic",
+    "kind": "engine",
+    "title": "Engine warning light",
+    "text": "A little car near {place} will not start and has a gentle engine warning light."
+  },
+  {
+    "id": "bus_flat_battery",
+    "career": "mechanic",
+    "kind": "battery",
+    "title": "Flat battery again",
+    "text": "A school bus near {place} has a flat battery and needs a jump start."
+  },
+  {
+    "id": "taxi_flat_tyre",
+    "career": "mechanic",
+    "kind": "tyre",
+    "title": "Flat tyre on road",
+    "text": "A taxi near {place} has a flat tyre and needs a spare fitted."
+  },
+  {
+    "id": "wrong_fuel_delivery_van",
+    "career": "mechanic",
+    "kind": "fuel",
+    "title": "Wrong fuel put in",
+    "text": "A delivery van near {place} was given the wrong fuel and needs the tank cleared."
+  },
+  {
+    "id": "recovery_delivery_van_wont_start",
+    "career": "recovery",
+    "kind": "engine",
+    "title": "Van won't start",
+    "text": "A delivery van won't start near {place} and needs recovering."
+  },
+  {
+    "id": "recovery_clutch_feels_stuck",
+    "career": "recovery",
+    "kind": "clutch",
+    "title": "Clutch feels stuck",
+    "text": "The clutch pedal feels odd near {place}, so the car needs a tow."
+  },
+  {
+    "id": "recovery_gears_jammed",
+    "career": "recovery",
+    "kind": "gearbox",
+    "title": "Gears feel jammed",
+    "text": "The gears won't shift smoothly near {place}, so recovery is needed."
+  },
+  {
+    "id": "recovery_family_car_engine_runs_rough",
+    "career": "recovery",
+    "kind": "engine",
+    "title": "Engine runs rough",
+    "text": "A family car runs roughly near {place} and cannot be fixed there."
+  },
+  {
+    "id": "recovery_clutch_slipping",
+    "career": "recovery",
+    "kind": "clutch",
+    "title": "Clutch slipping",
+    "text": "The clutch is slipping near {place}, so the car needs recovery."
+  },
+  {
+    "id": "recovery_gearbox_funny_noise",
+    "career": "recovery",
+    "kind": "gearbox",
+    "title": "Gearbox making noise",
+    "text": "The gearbox makes a funny noise near {place} and needs a tow."
+  },
+  {
+    "id": "recovery_engine_too_warm",
+    "career": "recovery",
+    "kind": "engine",
+    "title": "Engine overheating",
+    "text": "An engine is too warm near {place}, so recovery is needed."
+  },
+  {
+    "id": "recovery_clutch_pedal_low",
+    "career": "recovery",
+    "kind": "clutch",
+    "title": "Clutch pedal low",
+    "text": "The clutch pedal sits low near {place}, so the car needs a tow."
+  },
+  {
+    "id": "elderly_trouble_breathing",
+    "career": "ambulance",
+    "kind": "cat1",
+    "title": "Trouble breathing",
+    "text": "A lady is struggling to breathe near {place} and needs calm help."
+  },
+  {
+    "id": "wheezing_child_after_running",
+    "career": "ambulance",
+    "kind": "cat2",
+    "title": "Wheezing after running",
+    "text": "A boy is wheezing after running near {place} and needs checking."
+  },
+  {
+    "id": "older_person_fell",
+    "career": "ambulance",
+    "kind": "cat3",
+    "title": "Older lady fell",
+    "text": "An older lady had a fall near {place} and feels sore but calm."
+  },
+  {
+    "id": "collapsed_man_roadside",
+    "career": "ambulance",
+    "kind": "cat1",
+    "title": "Collapsed man",
+    "text": "A man has collapsed near {place} and is awake but needs help now."
+  },
+  {
+    "id": "chest_pains_after_fall",
+    "career": "ambulance",
+    "kind": "cat2",
+    "title": "Chest pains after fall",
+    "text": "A boy has chest pains after falling near {place} and needs checking."
+  },
+  {
+    "id": "twisted_ankle_girl",
+    "career": "ambulance",
+    "kind": "cat3",
+    "title": "Twisted ankle",
+    "text": "A girl twisted her ankle at {place} and wants a gentle check."
+  },
+  {
+    "id": "child_trouble_breathing",
+    "career": "ambulance",
+    "kind": "cat1",
+    "title": "Child trouble breathing",
+    "text": "A child is struggling to breathe near {place} and needs calm help."
+  },
+  {
+    "id": "chest_feels_tight_girl",
+    "career": "ambulance",
+    "kind": "cat2",
+    "title": "Chest feels tight",
+    "text": "A girl says her chest feels tight at {place} and needs checking."
+  },
+  {
+    "id": "house_fire_chip_pan",
+    "career": "fire",
+    "kind": "house_fire",
+    "title": "Chip pan smoke",
+    "text": "Mum's chip pan made smoke in the kitchen near {place}. Everyone is safely out."
+  },
+  {
+    "id": "car_fire_bonnet_smoke",
+    "career": "fire",
+    "kind": "car_fire",
+    "title": "Smoke under bonnet",
+    "text": "Smoke drifts from under a parked car's bonnet near {place}. The owner is safe."
+  },
+  {
+    "id": "bin_fire_wheelie_bin",
+    "career": "fire",
+    "kind": "bin_fire",
+    "title": "Smouldering wheelie bin",
+    "text": "A wheelie bin is smouldering gently near {place}. The street is clear."
+  },
+  {
+    "id": "rescue_cat_roof",
+    "career": "fire",
+    "kind": "rescue",
+    "title": "Cat on garage roof",
+    "text": "A kitten is stuck on a garage roof near {place} and needs help coming down."
+  },
+  {
+    "id": "false_alarm_toast",
+    "career": "fire",
+    "kind": "false_alarm",
+    "title": "Toast alarm",
+    "text": "Burnt toast set off the smoke alarm near {place}. There is no fire at all."
+  },
+  {
+    "id": "house_fire_lamp_smoke",
+    "career": "fire",
+    "kind": "house_fire",
+    "title": "Lamp smoke",
+    "text": "Smoke from a living room lamp near {place}. The family is outside."
+  },
+  {
+    "id": "car_fire_bonnet_steam",
+    "career": "fire",
+    "kind": "car_fire",
+    "title": "Bonnet steam",
+    "text": "Smoke under a parked car's bonnet near {place}. It was only steam."
+  },
+  {
+    "id": "bin_fire_leaf_skip",
+    "career": "fire",
+    "kind": "bin_fire",
+    "title": "Leaf skip smoke",
+    "text": "A small skip of leaves is smouldering near {place}. The garden is safe and clear."
+  }
+]

@@ -12,6 +12,8 @@ import { dist, ROAD_W, SIZE, ZIGZAG_M, type Plot, type Vec } from '../sim/town.t
 import { TRAFFIC_LENGTH } from '../sim/traffic.ts';
 import { buildCar, DEFAULT_PAINT, disposeCar, TAIL_BRAKE, TAIL_DIM, type CarRig, type Lookup } from './carmesh.ts';
 import { buildVoxelCar, voxelProfileFor } from './voxelcar.ts';
+import { buildFleetCar, flashBeacons, type FleetRig } from './fleetcar.ts';
+import { FLEET_SHAPES } from './fleet.ts';
 import { BLINK_OFF, BLINK_ON, LAMP_OFF, LAMP_REVERSE, STEER_TURN } from './cockpit.ts';
 import { DamageRig } from './damage.ts';
 import { Debris } from './debris.ts';
@@ -545,8 +547,8 @@ export class View {
 
   setCar(design: Design, driver: Driver) {
     if (this.rig) { this.scene.remove(this.rig.root); disposeCar(this.rig); }
-    const car = this.game.player.car;
-    this.rig = this.bodyStyle === 'voxel' && voxelProfileFor(car) ? buildVoxelCar(car, design, driver, this.find) : buildCar(car, design, driver, this.find);
+    const car = this.game.player.car, work = FLEET_SHAPES.find((v) => v.id === car.id); // a service vehicle on a shift
+    this.rig = work ? buildFleetCar(car, work, driver, this.find) : this.bodyStyle === 'voxel' && voxelProfileFor(car) ? buildVoxelCar(car, design, driver, this.find) : buildCar(car, design, driver, this.find);
     this.paint = this.find(design.paint)?.colors[0] ?? DEFAULT_PAINT;
     this.dmg = new DamageRig(this.rig);
     this.dmg.set(this.game.player.dents, this.game.player.marks);
@@ -607,9 +609,10 @@ export class View {
     } else if (this.index === 0 || this.index === 1) {
       const far = this.index === 1;
       const c = { x: Math.sin(this.yaw), z: Math.cos(this.yaw) }; // trails the car, so a turn swings it into view
-      let back = far ? 13 + speedK * 5 : 6.2;
-      for (let d = 2; d <= back; d += 1.5) if (town.boxAt(p.x - c.x * d, p.z - c.z * d, 1) !== null) { back = Math.max(2.5, d - 1.5); break; } // pull in when a wall is behind
-      pos.set(p.x - c.x * back, far ? 5.5 : 2.6, p.z - c.z * back);
+      const big = Math.max(1, p.car.size[0] / 4.2), up = Math.max(1, p.car.size[1] / 1.5); // a bus or a fire engine is filmed from further back and higher up
+      let back = (far ? 13 + speedK * 5 : 6.2) * big;
+      for (let d = 2; d <= back; d += 1.5) if (town.boxAt(p.x - c.x * d, p.z - c.z * d, 1) !== null) { back = Math.max(2.5 * big, d - 1.5); break; } // pull in when a wall is behind
+      pos.set(p.x - c.x * back, (far ? 5.5 : 2.6) * up, p.z - c.z * back);
       look.set(p.x + f.x * 5, 1.1, p.z + f.z * 5);
     } else if (this.index === 2) {
       const side = this.blocked(p, r, 8) ? -1 : 1; // swap sides to stay on the road
@@ -697,6 +700,7 @@ export class View {
     const flash = this.game.time % (60 / INDICATOR_PER_MIN) < 30 / INDICATOR_PER_MIN;
     rig.blinkLeft.color.set(stalk < 0 && flash ? BLINK_ON : BLINK_OFF);
     rig.blinkRight.color.set(stalk > 0 && flash ? BLINK_ON : BLINK_OFF);
+    if ('beacons' in rig) flashBeacons(rig as FleetRig, this.game.player.blue || !!this.game.shift && (this.game.shift.task?.kind === 'tow' || this.game.shift.task?.kind === 'fix') && this.game.shift.held > 0, this.game.time); // amber beacons at work by the roadside, blue on the way to a shout
 
     let turn = (this.game.ride?.bus.heading ?? this.game.foot?.heading ?? p.heading) - this.yaw; // on foot or on a bus, it trails you
     while (turn > Math.PI) turn -= 2 * Math.PI;

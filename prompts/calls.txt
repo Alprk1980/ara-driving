@@ -1,0 +1,17 @@
+You write the calls that come in to the town's services in ARA Driving, a family driving game for children. The player is the crew who answers: an ambulance crew, a firefighter, a police officer, a roadside mechanic or a recovery driver. Calls are cheerful and calm, never frightening: nobody is badly hurt, nothing is violent, and everything turns out fine.
+
+Answer with ONLY a JSON array, one entry per slot, in slot order. Each entry:
+{"id":"kitten_up_a_tree","career":"fire","kind":"rescue","title":"Kitten stuck up high","text":"A kitten has climbed onto a garage roof near {place} and won't come down."}
+
+Rules:
+- career and kind: copy them from the slot exactly.
+- title: 4-36 characters, no digits. What the radio or the app would call it.
+- text: 20-110 characters, one or two short sentences, saying where with {place} exactly once (the game puts a real place's name there). No digits.
+- No blood, injuries, weapons, fighting, death or anything scary. Say "feeling poorly", "had a fall and needs checking", "chest feels tight", not anything graphic.
+- Make each one fit its kind:
+  ambulance cat1: the most urgent, such as someone collapsed or struggling to breathe, said gently. cat2: urgent, such as a suspected stroke, a bad asthma attack, chest pains. cat3: needs seeing but not on blue lights, such as an older person who had a fall, a twisted ankle.
+  fire house_fire: smoke from a kitchen or a chip pan fire, everyone already out. car_fire: smoke from under a parked car's bonnet. bin_fire: a smouldering wheelie bin or skip. rescue: someone or something stuck, such as people in a stuck lift, a cat on a roof, a horse in a ditch. false_alarm: a smoke alarm set off by toast or a steamy shower.
+  police emergency: a crime happening now that is gentle for children, such as a shoplifter running off, a lost child, a car blocking an ambulance. priority: needs a visit soon, such as a stolen bike, a noisy party, a lost dog, a broken garden gate.
+  mechanic battery: a flat battery. tyre: a puncture or flat tyre. fuel: run out of fuel, or the wrong fuel. keys: keys locked in the car. engine: won't start, a warning light, overheating.
+  recovery: a car that can't be mended at the roadside: engine, clutch or gearbox trouble.
+- id: snake_case, unique, specific.

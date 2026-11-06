@@ -5,6 +5,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { chat, parseJson } from './llm.ts';
 import { adPlaces, CAR_JOB_TYPES, carJobErrors, catalogueErrors, chatterErrors, eventErrors, findErrors, GOAL_KINDS, goalErrors, GUIDE_KEYS, GUIDE_WORD, guideErrors, landmarkErrors, PLACE_KINDS, placeErrors, PROP_KINDS, questTextErrors, radioErrors, RANK_COUNT, rankErrors, regularErrors, skyErrors, SKY_SLOTS, stationErrors, storyPlaceErrors, STYLES, TIER_PRICE, TWISTS, VOICE_KEYS, voiceErrors, type CatalogueKind, type JobCar, type Place, type RadioLine, type Regular } from '../schemas/content.ts';
 import { PLACE_SHOPS, shopErrors, type Shop } from '../schemas/shops.ts';
+import { BASE_SAYS, CALL_CAREERS, CALL_KINDS, callErrors } from '../schemas/careers.ts';
 import { buildingSetErrors, buildingStyleErrors, type BuildingStyle } from '../schemas/buildings.ts';
 import { carProfileErrors, profileVsCar, type CarBodyProfile } from '../schemas/carprofiles.ts';
 import { FLEET_RULES, fleetErrors } from '../schemas/fleet.ts';
@@ -116,6 +117,42 @@ const KINDS: Record<string, Kind> = {
       { ask: 'Write 24 places: 12 house (named homes or streets of homes), 4 shop, 4 cafe, 2 park, 2 market. Avoid the most obvious names.' },
     ],
   },
+  // Stage D: the town has 93 plots and had 54 names, so names came round twice. These fill the rest, each kind set by
+  // its slot, with the recovery yard and the patrol base a career signs on at, named so BASE_SAYS can find them.
+  moreplaces: {
+    file: 'src/data/places.json', prompt: 'prompts/places.txt', errors: placeErrors as Kind['errors'], key: 'id',
+    batches: () => {
+      const want = new Town().plots.length - PLACES.length;
+      const kinds: [string, string][] = [['depot', 'a vehicle recovery yard: the name says Recovery or Towing'], ['depot', 'a breakdown patrol base and car repair garage: the name says Garage, Motors or Repairs'], ['depot', 'a builders merchant or timber yard'],
+        ...['shop', 'shop', 'shop', 'shop', 'shop', 'shop', 'cafe', 'cafe', 'cafe', 'cafe', 'office', 'office', 'office', 'office', 'market', 'market', 'clinic', 'clinic', 'park', 'park', 'library', 'school', 'house', 'house', 'house', 'house', 'house', 'house', 'house', 'house', 'house', 'house', 'shop', 'cafe', 'office', 'house'].map((k): [string, string] => [k, k === 'house' ? 'a named home or a street of homes' : `a ${k}`])].slice(0, Math.max(0, want));
+      const names = new Set(PLACES.map((p) => p.name.toLowerCase()));
+      return Array.from({ length: Math.ceil(kinds.length / 13) }, (_, b) => kinds.slice(b * 13, b * 13 + 13)).map((part): Batch => ({
+        ask: `Slots:\n${part.map(([k, what], n) => `${n + 1}. kind ${k}: ${what}`).join('\n')}\nWrite one place per slot, in order. These names are taken already, so avoid them and anything close: ${PLACES.map((p) => p.name).join(', ')}.`,
+        fits: (e, i) => {
+          const slot = part[i];
+          if (!slot) return ['more entries than slots'];
+          const out = e.kind === slot[0] ? [] : [`entry ${i + 1} must be kind ${slot[0]}`];
+          if (names.has(String(e.name).toLowerCase())) out.push(`${String(e.name)}: that name is taken`);
+          if (/Recovery or Towing/.test(slot[1]) && !BASE_SAYS.recovery.test(String(e.name))) out.push(`entry ${i + 1}: the name must say Recovery or Towing`);
+          if (/Garage, Motors/.test(slot[1]) && !BASE_SAYS.mechanic.test(String(e.name))) out.push(`entry ${i + 1}: the name must say Garage, Motors or Repairs`);
+          return out;
+        },
+      }));
+    },
+  },
+  // Stage D's calls, eight a career: the kinds, blue lights and times are the rules', the words are the model's.
+  calls: {
+    file: 'src/data/calls.json', prompt: 'prompts/calls.txt', errors: callErrors as Kind['errors'], key: 'id',
+    checker: 'These are 999 and breakdown calls for a family driving game, as JSON. Flag a call whose text does not fit its kind (a bin fire that sounds like a house fire, a category 3 ambulance call that sounds life-threatening), anything frightening for a young child, or two calls that say the same thing.',
+    batches: () => CALL_CAREERS.map((career) => {
+      const kinds = Object.keys(CALL_KINDS[career]), n = 8;
+      const slots = Array.from({ length: n }, (_, i) => kinds[i % kinds.length]);
+      return {
+        ask: `Write ${n} ${career} calls, one per slot, in order:\n${slots.map((k, i) => `${i + 1}. career ${career}, kind ${k}`).join('\n')}`,
+        fits: (e: Entry, i: number) => (e.career === career && e.kind === slots[i] ? [] : [`entry ${i + 1} must be career ${career}, kind ${slots[i]}`]),
+      };
+    }),
+  },
   quests: {
     file: 'src/data/quests.json', prompt: 'prompts/quests.txt', errors: questTextErrors as Kind['errors'], key: 'id',
     batches: () => [{ ask: 'Write 14 job cards with type delivery.' }, { ask: 'Write 14 job cards with type passenger.' }, { ask: 'Write 12 job cards with type trial.' }],
@@ -177,6 +214,28 @@ const KINDS: Record<string, Kind> = {
     }),
   },
   finds: { file: 'src/data/finds.json', prompt: 'prompts/finds.txt', errors: findErrors as Kind['errors'], key: 'id', batches: () => findBatches(8) },
+  // A find whose clue names the wrong landmark now, after the town's places changed: rewritten under the same id.
+  refinds: {
+    file: 'src/data/finds.json', prompt: 'prompts/finds.txt', errors: findErrors as Kind['errors'], key: 'id',
+    batches: () => {
+      const town = new Town(), places = townPlaces(), shipped = JSON.parse(readFileSync('src/data/finds.json', 'utf8')) as { id: string; spot: number; prop: string; clue: string }[];
+      const stale = shipped.map((f) => ({ f, ...landmarkFor(town, places, town.spots[f.spot]) })).filter(({ f, name, way }) => !f.clue.includes(name) || !f.clue.toLowerCase().includes(way));
+      for (const { f } of stale) replace.add(f.id);
+      return stale.length ? [{
+        ask: `Rewrite each of these finds' clues for its new landmark. Keep every id, spot and prop exactly.\n${stale.map(({ f, name, way }, n) => `${n + 1}. id ${f.id}, spot ${f.spot}, prop ${f.prop}: the clue must contain "${name}" exactly and say "${way}". Old clue: ${f.clue}`).join('\n')}`,
+        fits: (e: Entry, n: number) => {
+          const s = stale[n];
+          if (!s) return ['more entries than finds'];
+          const clue = String(e.clue);
+          return [
+            ...(e.id === s.f.id && e.spot === s.f.spot && e.prop === s.f.prop ? [] : [`entry ${n + 1} must keep id ${s.f.id}, spot ${s.f.spot} and prop ${s.f.prop}`]),
+            ...(clue.includes(s.name) ? [] : [`entry ${n + 1}: clue must contain "${s.name}" exactly`]),
+            ...(new RegExp(`\\b${s.way}\\b`, 'i').test(clue) ? [] : [`entry ${n + 1}: clue must say "${s.way}"`]),
+          ];
+        },
+      }] : [];
+    },
+  },
   skies: {
     file: 'src/data/skies.json', prompt: 'prompts/skies.txt', errors: skyErrors as Kind['errors'], key: 'id',
     batches: () => [{ ask: `Slots:\n${SKY_SLOTS.map((s) => `id ${s.id}, at ${s.at}, night ${s.night.join('-')}, sunPower ${s.sunPower.join('-')}, ambient ${s.ambient.join('-')}, tint brightness ${s.tint.join('-')} (0 black, 1 white), sky and fog brightness within 0.25 of each other`).join('\n')}` }],
@@ -209,6 +268,11 @@ Write 8 lines with topic travel.` },
       slotBatch([...slot('pattern', 'stripes', 2), ...slot('pattern', 'flames', 2), ...slot('pattern', 'checker', 2), ...slot('pattern', 'waves', 2), ...slot('decal', 'small', 4, ['star', 'heart', 'paw', 'number']), ...slot('decal', 'large', 4, ['bolt', 'crown', 'star', 'paw'])]),
       slotBatch([...slot('body', 'spoiler', 2), ...slot('body', 'sport_kit', 2), ...slot('body', 'signature', 2), ...slot('accessory', 'cap', 3), ...slot('accessory', 'gloves', 2), ...slot('accessory', 'sunglasses', 3), ...slot('outfit', 'jacket', 4), ...slot('outfit', 'themed', 3), ...slot('outfit', 'costume', 3)]),
     ],
+  },
+  // Wheels and lights, into the same catalogue: run on their own so the shipped items aren't asked for again.
+  carparts: {
+    file: 'src/data/catalogue.json', prompt: 'prompts/catalogue.txt', errors: catalogueErrors as Kind['errors'], key: 'id',
+    batches: () => [slotBatch([...slot('wheels', 'steel', 3), ...slot('wheels', 'alloy', 4), ...slot('wheels', 'sport', 3), ...slot('lights', 'halogen', 2), ...slot('lights', 'led', 3), ...slot('lights', 'drl', 3)])],
   },
   carprofiles: {
     file: 'src/data/carprofiles.json', prompt: 'prompts/carprofiles.txt', errors: carProfileErrors as Kind['errors'], key: 'id',
@@ -281,7 +345,7 @@ Write 8 lines with topic travel.` },
   fleet: {
     file: 'src/data/fleet.json', prompt: 'prompts/fleet.txt', errors: fleetErrors as Kind['errors'], key: 'id',
     checker: 'These are side elevations of British buses and emergency vehicles, as JSON, in metres. Picture each one. Flag a vehicle that would not read as what it is, whose windows fall outside its outline or overlap each other, whose wheels look wrong, or whose proportions look wrong for the real thing.',
-    batches: () => ([['bus_single', 'a single-deck town bus'], ['bus_double', 'a double-deck town bus'], ['police_car', 'a police estate car'], ['police_van', 'a police van'], ['ambulance', 'a box-bodied emergency ambulance'], ['fire_engine', 'a fire engine (rescue pump)'], ['recovery_truck', 'a 7.5 tonne slide-bed recovery truck: a day cab, then a long low flat bed']] as const).filter(([id]) => replace.has(id) || !existing('src/data/fleet.json').has(id)).map(([id, kind]) => ({
+    batches: () => ([['bus_single', 'a single-deck town bus'], ['bus_double', 'a double-deck town bus'], ['police_car', 'a police estate car'], ['police_van', 'a police van'], ['ambulance', 'a box-bodied emergency ambulance'], ['fire_engine', 'a fire engine (rescue pump)'], ['recovery_truck', 'a 7.5 tonne slide-bed recovery truck: a day cab, then a long low flat bed'], ['patrol_van', 'a roadside breakdown patrol van, a medium panel van like a Transit Custom: short sloping bonnet, cab glass, then a windowless load area'], ['rrv', 'an ambulance rapid response car: a family estate car with a bonnet, like the police estate']] as const).filter(([id]) => replace.has(id) || !existing('src/data/fleet.json').has(id)).map(([id, kind]) => ({
       ask: `Slots:\nid ${id}: ${kind}. It must be ${FLEET_RULES[id].length.join('-')} m long, half-width ${FLEET_RULES[id].half.join('-')} m, top ${FLEET_RULES[id].top.join('-')} m.\nWrite one entry.${carNotes[id] ? `\n\nA reviewer looked at the last one rendered and said:\n${carNotes[id]}\nFix what's fair, within the limits.` : ''}`,
       fits: (e: Entry) => (e.id !== id ? [`the entry must have id ${id}`] : []),
     })),

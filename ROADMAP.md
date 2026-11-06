@@ -56,16 +56,31 @@ Decided 2026-11-05:
       yet (a toy shop, a bookshop), and a motor shop sells the garage's paint and parts.
 - [x] Energy for running, refilled by food and drink (`src/sim/energy.ts`).
 - [x] A shopping centre in the Business Quarter, with several shops under one roof.
-- [ ] Wheels and lights as cosmetic car parts, beside the body kits.
+- [x] Wheels and lights as cosmetic car parts, beside the body kits. Steel, alloy and sport wheels, and halogen, LED
+      and DRL lamps, in the garage and the motor shop. Lamps can only be shades of white, because UK law wants white
+      headlamps and red tails; Qwen made the 18 parts behind `schemas/content.ts`, which holds that rule.
 - [ ] Whistle & Wrench's only plot is held for a regular's story, so it has no door; Sparrow Supplies is the motor
       shop you can reach.
 
 ### Stage D: careers
-- [ ] Sign on at the station or depot and drive its vehicle on real shifts: bus driver (a timetabled route, stopping at
-      each stop), recovery driver (tow broken-down and crashed cars), mechanic (mend cars at the garage and the roadside),
-      police (answer calls, stop the drivers who break the law), firefighter and paramedic (answer 999 calls).
-- [ ] Ranks within each career that unlock vehicles and better-paid work.
-- [ ] More places to drive to, including businesses with deliveries of their own.
+Built 2026-11-06. The research and its sources are in `schemas/careers.ts`.
+- [x] Sign on at the station or depot and drive its vehicle on real shifts: bus driver (a timetabled route, stopping at
+      each stop), recovery driver (tow broken-down and crashed cars), mechanic (mend cars at the roadside), police
+      (answer calls, stop the drivers who break the law), firefighter and ambulance crew (answer 999 calls). Each task
+      pays the rank's real hourly wage for the time it's booked to take, at £1.40 a Point and 20 s a game hour.
+      Crashes in town go to the crew on duty. Qwen wrote the 40 calls behind `callErrors`, which keeps them gentle.
+- [x] Ranks within each career that unlock vehicles and better-paid work: three a career, from the real pay scales
+      (NJC for firefighters, Agenda for Change for ambulance crews, the 2025 police scale, ASHE medians for drivers and
+      mechanics). A bus driver gets the double decker, a constable the patrol car and traffic stops, a senior paramedic
+      the rapid response car.
+- [x] More places to drive to, including businesses with deliveries of their own. 39 new places, so all 93 plots have
+      a name of their own, among them the recovery yard and the patrol garage; shops and depots send some of the
+      delivery work themselves, with their own goods.
+- [ ] Mechanics at the garage as well as the roadside: the patrol base has no workshop work yet.
+- [ ] A shift isn't saved: a reload puts you back in your own car outside the base. Saving one mid-shift would need its
+      tasks, rider and timetable in the trip.
+- [ ] Your car isn't drawn while you work: it waits "in the staff car park" and is outside the base when you sign off,
+      wherever you left it.
 
 ## Decided
 These differ from real cars and roads on purpose. Played and approved on 2026-10-30, so leave them unless asked.

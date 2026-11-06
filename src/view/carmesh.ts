@@ -5,6 +5,7 @@ import type { Design, Driver } from '../save.ts';
 import type { Car } from '../sim/economy.ts';
 import { addLamps, box, buildCockpit, buildDriver, type BackCamera, type Lookup, type Mirror } from './cockpit.ts';
 import { drivingPosition } from './drivingposition.ts';
+import { addDrl, headGlow, rimParts, wheelLook } from './carparts.ts';
 
 export const DEFAULT_PAINT = '#e8483f';
 export const TAIL_DIM = '#8f1b1b', TAIL_BRAKE = '#ff3b30';
@@ -103,11 +104,12 @@ export function buildCar(car: Car, design: Design, driver: Driver, find: Lookup)
   body.add(box(wide * 0.84, cabH, 0.05, glass, 0, floor + deck + cabH / 2, cabZ - cabLen * 0.45));
   if (pickup) { body.add(box(wide * 0.9, 0.04, len * 0.36, dark, 0, floor + deck + 0.01, -len * 0.3)); for (const s of [-1, 1]) body.add(box(0.1, 0.28, len * 0.38, skin, (s * wide) / 2.2, floor + deck + 0.12, -len * 0.3)); }
   if (car.id === 'taxi') body.add(box(0.7, 0.2, 0.26, new THREE.MeshLambertMaterial({ color: '#ffd23e', emissive: '#a07a00' }), 0, tall + 0.14, cabZ));
-  const heads = new THREE.MeshBasicMaterial({ color: '#fff3c0' }), tails = new THREE.MeshBasicMaterial({ color: TAIL_DIM });
+  const heads = new THREE.MeshBasicMaterial({ color: headGlow(design, find) }), tails = new THREE.MeshBasicMaterial({ color: TAIL_DIM });
   for (const s of [-1, 1]) {
     body.add(box(0.3, 0.14, 0.04, heads, (s * wide) / 3, floor + deck * 0.65, len / 2 + 0.01));
     body.add(box(0.34, 0.12, 0.04, tails, (s * wide) / 3, floor + deck * 0.65, -len / 2 - 0.01));
   }
+  addDrl(body, design, find, { wide: wide / 3, y: floor + deck * 0.65 + 0.1, z: len / 2 + 0.02, across: 0.3 });
   if (kit?.style === 'spoiler' || kit?.style === 'signature') {
     body.add(box(wide * 0.92, 0.07, 0.34, trim, 0, floor + deck + 0.34, -len * 0.45));
     for (const s of [-1, 1]) body.add(box(0.07, 0.34, 0.2, trim, (s * wide) / 3, floor + deck + 0.16, -len * 0.45));
@@ -151,11 +153,11 @@ export function buildCar(car: Car, design: Design, driver: Driver, find: Lookup)
   body.add(seat);
 
   const wheels: THREE.Object3D[] = [], front: THREE.Object3D[] = [];
-  const geo = new THREE.CylinderGeometry(0.34, 0.34, 0.26, 12);
+  const geo = new THREE.CylinderGeometry(0.34, 0.34, 0.26, 12), look = wheelLook(design, find);
   geo.rotateZ(Math.PI / 2);
   for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
     const hub = new THREE.Group(), w = new THREE.Mesh(geo, dark);
-    w.add(box(0.28, 0.14, 0.14, new THREE.MeshLambertMaterial({ color: '#c9ced8' })));
+    w.add(...rimParts(look, 0.34, 0.26, dark));
     hub.add(w);
     hub.position.set((sx * wide) / 2, 0.34, (sz * len) / 3.1);
     root.add(hub);

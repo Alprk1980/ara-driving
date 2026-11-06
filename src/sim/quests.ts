@@ -3,6 +3,8 @@
 import type { Find, Goal, JobCar, Place, QuestText, QuestType, Regular, Twist } from '../../schemas/content.ts';
 import { CAR_JOBS, CARGO_BONUS, CLOCK_DRAIN, CLOCK_GRACE, LONG_HAUL, MARKET_BOOST, payout, QUEST_PAY, RANK_CAR_JOBS, RANK_LONG_HAUL, RANK_TWISTS, rankOf, ROUTE_BANDS, TIP_BONUS, TRIAL_GRADES, trialKmh, TWIST_RULES, type Car } from './economy.ts';
 import { freshDaily, type Daily } from './goals.ts';
+import { SHOPS } from './shops.ts';
+import type { CallCard, CareerId } from '../../schemas/careers.ts';
 import { freshRoad, type RoadRecord } from './roadsense.ts';
 import { pointAt, route, type Route } from './route.ts';
 import { dist, type Plot, type Rng, type Town, type Vec } from './town.ts';
@@ -17,6 +19,7 @@ export type Offer = {
   rematch?: Ghost;
   carJob?: JobCar;
   market?: boolean; // ends at the kind of place today's market day pays extra for
+  business?: string; // a delivery a shop or depot sends out itself: its name
 };
 export type QuestPhase = 'HeadingToStart' | 'Active';
 export type QuestState = { phase: QuestPhase; care: number; elapsed: number; gate: number; bumps: number; track: number[] };
@@ -37,7 +40,7 @@ export function ghostPose(g: Ghost, elapsed: number): { x: number; z: number; he
 }
 
 /** A player's standing with the town: saved between sessions and shared with the offer list. */
-export type Progress = { arcs: Record<string, number>; ghosts: Ghost[]; found: string[]; rep: number; daily: Daily; road?: RoadRecord }; // road: missing from older saves
+export type Progress = { arcs: Record<string, number>; ghosts: Ghost[]; found: string[]; rep: number; daily: Daily; road?: RoadRecord; careers?: Partial<Record<CareerId, number>> }; // road and careers: missing from older saves; careers counts the jobs done in each
 export const freshProgress = (): Progress => ({ arcs: {}, ghosts: [], found: [], rep: 0, daily: freshDaily(''), road: freshRoad() });
 
 const offerMult = (o: Offer) => (o.carJob ? CAR_JOBS[o.carJob].mult : 1) * (o.market ? 1 + MARKET_BOOST : 1);
@@ -55,10 +58,11 @@ export function landmarkFor(town: Town, places: Place[], spot: Vec): { name: str
 export const storyPlot = (town: Town, index: number): Plot => town.plots[(index * 17 + 11) % town.plots.length];
 
 const SAFETY = 1.3; // litres quoted on an offer include hard throttle
+const BUSINESS_ODDS = 0.6, BUSINESS_REACH_M = 1000; // how often a business sends the delivery, and how far you'd go to collect it: judged
 export const CARE_PER_BUMP = 0.2;
 export const CARE_PER_HARD_STOP = 0.1;
 
-export type QuestContent = { places: Place[]; quests: QuestText[]; regulars?: Regular[]; finds?: Find[]; goals?: Goal[] };
+export type QuestContent = { places: Place[]; quests: QuestText[]; regulars?: Regular[]; finds?: Find[]; goals?: Goal[]; calls?: CallCard[] };
 
 function bandKm(rng: Rng, rank: number): { min: number; max: number } {
   const bands = rank >= RANK_LONG_HAUL ? [...ROUTE_BANDS, LONG_HAUL] : ROUTE_BANDS;
@@ -132,6 +136,29 @@ export class QuestGenerator {
     o.regular = { id: r.id, name: r.name, step, total: r.jobs.length, thanks: job.thanks };
   }
 
+  /** A delivery a business sends out itself: a shop's own goods, or a depot's load, from its door to a customer. It
+   *  takes the delivery slot when a business with something to send is near enough to collect from. */
+  private addBusiness(list: Offer[], from: Vec, car: Car) {
+    const at = list.findIndex((o) => o.type === 'delivery' && !o.rematch && !o.carJob && !o.regular);
+    if (at < 0 || this.rng() > BUSINESS_ODDS) return;
+    const senders = this.town.plots.filter((p) => {
+      const pl = placeAt(this.town, this.content.places, p);
+      return pl && dist(p, from) < BUSINESS_REACH_M && (pl.kind === 'depot' || SHOPS.some((s) => s.id === pl.id && s.stock.length));
+    });
+    if (!senders.length) return;
+    const start = senders[Math.floor(this.rng() * senders.length)], place = placeAt(this.town, this.content.places, start)!;
+    const ends = this.town.plots.filter((p) => p !== start && dist(p, start) > 500 && dist(p, start) < 2200);
+    if (!ends.length) return;
+    const end = ends[Math.floor(this.rng() * ends.length)], o = this.make('delivery', from, car, start, end, route(this.town, start.road, end.road));
+    if (o.approachKm > 1.2) return; // the same reach as any other offer
+    const shop = SHOPS.find((s) => s.id === place.id), good = shop?.stock[Math.floor(this.rng() * shop.stock.length)];
+    o.title = `${place.name} delivery`;
+    o.text = good ? `An order of ${good.name} for ${o.endName}, from the shop's own shelves.` : `A load from the yard at ${place.name} for ${o.endName}.`;
+    o.twist = undefined;
+    o.business = place.name;
+    list[at] = o;
+  }
+
   /** A job only this car is offered, dressed over the offer of its type. */
   private addCarJob(list: Offer[], car: Car) {
     const pool = this.content.quests.filter((q) => q.car === car.id);
@@ -192,6 +219,7 @@ export class QuestGenerator {
     this.addRematch(out, from, car);
     if (!out.some((o) => o.litres <= fuel)) out[0] = this.cheapest(from, car, out.slice(1)); // after the rematch, which can be a long way off
     this.addCarJob(out, car);
+    this.addBusiness(out, from, car);
     this.addRegular(out);
     for (const o of out) {
       o.market = !!this.boost && placeAt(this.town, this.content.places, o.end)?.kind === this.boost;

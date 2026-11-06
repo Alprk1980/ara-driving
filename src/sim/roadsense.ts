@@ -147,7 +147,7 @@ export class RoadSense {
         const aspect = signalFor(town, node, w.edge, traffic.clock), key = `${node}:${w.edge}`;
         if (Math.abs(p.speed) < STILL_MPS && now > STOP_LINE_M - 2 && now < STOP_LINE_M + 14 && aspect !== 'green') this.held = key;
         if (was > STOP_LINE_M && now <= STOP_LINE_M && Math.abs(p.speed) > MOVING_MPS) {
-          if (aspect === 'red' || aspect === 'redAmber') this.offence('red_run');
+          if ((aspect === 'red' || aspect === 'redAmber') && !p.blue) this.offence('red_run'); // on blue lights a red is a give way (TSRGD 2016's exemption for the emergency services); a crossing's red still binds, as people are on it
           else if (this.held === key) this.merit('red_stop');
           this.held = null;
         }

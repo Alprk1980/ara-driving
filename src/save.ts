@@ -8,7 +8,7 @@ import { CHOOSABLE, DEFAULT_VOICES, type VoiceChoice } from './ui/clips.ts';
 export const GAME_ID = 'ara_driving';
 export const SAVE_KEY = 'ara_driving';
 
-export type Design = { paint?: string; pattern?: string; decal?: string; body?: string };
+export type Design = { paint?: string; pattern?: string; decal?: string; body?: string; wheels?: string; lights?: string };
 export type Driver = { outfit?: string; trousers?: string; shoes?: string; cap?: string; gloves?: string; sunglasses?: string }; // what you wear, in the car and out of it: schemas/shops.ts WORN_SLOTS
 export type Hand = 'right' | 'left';
 /** One change to the Points balance, for the history: when, by how much, why, and the balance after. */

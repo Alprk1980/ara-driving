@@ -1,6 +1,8 @@
 ﻿// Every number the design document fixes: quest pay, fuel, cars. Tests and the sim read these, so the
 // document's tables have one home in code.
 import type { JobCar, QuestType, Twist } from '../../schemas/content.ts';
+import { FLEET_RULES, type FleetId } from '../../schemas/fleet.ts';
+import fleetShapes from '../data/fleet.json' with { type: 'json' };
 
 export const RECOVERY_FEE = 15; // a truck home when you could have driven; free if you're out of fuel, as the tow always was
 export const KERB_KG = 1400; // a typical UK family car, 1200-1500 kg, from general knowledge: no published average turned up
@@ -9,6 +11,7 @@ export const FUEL_PRICE = 1; // Points per litre
 // (the national fare cap, from operators' and councils' notices). Fuel here is a Point a litre, against roughly £1.40
 // at the pump, so a Point is worth about £1.40 and the £3 fare comes to 2 Points. London's own single is £1.75.
 export const BUS_FARE = 2;
+export const POINT_GBP = 1.4; // what a Point is worth, from the fuel price above: shop prices and career pay use it
 export const REPAIR_RATE = 1; // Points per 1% of bodywork damage at the garage
 // Fuel runs well above a real car's 6 L/100 km on purpose: the town is 3 km across, so the bill has to mean something, but
 // this was cut to a third after play (2026-10-30) so a tank lasts about 20 km, or 25 minutes of driving for fun.
@@ -82,7 +85,7 @@ export const ROUTE_BANDS = [
 
 export type CarId = 'hatchback' | 'compact' | 'pickup' | 'taxi' | 'coupe' | 'supercar';
 export type Car = {
-  id: CarId; name: string; price: number;
+  id: CarId | FleetId; name: string; price: number; // a fleet id is a work vehicle, taken out on a shift (careers.ts)
   tank: number; burn: number; // litres, litres per km
   kg: number; // kerb weight, for who gives way in a crash: typical of each class, as no published UK average turned up
   topKmh: number; accel: number; steer: number; // km/h, m/s^2 at rest, rad/s at full lock
@@ -99,7 +102,31 @@ export const CARS: readonly Car[] = [
   { id: 'coupe', name: 'Coupe', price: 3000, tank: 45, burn: 3.3, topKmh: 130, accel: 7.5, steer: 1.6, perk: 'Time trial pay +10%, club races', perkMult: { trial: 1.1 }, size: [4.3, 1.3, 1.9], tough: 1, kg: 1450 },
   { id: 'supercar', name: 'Supercar', price: 8000, tank: 55, burn: 3.7, topKmh: 165, accel: 9.5, steer: 1.7, perk: 'Fastest car, grand prize races', perkMult: {}, size: [4.5, 1.15, 2], tough: 0.9, kg: 1550 },
 ];
-export const carById = (id: string): Car => CARS.find((c) => c.id === id) ?? CARS[0];
+// The services' vehicles, as you drive them on a shift. Size and weight are the fleet's (schemas/fleet.ts). Pull-away is
+// the game's, which runs about 2.3 times a real car's (a hatchback's 6.5 m/s² against a real 2.8): these are real
+// figures at that same scale, judged from typical 0-50 km/h times (a town bus about 12 s, a 13 t fire pump about 11 s,
+// a van about 6 s), as no single source covers them. Top speeds: buses are limited to 100 km/h and goods vehicles over
+// 3.5 t to 90 km/h (EU speed limiter rules, 92/6/EEC as amended by 2002/85/EC, kept in UK law); the rest are judged
+// inside the game's approved 110-165 km/h. Steering slows with length, as a bus needs a 12.5 m outer turning circle
+// (EU 97/27/EC) against a car's 5.5 m or so: judged rates. The fuel is the employer's, so a shift never runs a tank dry.
+export const WORK_DRIVE: Record<FleetId, { topKmh: number; accel: number; steer: number }> = {
+  bus_single: { topKmh: 100, accel: 2.8, steer: 1.0 },
+  bus_double: { topKmh: 100, accel: 2.5, steer: 1.0 },
+  police_car: { topKmh: 160, accel: 8, steer: 1.6 },
+  police_van: { topKmh: 130, accel: 5.5, steer: 1.35 },
+  ambulance: { topKmh: 130, accel: 4.5, steer: 1.3 },
+  fire_engine: { topKmh: 110, accel: 3, steer: 1.1 }, // emergency vehicles needn't be limited, and pumps top out about here
+  recovery_truck: { topKmh: 90, accel: 3.4, steer: 1.15 },
+  patrol_van: { topKmh: 130, accel: 5.5, steer: 1.35 },
+  rrv: { topKmh: 160, accel: 8, steer: 1.6 },
+};
+const WORK_TANK = 200, WORK_BURN = 0.5;
+export const WORK_CARS: readonly Car[] = (fleetShapes as { id: FleetId; name: string; body: number[][]; half: number }[]).filter((v) => WORK_DRIVE[v.id]).map((v) => {
+  const zs = v.body.map((p) => p[0]), top = Math.max(...v.body.map((p) => p[1])), r = FLEET_RULES[v.id];
+  return { id: v.id, name: v.name, price: 0, tank: WORK_TANK, burn: WORK_BURN, kg: r.kg, ...WORK_DRIVE[v.id], perk: 'A work vehicle', perkMult: {}, size: [Math.max(...zs) - Math.min(...zs), top, v.half * 2] as [number, number, number], tough: Math.max(1, r.kg / 2000) };
+});
+export const isWorkCar = (id: string) => WORK_CARS.some((c) => c.id === id);
+export const carById = (id: string): Car => CARS.find((c) => c.id === id) ?? WORK_CARS.find((c) => c.id === id) ?? CARS[0];
 
 export const payout = (type: QuestType, routeKm: number, grade: number, perk = 1): number =>
   Math.round((QUEST_PAY[type].base + QUEST_PAY[type].perKm * routeKm) * grade * perk);

@@ -66,6 +66,7 @@ export class PlayerCar {
   marks: Mark[] = []; // where those dents actually are
   indicator: -1 | 0 | 1 = 0; // the stalk: -1 left, 1 right
   handbrake = false;
+  blue = false; // blue lights on: a work vehicle on its way to an emergency (careers.ts)
   private turned = 0;
   hit: Hit | null = null;
   private stopped = 0;

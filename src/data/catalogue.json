@@ -635,5 +635,203 @@
       "#2b1146",
       "#69c8ff"
     ]
+  },
+  {
+    "id": "silver_steel",
+    "kind": "wheels",
+    "style": "steel",
+    "tier": "common",
+    "price": 50,
+    "name": "Silver Steel",
+    "colors": [
+      "#c8c8c8"
+    ]
+  },
+  {
+    "id": "graphite_steel",
+    "kind": "wheels",
+    "style": "steel",
+    "tier": "common",
+    "price": 50,
+    "name": "Graphite Steel",
+    "colors": [
+      "#4a4a4a"
+    ]
+  },
+  {
+    "id": "onyx_steel",
+    "kind": "wheels",
+    "style": "steel",
+    "tier": "common",
+    "price": 50,
+    "name": "Onyx Steel",
+    "colors": [
+      "#1b1b1b"
+    ]
+  },
+  {
+    "id": "mirror_alloy",
+    "kind": "wheels",
+    "style": "alloy",
+    "tier": "rare",
+    "price": 150,
+    "name": "Mirror Alloy",
+    "colors": [
+      "#cccccc"
+    ]
+  },
+  {
+    "id": "gunmetal_alloy",
+    "kind": "wheels",
+    "style": "alloy",
+    "tier": "rare",
+    "price": 150,
+    "name": "Gunmetal Alloy",
+    "colors": [
+      "#464b53"
+    ]
+  },
+  {
+    "id": "gloss_black_alloy",
+    "kind": "wheels",
+    "style": "alloy",
+    "tier": "rare",
+    "price": 150,
+    "name": "Gloss Black Alloy",
+    "colors": [
+      "#101010"
+    ]
+  },
+  {
+    "id": "bronze_alloy",
+    "kind": "wheels",
+    "style": "alloy",
+    "tier": "rare",
+    "price": 150,
+    "name": "Bronze Alloy",
+    "colors": [
+      "#a86a3f"
+    ]
+  },
+  {
+    "id": "gold_sport",
+    "kind": "wheels",
+    "style": "sport",
+    "tier": "epic",
+    "price": 400,
+    "name": "Gold Sport",
+    "colors": [
+      "#cfa04a"
+    ]
+  },
+  {
+    "id": "white_sport",
+    "kind": "wheels",
+    "style": "sport",
+    "tier": "epic",
+    "price": 400,
+    "name": "White Sport",
+    "colors": [
+      "#e8e8e8"
+    ]
+  },
+  {
+    "id": "crimson_sport",
+    "kind": "wheels",
+    "style": "sport",
+    "tier": "epic",
+    "price": 400,
+    "name": "Crimson Sport",
+    "colors": [
+      "#d54f3c"
+    ]
+  },
+  {
+    "id": "tungsten_beam",
+    "kind": "lights",
+    "style": "halogen",
+    "tier": "common",
+    "price": 50,
+    "name": "Tungsten Beam",
+    "colors": [
+      "#fff1d6"
+    ]
+  },
+  {
+    "id": "warm_halo",
+    "kind": "lights",
+    "style": "halogen",
+    "tier": "common",
+    "price": 50,
+    "name": "Warm Halo",
+    "colors": [
+      "#fff3dc"
+    ]
+  },
+  {
+    "id": "moonbeam",
+    "kind": "lights",
+    "style": "led",
+    "tier": "rare",
+    "price": 150,
+    "name": "Moonbeam",
+    "colors": [
+      "#f2f6ff"
+    ]
+  },
+  {
+    "id": "dawn_glow",
+    "kind": "lights",
+    "style": "led",
+    "tier": "rare",
+    "price": 150,
+    "name": "Dawn Glow",
+    "colors": [
+      "#f4f8ff"
+    ]
+  },
+  {
+    "id": "polar_lamp",
+    "kind": "lights",
+    "style": "led",
+    "tier": "rare",
+    "price": 150,
+    "name": "Polar Lamp",
+    "colors": [
+      "#f7faff"
+    ]
+  },
+  {
+    "id": "day_beam",
+    "kind": "lights",
+    "style": "drl",
+    "tier": "epic",
+    "price": 400,
+    "name": "Day Beam",
+    "colors": [
+      "#f3f7ff"
+    ]
+  },
+  {
+    "id": "aurora_lamp",
+    "kind": "lights",
+    "style": "drl",
+    "tier": "epic",
+    "price": 400,
+    "name": "Aurora Lamp",
+    "colors": [
+      "#eef6ff"
+    ]
+  },
+  {
+    "id": "signal_lamp",
+    "kind": "lights",
+    "style": "drl",
+    "tier": "epic",
+    "price": 400,
+    "name": "Signal Lamp",
+    "colors": [
+      "#f5f8ff"
+    ]
   }
 ]

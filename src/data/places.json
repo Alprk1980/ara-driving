@@ -268,5 +268,200 @@
     "id": "harbor_stalls",
     "name": "Harbor Stalls",
     "kind": "market"
+  },
+  {
+    "id": "bloom_bureau",
+    "name": "Bloom Bureau",
+    "kind": "office"
+  },
+  {
+    "id": "tidy_desk",
+    "name": "Tidy Desk",
+    "kind": "office"
+  },
+  {
+    "id": "clocktower_office",
+    "name": "Clocktower Office",
+    "kind": "office"
+  },
+  {
+    "id": "bright_ledger",
+    "name": "Bright Ledger",
+    "kind": "office"
+  },
+  {
+    "id": "bramble_bazaar",
+    "name": "Bramble Bazaar",
+    "kind": "market"
+  },
+  {
+    "id": "moss_market",
+    "name": "Moss Market",
+    "kind": "market"
+  },
+  {
+    "id": "hearth_clinic",
+    "name": "Hearth Clinic",
+    "kind": "clinic"
+  },
+  {
+    "id": "tender_hands",
+    "name": "Tender Hands",
+    "kind": "clinic"
+  },
+  {
+    "id": "bluebell_park",
+    "name": "Bluebell Park",
+    "kind": "park"
+  },
+  {
+    "id": "clover_field",
+    "name": "Clover Field",
+    "kind": "park"
+  },
+  {
+    "id": "lantern_library",
+    "name": "Lantern Library",
+    "kind": "library"
+  },
+  {
+    "id": "copperleaf_school",
+    "name": "Copperleaf School",
+    "kind": "school"
+  },
+  {
+    "id": "pumpkin_house",
+    "name": "Pumpkin House",
+    "kind": "house"
+  },
+  {
+    "id": "roadside_recovery",
+    "name": "Roadside Recovery",
+    "kind": "depot"
+  },
+  {
+    "id": "bolt_axle_garage",
+    "name": "Bolt & Axle Garage",
+    "kind": "depot"
+  },
+  {
+    "id": "builders_yard",
+    "name": "Builders Yard",
+    "kind": "depot"
+  },
+  {
+    "id": "tidy_threads",
+    "name": "Tidy Threads",
+    "kind": "shop"
+  },
+  {
+    "id": "sunny_seeds",
+    "name": "Sunny Seeds",
+    "kind": "shop"
+  },
+  {
+    "id": "glide_skate_shop",
+    "name": "Glide Skate Shop",
+    "kind": "shop"
+  },
+  {
+    "id": "brick_broom",
+    "name": "Brick & Broom",
+    "kind": "shop"
+  },
+  {
+    "id": "puddle_boots",
+    "name": "Puddle Boots",
+    "kind": "shop"
+  },
+  {
+    "id": "nest_knit",
+    "name": "Nest & Knit",
+    "kind": "shop"
+  },
+  {
+    "id": "biscuit_barn_cafe",
+    "name": "Biscuit Barn Cafe",
+    "kind": "cafe"
+  },
+  {
+    "id": "honeycomb_cafe",
+    "name": "Honeycomb Cafe",
+    "kind": "cafe"
+  },
+  {
+    "id": "puddle_pie_cafe",
+    "name": "Puddle Pie Cafe",
+    "kind": "cafe"
+  },
+  {
+    "id": "moon_bun_cafe",
+    "name": "Moon Bun Cafe",
+    "kind": "cafe"
+  },
+  {
+    "id": "clover_walk",
+    "name": "Clover Walk",
+    "kind": "house"
+  },
+  {
+    "id": "orchard_mews",
+    "name": "Orchard Mews",
+    "kind": "house"
+  },
+  {
+    "id": "sunflower_street",
+    "name": "Sunflower Street",
+    "kind": "house"
+  },
+  {
+    "id": "larkspur_grove",
+    "name": "Larkspur Grove",
+    "kind": "house"
+  },
+  {
+    "id": "meadow_terrace",
+    "name": "Meadow Terrace",
+    "kind": "house"
+  },
+  {
+    "id": "marmalade_steps",
+    "name": "Marmalade Steps",
+    "kind": "house"
+  },
+  {
+    "id": "robins_nest",
+    "name": "Robin's Nest",
+    "kind": "house"
+  },
+  {
+    "id": "tulip_crescent",
+    "name": "Tulip Crescent",
+    "kind": "house"
+  },
+  {
+    "id": "peach_blossom",
+    "name": "Peach Blossom",
+    "kind": "house"
+  },
+  {
+    "id": "bike_barn",
+    "name": "Bike Barn",
+    "kind": "shop"
+  },
+  {
+    "id": "pebble_perk",
+    "name": "Pebble Perk",
+    "kind": "cafe"
+  },
+  {
+    "id": "civic_desk",
+    "name": "Civic Desk",
+    "kind": "office"
+  },
+  {
+    "id": "buttercup_path",
+    "name": "Buttercup Path",
+    "kind": "house"
   }
 ]

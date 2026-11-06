@@ -3,7 +3,7 @@
 import type { CatalogueItem } from '../../schemas/content.ts';
 import type { PersonLook } from '../../schemas/people.ts';
 import { GARMENT_RULES, goodKey, isFood, isGarment, type Good, type Shop, type WornSlot } from '../../schemas/shops.ts';
-import shopsData from '../data/shops.json';
+import shopsData from '../data/shops.json' with { type: 'json' };
 import type { Driver } from '../save.ts';
 import type { Game, Wallet } from './game.ts';
 

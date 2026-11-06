@@ -4,7 +4,7 @@
     "name": "Glimmer Gnome",
     "prop": "gnome",
     "spot": 0,
-    "clue": "Glimmer Gnome naps just east of Sunday Market, where doughnuts dream quietly."
+    "clue": "Glimmer Gnome naps east of Sunny Seeds, where seedlings dream quietly."
   },
   {
     "id": "tin_duck",
@@ -50,10 +50,10 @@
   },
   {
     "id": "book_duck",
-    "name": "Page Feather",
+    "name": "Poetry Duck",
     "prop": "duck",
     "spot": 7,
-    "clue": "A duck waddles north of Book & Brim, quoting poetry to the pond."
+    "clue": "Poetry duck waddles north of Bramble Bazaar, quoting poems to the pond."
   },
   {
     "id": "statue_book_brim_west",
@@ -64,24 +64,24 @@
   },
   {
     "id": "crate_juniper_way_north",
-    "name": "Cranky Wooden Cube",
+    "name": "Buttercup Crate",
     "prop": "crate",
     "spot": 9,
-    "clue": "north of Juniper Way, a crate is pretending it always lived there."
+    "clue": "A crate north of Buttercup Path claims it always lived right there."
   },
   {
     "id": "signpost_post_parcel_east",
-    "name": "Pointy Road Pal",
+    "name": "Puddle Boots Signpost",
     "prop": "signpost",
     "spot": 10,
-    "clue": "east of Post & Parcel, a signpost is very confident about direction."
+    "clue": "A signpost east of Puddle Boots is very sure it knows the way."
   },
   {
     "id": "mushroom_fern_hollow_west",
-    "name": "Plump Cap Fellow",
+    "name": "Bolt Axle Mushroom",
     "prop": "mushroom",
     "spot": 11,
-    "clue": "west of Fern Hollow, a mushroom is trying to be very grounded."
+    "clue": "A mushroom west of Bolt & Axle Garage keeps its cap on tight."
   },
   {
     "id": "gnome_mug_muffin_east",
@@ -92,17 +92,17 @@
   },
   {
     "id": "duck_little_sprout_south",
-    "name": "Waddleberry Duff",
+    "name": "Lantern Duck",
     "prop": "duck",
     "spot": 13,
-    "clue": "south of Little Sprout, a duck is practicing its puddle manners."
+    "clue": "A duck south of Lantern Library practices good puddle manners."
   },
   {
     "id": "statue_page_nook_east",
-    "name": "Stone Storykeeper",
+    "name": "Puddle Pie Statue",
     "prop": "statue",
     "spot": 14,
-    "clue": "east of Page Nook, a statue is reading without eyes, quite dramatic."
+    "clue": "A statue east of Puddle Pie Cafe reads the steamy pastries."
   },
   {
     "id": "crate_plant_shed_east",
@@ -113,10 +113,10 @@
   },
   {
     "id": "lost_signpost_kite",
-    "name": "Whispering Waypost",
+    "name": "Builders Yard Signpost",
     "prop": "signpost",
     "spot": 16,
-    "clue": "A signpost south of Kite Meadow is pointing at clouds instead of cars!"
+    "clue": "A signpost south of Builders Yard is pointing at clouds instead of cars!"
   },
   {
     "id": "lost_mushroom_thistle",
@@ -134,10 +134,10 @@
   },
   {
     "id": "lost_duck_sprout",
-    "name": "Puddlefeather",
+    "name": "Library Duck",
     "prop": "duck",
     "spot": 19,
-    "clue": "A duck south of Little Sprout says quack is its favorite greeting!"
+    "clue": "A library duck south of Lantern Library greets books with a polite quack!"
   },
   {
     "id": "lost_statue_shelf",
@@ -155,10 +155,10 @@
   },
   {
     "id": "lost_signpost_shelf",
-    "name": "Sunny Sign",
+    "name": "Moon Bun Signpost",
     "prop": "signpost",
     "spot": 22,
-    "clue": "A signpost south of Quiet Shelf is waving at the quietest books!"
+    "clue": "A signpost south of Moon Bun Cafe waves at the quietest books!"
   },
   {
     "id": "lost_mushroom_sprout",
@@ -176,17 +176,17 @@
   },
   {
     "id": "candle_loft_duck",
-    "name": "Ducky the Duck",
+    "name": "Moss Market Duck",
     "prop": "duck",
     "spot": 25,
-    "clue": "east of Candle Loft, a quack sounds suspiciously like breakfast."
+    "clue": "A duck east of Moss Market quacks like it smells fresh muffins."
   },
   {
     "id": "book_brim_statue",
-    "name": "Bramble the Statue",
+    "name": "Bramble Bazaar Statue",
     "prop": "statue",
     "spot": 26,
-    "clue": "south of Book & Brim, a statue has been posing since the last chapter."
+    "clue": "A statue south of Bramble Bazaar has been posing since last chapter."
   },
   {
     "id": "candle_loft_crate",
@@ -204,10 +204,10 @@
   },
   {
     "id": "page_nook_mushroom",
-    "name": "Fungi the Mushroom",
+    "name": "Pie Cafe Mushroom",
     "prop": "mushroom",
     "spot": 29,
-    "clue": "south of Page Nook, a mushroom is branching out socially."
+    "clue": "A mushroom south of Puddle Pie Cafe is branching out socially."
   },
   {
     "id": "fernside_gnome",
@@ -274,9 +274,9 @@
   },
   {
     "id": "crate_west_fresh",
-    "name": "Cratley",
+    "name": "Tidy Threads Crate",
     "prop": "crate",
     "spot": 39,
-    "clue": "A crate west of Fresh Cart shops for imaginary fruit."
+    "clue": "A crate west of Tidy Threads shops for invisible laundry."
   }
 ]

@@ -16,6 +16,11 @@ import { goodKey, isFood, type Good, type Shop } from '../../schemas/shops.ts';
 import { PAD_ACTION, PadButton } from '../input/schemes.ts';
 import { LOOKS } from '../view/people.ts';
 import type { Door } from '../sim/doors.ts';
+import type { Base } from '../sim/careers.ts';
+import { CAREER_IDS, CAREERS, careerRank, RANK_JOBS, type CareerRank } from '../../schemas/careers.ts';
+import type { FleetId } from '../../schemas/fleet.ts';
+import { POINT_GBP } from '../sim/economy.ts';
+import { GAME_HOUR_S } from '../sim/careers.ts';
 import { placeAt } from '../sim/quests.ts';
 import { CHOOSABLE, VOICE_NAMES } from './clips.ts';
 import type { ClipBackend } from './voice.ts';
@@ -45,9 +50,9 @@ const AUTOSAVE_S = 15; // seconds between saves while driving
 const RUSH = [[7 / 24, 9.5 / 24], [16 / 24, 18.5 / 24]] as const; // the morning and evening peaks, as parts of the day: judged round the school run and the commute
 const TIER_LABEL = { common: 'Common', rare: 'Rare', epic: 'Epic', legendary: 'Legendary' };
 
-type Tab = 'cars' | 'paint' | 'pattern' | 'decal' | 'body' | 'outfit' | 'accessory';
-const TABS: [Tab, string][] = [['cars', 'Cars'], ['paint', 'Paint'], ['pattern', 'Patterns'], ['decal', 'Decals'], ['body', 'Body']]; // clothes are bought in the town's shops and worn from the Menu
-const CAR_KINDS = ['paint', 'pattern', 'decal', 'body'] as const;
+type Tab = 'cars' | 'paint' | 'pattern' | 'decal' | 'body' | 'wheels' | 'lights' | 'outfit' | 'accessory';
+const TABS: [Tab, string][] = [['cars', 'Cars'], ['paint', 'Paint'], ['pattern', 'Patterns'], ['decal', 'Decals'], ['body', 'Body'], ['wheels', 'Wheels'], ['lights', 'Lights']]; // clothes are bought in the town's shops and worn from the Menu
+const CAR_KINDS = ['paint', 'pattern', 'decal', 'body', 'wheels', 'lights'] as const;
 const GOOD_LABEL: Record<Good['kind'], string> = { hot_drink: 'Hot drink', cold_drink: 'Cold drink', snack: 'Snack', sandwich: 'Sandwich', meal: 'Meal', tee: 'T-shirt', jumper: 'Jumper', jacket: 'Jacket', trousers: 'Trousers', shoes: 'Shoes', hat: 'Hat', gloves: 'Gloves', sunglasses: 'Sunglasses' };
 const SLOT_LABEL: Record<keyof Driver, string> = { outfit: 'Top', trousers: 'Trousers', shoes: 'Shoes', cap: 'Hat', gloves: 'Gloves', sunglasses: 'Sunglasses' };
 
@@ -139,8 +144,8 @@ export class App {
   private dead = false; // a new game wipes the save and reloads; nothing may write after that
   store() {
     if (this.dead) return;
-    this.save.fuel[this.save.car] = this.game.player.fuel;
-    this.save.dmg[this.save.car] = this.game.player.damage;
+    this.save.fuel[this.save.car] = this.game.yours.fuel; // your own car, even while you're out in a work vehicle
+    this.save.dmg[this.save.car] = this.game.yours.damage;
     this.save.trip = this.game.snapshot();
     this.save.walls = this.view.wallLog;
     void putGameSave(SAVE_KEY, this.save);
@@ -347,6 +352,17 @@ export class App {
         break;
       }
       case 'offers': break;
+      case 'shift':
+        this.view.setCar(this.design(), this.save.driver);
+        this.view.footChanged();
+        this.padLabels();
+        if (e.what === 'on') { const s = this.game.shift!; this.toast(`Signed on: ${s.rank.title}, in the ${carById(s.vehicle).name}. ${s.task ? s.task.title : ''}`); }
+        else this.toast(`Signed off. This shift earned ${e.earned} Points`);
+        this.store();
+        break;
+      case 'shiftPaid': this.toast(`${e.title}: +${e.pay} Points${e.onTime ? ', on time' : ''}${e.note ? `. ${e.note}` : ''}`); this.sound.chime(880); this.store(); break;
+      case 'shiftPhase': this.ticker(e.label); break;
+      case 'careerRank': { const r = CAREERS[e.career].ranks[e.rank]; this.toast(`Promoted: ${r.title}. ${r.opens}`); this.sound.chime(1320); break; }
     }
   }
 
@@ -380,7 +396,7 @@ export class App {
     if (stop !== this.lastStop) { this.lastStop = stop; if (stop) this.banner(`Bus stop for the ${g.town.routesAt(stop).map((r) => r.name).join(' and ')}. Wait here and the bus pulls in for you: a single is ${FARE} Points`, false, 4); }
     const pct = g.foot ? g.energy : p.fuel / p.car.tank; // out of the car, the chip shows your energy for running
     $('fuelfill').style.width = `${pct * 100}%`;
-    $('fueltext').textContent = g.foot ? `Energy ${Math.round(g.energy * 100)}%` : `Fuel ${Math.round(p.fuel)} L`;
+    $('fueltext').textContent = g.foot ? `Energy ${Math.round(g.energy * 100)}%` : g.shift ? 'Fuel: on the depot' : `Fuel ${Math.round(p.fuel)} L`;
     $('fuelchip').className = pct < WARN_CRITICAL_PCT ? 'chip crit' : pct < WARN_LOW_PCT ? 'chip low' : 'chip';
     this.bodywork();
 
@@ -392,7 +408,7 @@ export class App {
     this.actions();
     this.sound.engine(Math.abs(p.speed) / p.vMax, p.state === 'Driving', p.throttle);
     this.sound.road(this.view.slide, Math.abs(p.speed) / p.vMax, g.rain);
-    this.sound.street(g.traffic.sirenFrom(p), g.parked.loudest(p));
+    this.sound.street(p.blue ? 8 : g.traffic.sirenFrom(p), g.parked.loudest(p)); // your own siren, heard from the cab, when you are the one on blue lights
     this.sound.tick();
     const sense = g.road, licence = sense.points;
     const arrow = sense.trend >= TREND_SHOWN ? ' ▲' : sense.trend <= -TREND_SHOWN ? ' ▼' : '';
@@ -444,7 +460,14 @@ export class App {
   private tracker() {
     const g = this.game, q = g.quest, el = $('tracker');
     let key = '', html = '';
-    if (q) {
+    const s = g.shift, t = s?.task;
+    if (s && t) {
+      const left = Math.max(0, Math.round(dist(t.at, g.player))), due = Math.round(s.dueIn ?? 0);
+      const clock = t.kind === 'stop' ? (due >= 0 ? `due in ${due}s${t.timing ? ', timing point' : ''}` : `${-due}s late`) : t.kind === 'return' ? '' : due >= 0 ? `${due}s to target` : 'past target: still paid';
+      const held = s.held > 0 ? `<small>${esc(t.kind === 'stop' ? 'Doors open' : 'Working')}: ${Math.max(0, Math.ceil(t.hold - s.held))}s</small>` : '';
+      key = `shift|${t.title}|${t.text}|${Math.round(left / 10)}|${clock}|${Math.ceil(t.hold - s.held)}|${s.held > 0}`;
+      html = `${esc(t.title)}<small>${esc(t.text)}</small><small>${left} m${clock ? `, ${esc(clock)}` : ''}${g.player.blue ? ', blue lights' : ''}</small>${held}`;
+    } else if (q) {
       const left = Math.max(0, Math.round(dist(q.target, g.player)));
       const sub = q.phase === 'HeadingToStart' ? `Go to ${q.offer.startName}` : q.offer.type === 'trial' ? `${q.gate}/${q.offer.gates.length} checkpoints, ${Math.round(q.elapsed)}s of ${q.offer.rematch ? `your ${q.offer.rematch.time}s` : `${Math.round(q.offer.goldSeconds)}s gold`}` : `Take it to ${q.offer.endName}`;
       const twist = q.offer.twist ? `${TWIST_RULES[q.offer.twist].label}, care ${Math.round(q.care * 100)}%` : '';
@@ -477,6 +500,8 @@ export class App {
     const g = this.game;
     if (g.ride) { if (!g.getOff() && !g.ringBell()) this.toast('Bell rung: the bus stops at the next stop'); return; }
     if (g.busHere) return this.boardBus();
+    const base = g.atBase;
+    if (base && (g.foot || g.shift)) return this.openBase(base);
     if (g.foot) {
       if (g.getIn()) return;
       const d = g.atDoor;
@@ -572,7 +597,8 @@ export class App {
     const bent = p.damage > 0.02;
     const out = !foot && Math.abs(p.speed) <= STILL_MPS && p.state !== 'Refuelling', ride = g.ride, back = !!foot && !ride && foot.canReach(p);
     const bus = !!g.busHere, door = g.atDoor, stopped = !!ride && ride.bus.dwell > 0;
-    const key = [atHome, pump, low, p.state === 'Stranded', bent, out, back, bus, door?.plot.x, !!ride, ride?.rang, stopped].join();
+    const base = g.atBase, work = !!g.shift;
+    const key = [atHome, pump, low, p.state === 'Stranded', bent, out, back, bus, door?.plot.x, !!ride, ride?.rang, stopped, base?.career, work].join();
     if (key === this.actionsKey) return;
     this.actionsKey = key;
     const box = $('actions');
@@ -584,7 +610,8 @@ export class App {
       b.onclick = fn;
       box.append(b);
     };
-    if (atHome) add('Garage', () => this.openGarage(), 'primary');
+    if (base && (foot || work)) add(work ? 'Sign off' : `Sign on: ${CAREERS[base.career].name}`, () => this.openBase(base), 'primary');
+    if (atHome && !work) add('Garage', () => this.openGarage(), 'primary');
     if (atHome && bent) add('Repair', () => this.repair());
     if (pump) add('Refuel', () => this.openFuel(), atHome ? '' : 'primary');
     if (low) add('Route to station', () => { g.routeToStation(); this.banner('Routing to the nearest station'); });
@@ -688,6 +715,7 @@ export class App {
 
   openJobs() {
     const g = this.game;
+    if (g.shift) return this.openShift();
     if (g.quest) {
       const q = g.quest;
       const c = this.sheet('jobs', `<h2>${esc(q.offer.title)}</h2><p>${esc(q.offer.text)}</p><div class="row end"><button class="ghost" id="today">Today</button><button class="ghost" id="abandon">Give up this job</button><button class="primary" id="x">Keep driving</button></div>`);
@@ -699,16 +727,59 @@ export class App {
     const kinds = { delivery: 'Delivery', passenger: 'Passenger', trial: 'Time trial' };
     const reach = g.player.fuel;
     const tag = (o: Game['offers'][number]) => {
-      const job = o.regular ? `${o.regular.name}: part ${o.regular.step + 1} of ${o.regular.total}` : o.rematch ? `Your best: ${o.rematch.time}s` : o.carJob ? CAR_JOBS[o.carJob].label : o.twist ? TWIST_RULES[o.twist].label : '';
+      const job = o.business ? `From ${o.business}` : o.regular ? `${o.regular.name}: part ${o.regular.step + 1} of ${o.regular.total}` : o.rematch ? `Your best: ${o.rematch.time}s` : o.carJob ? CAR_JOBS[o.carJob].label : o.twist ? TWIST_RULES[o.twist].label : '';
       const t = [job, o.market ? `${g.event?.title ?? 'Market day'}: +${MARKET_BOOST * 100}%` : ''].filter(Boolean).join(' · ');
       return t ? `<span class="tag">${esc(t)}</span>` : '';
     };
     const streak = g.streak ? `<p>${g.streak} in a row: the next job pays ${Math.round(streakBonus(g.streak) * 100)}% more. A tow, fast travel or a lost job ends it.</p>` : '';
     const rows = g.offers.map((o) => `<div class="offer"><div><b>${esc(o.title)} · ${kinds[o.type]}</b>${tag(o)}<span>${esc(o.text)}</span><span>${o.routeKm.toFixed(1)} km, ${o.basePay} to ${o.maxPay} Points, about ${Math.ceil(o.litres)} L${o.litres > reach ? ' · <em>refuel first</em>' : ''}</span></div><button class="primary" data-id="${o.id}">Take</button></div>`).join('');
-    const c = this.sheet('jobs', `<h2>Jobs nearby</h2>${streak}${rows}<div class="row end"><button class="ghost" id="today">Today</button><button class="ghost" id="x">Close</button></div>`);
+    const c = this.sheet('jobs', `<h2>Jobs nearby</h2>${streak}${rows}<div class="row end"><button class="ghost" id="careers">Careers</button><button class="ghost" id="today">Today</button><button class="ghost" id="x">Close</button></div>`);
     c.querySelector<HTMLElement>('#today')!.onclick = () => this.openToday();
+    c.querySelector<HTMLElement>('#careers')!.onclick = () => this.openCareers();
     c.querySelector<HTMLElement>('#x')!.onclick = () => this.close('jobs');
     for (const b of c.querySelectorAll<HTMLElement>('[data-id]')) b.onclick = () => { g.accept(Number(b.dataset.id)); this.close('jobs'); };
+  }
+
+  /** Every career: your rank in it, what it pays, and the way to where you sign on. */
+  openCareers() {
+    const g = this.game, jobs = g.progress.careers ?? {};
+    const rows = CAREER_IDS.map((id) => {
+      const k = CAREERS[id], n = jobs[id] ?? 0, r = careerRank(n), rank = k.ranks[r], next = RANK_JOBS[r + 1], base = g.bases.find((b) => b.career === id);
+      return `<div class="offer"><div><b>${esc(k.name)} · ${esc(rank.title)}</b><span>${payLine(rank)}. ${esc(rank.opens)}.</span><span>${next !== undefined ? `${n} of ${next} jobs to ${esc(k.ranks[r + 1].title)}` : 'Top rank'}${base ? ` · signs on at ${esc(base.name)}` : ''}</span></div>${base ? `<button class="primary" data-go="${id}">Go there</button>` : ''}</div>`;
+    }).join('');
+    const c = this.sheet('jobs', `<h2>Careers</h2><p>Sign on at a station or depot, take its vehicle out, and be paid the job's real hourly rate for the time each task is booked to take. Walk up to the front to sign on.</p>${rows}<div class="row end"><button class="ghost" id="back">Jobs</button><button class="primary" id="x">Close</button></div>`);
+    c.querySelector<HTMLElement>('#x')!.onclick = () => this.close('jobs');
+    c.querySelector<HTMLElement>('#back')!.onclick = () => this.openJobs();
+    for (const b of c.querySelectorAll<HTMLElement>('[data-go]')) b.onclick = () => {
+      const base = g.bases.find((x) => x.career === b.dataset.go)!;
+      g.setWaypoint(base.at, base.name);
+      this.close('jobs');
+      this.banner(`Routing to ${base.name}`);
+    };
+  }
+
+  /** At a station or depot's front: sign on and pick a vehicle, or hand it back. */
+  private openBase(base: Base) {
+    const g = this.game, k = CAREERS[base.career], n = g.progress.careers?.[base.career] ?? 0, r = careerRank(n), rank = k.ranks[r], next = RANK_JOBS[r + 1];
+    if (g.shift) {
+      const s = g.shift, here = s.base === base || s.base.career === base.career;
+      const c = this.sheet('dialog', `<h2>${esc(base.name)}</h2><p>${esc(s.rank.title)}, this shift so far: ${s.jobs} done, ${s.earned} Points.</p>${here ? '' : '<p>This is another service\'s base: your own car is waiting where you signed on.</p>'}<div class="row end"><button class="ghost" id="stay">Keep working</button><button class="primary" id="off">Sign off</button></div>`);
+      c.querySelector<HTMLElement>('#stay')!.onclick = () => this.close('dialog');
+      c.querySelector<HTMLElement>('#off')!.onclick = () => { g.signOff(); this.close('dialog'); };
+      return;
+    }
+    const cars = g.vehiclesFor(base.career).map((id) => `<button class="primary" data-car="${id}">Take the ${esc(carById(id).name)}</button>`).join('');
+    const c = this.sheet('dialog', `<h2>${esc(base.name)}</h2><p><b>${esc(k.name)} · ${esc(rank.title)}</b></p><p>${payLine(rank)}. ${esc(rank.opens)}.</p><p>${next !== undefined ? `${n} of ${next} jobs to ${esc(k.ranks[r + 1].title)}: ${esc(k.ranks[r + 1].opens)}.` : 'You are at the top of this career.'}</p><p>Your car waits outside while you work.${g.quest ? ' Signing on hands back the job you are on.' : ''}</p><div class="row end"><button class="ghost" id="x">Not now</button>${cars}</div>`);
+    c.querySelector<HTMLElement>('#x')!.onclick = () => this.close('dialog');
+    for (const b of c.querySelectorAll<HTMLElement>('[data-car]')) b.onclick = () => { this.close('dialog'); if (!g.signOn(base.career, b.dataset.car as FleetId)) this.toast('Walk up to the front to sign on'); };
+  }
+
+  /** The shift you're on: what's next, what it's paid so far, and the way out. */
+  private openShift() {
+    const g = this.game, s = g.shift!, t = s.task;
+    const c = this.sheet('jobs', `<h2>${esc(CAREERS[s.career].name)} · ${esc(s.rank.title)}</h2>${t ? `<p><b>${esc(t.title)}</b></p><p>${esc(t.text)}</p>` : ''}<p>${payLine(s.rank)}. This shift: ${s.jobs} done, ${s.earned} Points.</p><p>Head back to ${esc(s.base.name)} to sign off, or end the shift here and the vehicle is taken back for you.</p><div class="row end"><button class="ghost" id="end">End shift now</button><button class="primary" id="x">Keep working</button></div>`);
+    c.querySelector<HTMLElement>('#x')!.onclick = () => this.close('jobs');
+    c.querySelector<HTMLElement>('#end')!.onclick = () => { g.signOff(); this.close('jobs'); };
   }
 
   openMap() {
@@ -874,6 +945,7 @@ export class App {
 
   // ---- garage and shop ----
   openGarage() {
+    if (this.game.shift) return this.toast('Sign off first: the garage is for your own car');
     this.renderGarage();
     document.body.classList.add('in-garage');
     const side = this.save.hand === 'left' ? -1 : 1;
@@ -989,4 +1061,9 @@ export class App {
       };
     }
   }
+}
+
+/** A rank's pay, as the real hourly rate and what it comes to in Points for each game hour (20 s) of booked work. */
+function payLine(r: CareerRank) {
+  return `£${r.gbpHour.toFixed(2)} an hour, about ${(r.gbpHour / POINT_GBP).toFixed(1)} Points every ${GAME_HOUR_S} s of booked work`;
 }

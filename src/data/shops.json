@@ -1438,5 +1438,607 @@
         "kcal": 120
       }
     ]
+  },
+  {
+    "id": "bramble_bazaar",
+    "name": "Bramble Bazaar",
+    "sells": "grocer",
+    "line": "Fresh fruit, nuts and tidy bottles of juice.",
+    "stock": [
+      {
+        "id": "bramble_bazaar_crisp_apple",
+        "kind": "snack",
+        "name": "Crisp Apple",
+        "price": 1,
+        "kcal": 80
+      },
+      {
+        "id": "bramble_bazaar_ripe_banana",
+        "kind": "snack",
+        "name": "Ripe Banana",
+        "price": 1,
+        "kcal": 105
+      },
+      {
+        "id": "bramble_bazaar_salted_peanuts",
+        "kind": "snack",
+        "name": "Salted Peanuts",
+        "price": 2,
+        "kcal": 170
+      },
+      {
+        "id": "bramble_bazaar_oat_flapjack",
+        "kind": "snack",
+        "name": "Oat Flapjack",
+        "price": 2,
+        "kcal": 220
+      },
+      {
+        "id": "bramble_bazaar_orange_juice",
+        "kind": "cold_drink",
+        "name": "Orange Juice",
+        "price": 2,
+        "kcal": 110
+      },
+      {
+        "id": "bramble_bazaar_apple_juice",
+        "kind": "cold_drink",
+        "name": "Apple Juice",
+        "price": 2,
+        "kcal": 120
+      }
+    ]
+  },
+  {
+    "id": "moss_market",
+    "name": "Moss Market",
+    "sells": "grocer",
+    "line": "Green fruit and wholesome snacks by weight.",
+    "stock": [
+      {
+        "id": "moss_market_ripe_pear",
+        "kind": "snack",
+        "name": "Ripe Pear",
+        "price": 1,
+        "kcal": 75
+      },
+      {
+        "id": "moss_market_green_grapes",
+        "kind": "snack",
+        "name": "Green Grapes",
+        "price": 2,
+        "kcal": 90
+      },
+      {
+        "id": "moss_market_roasted_cashews",
+        "kind": "snack",
+        "name": "Roasted Cashews",
+        "price": 2,
+        "kcal": 210
+      },
+      {
+        "id": "moss_market_raspberry_flapjack",
+        "kind": "snack",
+        "name": "Raspberry Flapjack",
+        "price": 2,
+        "kcal": 240
+      },
+      {
+        "id": "moss_market_grape_juice",
+        "kind": "cold_drink",
+        "name": "Grape Juice",
+        "price": 2,
+        "kcal": 130
+      },
+      {
+        "id": "moss_market_still_water",
+        "kind": "cold_drink",
+        "name": "Still Water",
+        "price": 1,
+        "kcal": 0
+      }
+    ]
+  },
+  {
+    "id": "tidy_threads",
+    "name": "Tidy Threads",
+    "sells": "clothes",
+    "line": "Neat clothes for town walks and school days.",
+    "stock": [
+      {
+        "id": "tidy_threads_plain_cotton_tee",
+        "kind": "tee",
+        "name": "Plain Cotton Tee",
+        "price": 5,
+        "colors": [
+          "#f5f5f5",
+          "#1f2a44"
+        ]
+      },
+      {
+        "id": "tidy_threads_striped_jumper",
+        "kind": "jumper",
+        "name": "Striped Jumper",
+        "price": 12,
+        "colors": [
+          "#7a1f1f",
+          "#f5f5f5"
+        ]
+      },
+      {
+        "id": "tidy_threads_winter_coat",
+        "kind": "jacket",
+        "name": "Winter Coat",
+        "price": 48,
+        "colors": [
+          "#2b2b2b",
+          "#5b6770"
+        ]
+      },
+      {
+        "id": "tidy_threads_denim_trousers",
+        "kind": "trousers",
+        "name": "Denim Trousers",
+        "price": 18,
+        "colors": [
+          "#34567b"
+        ]
+      },
+      {
+        "id": "tidy_threads_leather_shoes",
+        "kind": "shoes",
+        "name": "Leather Shoes",
+        "price": 26,
+        "colors": [
+          "#4a2f1b"
+        ]
+      },
+      {
+        "id": "tidy_threads_wool_hat",
+        "kind": "hat",
+        "name": "Wool Hat",
+        "price": 8,
+        "colors": [
+          "#9f2f2f"
+        ]
+      },
+      {
+        "id": "tidy_threads_winter_gloves",
+        "kind": "gloves",
+        "name": "Winter Gloves",
+        "price": 9,
+        "colors": [
+          "#4d4d4d"
+        ]
+      },
+      {
+        "id": "tidy_threads_round_sunglasses",
+        "kind": "sunglasses",
+        "name": "Round Sunglasses",
+        "price": 13,
+        "colors": [
+          "#111111"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "sunny_seeds",
+    "name": "Sunny Seeds",
+    "sells": "none",
+    "line": "A quiet shop in town.",
+    "stock": []
+  },
+  {
+    "id": "glide_skate_shop",
+    "name": "Glide Skate Shop",
+    "sells": "none",
+    "line": "A quiet shop in town.",
+    "stock": []
+  },
+  {
+    "id": "brick_broom",
+    "name": "Brick & Broom",
+    "sells": "none",
+    "line": "A quiet shop in town.",
+    "stock": []
+  },
+  {
+    "id": "bike_barn",
+    "name": "Bike Barn",
+    "sells": "none",
+    "line": "Nothing for sale just now.",
+    "stock": []
+  },
+  {
+    "id": "pebble_perk",
+    "name": "Pebble Perk",
+    "sells": "cafe",
+    "line": "A warm drink and a bite by the pebble.",
+    "stock": [
+      {
+        "id": "builder_tea",
+        "kind": "hot_drink",
+        "name": "Builder Tea",
+        "price": 2,
+        "kcal": 20
+      },
+      {
+        "id": "cafe_latte",
+        "kind": "hot_drink",
+        "name": "Cafe Latte",
+        "price": 2,
+        "kcal": 150
+      },
+      {
+        "id": "bottle_of_water",
+        "kind": "cold_drink",
+        "name": "Bottle of Water",
+        "price": 1,
+        "kcal": 0
+      },
+      {
+        "id": "banana",
+        "kind": "snack",
+        "name": "Banana",
+        "price": 1,
+        "kcal": 105
+      },
+      {
+        "id": "cheese_scone",
+        "kind": "snack",
+        "name": "Cheese Scone",
+        "price": 2,
+        "kcal": 300
+      },
+      {
+        "id": "sausage_roll",
+        "kind": "snack",
+        "name": "Sausage Roll",
+        "price": 2,
+        "kcal": 350
+      },
+      {
+        "id": "tuna_melt",
+        "kind": "sandwich",
+        "name": "Tuna Melt",
+        "price": 3,
+        "kcal": 450
+      },
+      {
+        "id": "full_breakfast",
+        "kind": "meal",
+        "name": "Full Breakfast",
+        "price": 8,
+        "kcal": 950
+      }
+    ]
+  },
+  {
+    "id": "puddle_boots",
+    "name": "Puddle Boots",
+    "sells": "none",
+    "line": "Coming soon!",
+    "stock": []
+  },
+  {
+    "id": "nest_knit",
+    "name": "Nest & Knit",
+    "sells": "clothes",
+    "line": "Warm knits for chilly days!",
+    "stock": [
+      {
+        "id": "cable_knit_jumper",
+        "kind": "jumper",
+        "name": "Cable Knit Jumper",
+        "price": 22,
+        "colors": [
+          "#7a5c4d",
+          "#d9c7b8"
+        ]
+      },
+      {
+        "id": "woolly_hoodie",
+        "kind": "jumper",
+        "name": "Woolly Hoodie",
+        "price": 26,
+        "colors": [
+          "#3f4c6b",
+          "#e8e8e8"
+        ]
+      },
+      {
+        "id": "plain_white_tee",
+        "kind": "tee",
+        "name": "Plain White Tee",
+        "price": 5,
+        "colors": [
+          "#ffffff",
+          "#f2f2f2"
+        ]
+      },
+      {
+        "id": "striped_long_tee",
+        "kind": "tee",
+        "name": "Striped Long Tee",
+        "price": 8,
+        "colors": [
+          "#2c5f7f",
+          "#f5f5f5"
+        ]
+      },
+      {
+        "id": "fleece_lined_jacket",
+        "kind": "jacket",
+        "name": "Fleece Lined Jacket",
+        "price": 54,
+        "colors": [
+          "#2f3e2f",
+          "#cbbd9a"
+        ]
+      },
+      {
+        "id": "cord_trousers",
+        "kind": "trousers",
+        "name": "Cord Trousers",
+        "price": 24,
+        "colors": [
+          "#8b6f47"
+        ]
+      },
+      {
+        "id": "wool_hat",
+        "kind": "hat",
+        "name": "Wool Hat",
+        "price": 8,
+        "colors": [
+          "#a04052"
+        ]
+      },
+      {
+        "id": "knit_gloves",
+        "kind": "gloves",
+        "name": "Knit Gloves",
+        "price": 7,
+        "colors": [
+          "#4b6b7a"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "biscuit_barn_cafe",
+    "name": "Biscuit Barn Cafe",
+    "sells": "cafe",
+    "line": "Biscuits, toast and steaming tea!",
+    "stock": [
+      {
+        "id": "builder_tea",
+        "kind": "hot_drink",
+        "name": "Builder Tea",
+        "price": 2,
+        "kcal": 5
+      },
+      {
+        "id": "mocha_latte",
+        "kind": "hot_drink",
+        "name": "Mocha Latte",
+        "price": 3,
+        "kcal": 200
+      },
+      {
+        "id": "iced_lemonade",
+        "kind": "cold_drink",
+        "name": "Iced Lemonade",
+        "price": 2,
+        "kcal": 90
+      },
+      {
+        "id": "biscuit_basket",
+        "kind": "snack",
+        "name": "Biscuit Basket",
+        "price": 3,
+        "kcal": 320
+      },
+      {
+        "id": "cheese_scone",
+        "kind": "snack",
+        "name": "Cheese Scone",
+        "price": 3,
+        "kcal": 300
+      },
+      {
+        "id": "ham_baguette",
+        "kind": "sandwich",
+        "name": "Ham Baguette",
+        "price": 4,
+        "kcal": 480
+      },
+      {
+        "id": "bacon_bap",
+        "kind": "meal",
+        "name": "Bacon Bap",
+        "price": 4,
+        "kcal": 580
+      }
+    ]
+  },
+  {
+    "id": "honeycomb_cafe",
+    "name": "Honeycomb Cafe",
+    "sells": "cafe",
+    "line": "Honey treats and warm drinks inside.",
+    "stock": [
+      {
+        "id": "hc_pot_of_tea",
+        "kind": "hot_drink",
+        "name": "Pot of Tea",
+        "price": 2,
+        "kcal": 20
+      },
+      {
+        "id": "hc_latte",
+        "kind": "hot_drink",
+        "name": "Latte",
+        "price": 3,
+        "kcal": 150
+      },
+      {
+        "id": "hc_lemonade",
+        "kind": "cold_drink",
+        "name": "Lemonade",
+        "price": 2,
+        "kcal": 120
+      },
+      {
+        "id": "hc_oat_flapjack",
+        "kind": "snack",
+        "name": "Oat Flapjack",
+        "price": 2,
+        "kcal": 180
+      },
+      {
+        "id": "hc_sausage_roll",
+        "kind": "snack",
+        "name": "Sausage Roll",
+        "price": 3,
+        "kcal": 350
+      },
+      {
+        "id": "hc_cheese_toastie",
+        "kind": "sandwich",
+        "name": "Cheese Toastie",
+        "price": 3,
+        "kcal": 450
+      },
+      {
+        "id": "hc_vegetable_pie",
+        "kind": "meal",
+        "name": "Vegetable Pie",
+        "price": 5,
+        "kcal": 700
+      }
+    ]
+  },
+  {
+    "id": "puddle_pie_cafe",
+    "name": "Puddle Pie Cafe",
+    "sells": "cafe",
+    "line": "Warm pies with plenty of gravy!",
+    "stock": [
+      {
+        "id": "pp_pot_of_tea",
+        "kind": "hot_drink",
+        "name": "Pot of Tea",
+        "price": 2,
+        "kcal": 20
+      },
+      {
+        "id": "pp_coffee",
+        "kind": "hot_drink",
+        "name": "Coffee",
+        "price": 2,
+        "kcal": 5
+      },
+      {
+        "id": "pp_cola",
+        "kind": "cold_drink",
+        "name": "Can of Cola",
+        "price": 2,
+        "kcal": 139
+      },
+      {
+        "id": "pp_apple_crumble",
+        "kind": "snack",
+        "name": "Apple Crumble",
+        "price": 2,
+        "kcal": 300
+      },
+      {
+        "id": "pp_egg_mayo_bap",
+        "kind": "sandwich",
+        "name": "Egg Mayo Bap",
+        "price": 3,
+        "kcal": 400
+      },
+      {
+        "id": "pp_steak_pie",
+        "kind": "meal",
+        "name": "Steak Pie",
+        "price": 6,
+        "kcal": 900
+      },
+      {
+        "id": "pp_pork_pie",
+        "kind": "meal",
+        "name": "Pork Pie",
+        "price": 5,
+        "kcal": 800
+      }
+    ]
+  },
+  {
+    "id": "moon_bun_cafe",
+    "name": "Moon Bun Cafe",
+    "sells": "cafe",
+    "line": "Moon buns and hot drinks daily!",
+    "stock": [
+      {
+        "id": "mb_pot_of_tea",
+        "kind": "hot_drink",
+        "name": "Pot of Tea",
+        "price": 2,
+        "kcal": 20
+      },
+      {
+        "id": "mb_espresso",
+        "kind": "hot_drink",
+        "name": "Espresso",
+        "price": 2,
+        "kcal": 5
+      },
+      {
+        "id": "mb_milkshake",
+        "kind": "cold_drink",
+        "name": "Milkshake",
+        "price": 2,
+        "kcal": 180
+      },
+      {
+        "id": "mb_moon_bun",
+        "kind": "snack",
+        "name": "Moon Bun",
+        "price": 2,
+        "kcal": 300
+      },
+      {
+        "id": "mb_butter_bun",
+        "kind": "snack",
+        "name": "Butter Bun",
+        "price": 2,
+        "kcal": 320
+      },
+      {
+        "id": "mb_cheese_scone",
+        "kind": "snack",
+        "name": "Cheese Scone",
+        "price": 2,
+        "kcal": 290
+      },
+      {
+        "id": "mb_chicken_panini",
+        "kind": "sandwich",
+        "name": "Chicken Panini",
+        "price": 4,
+        "kcal": 550
+      },
+      {
+        "id": "mb_cheese_pie",
+        "kind": "meal",
+        "name": "Cheese Pie",
+        "price": 5,
+        "kcal": 700
+      }
+    ]
   }
 ]
