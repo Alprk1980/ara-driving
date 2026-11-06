@@ -783,14 +783,14 @@ export class View {
   }
 
   private drawSky(dt: number) {
-    const g = this.game, now = skyAt(this.skies, g.dayFrac, g.rain), p = g.player, town = this.look3;
+    const g = this.game, now = skyAt(this.skies, g.skyFrac, g.rain), p = g.player, town = this.look3;
     this.setLight(this.fog.color, now.fog);
     this.fog.near = now.fogNear;
     this.fog.far = now.fogFar;
     this.setLight(this.sun.color, now.sun);
     this.sun.intensity = now.sunPower;
     this.hemi.intensity = now.ambient + now.night * NIGHT_FILL;
-    const a = (g.dayFrac - 0.25) * Math.PI * 2;
+    const a = (g.skyFrac - 0.25) * Math.PI * 2; // the sun rises and sets when today's date has it
     this.sunDir.set(Math.cos(a), Math.sin(a), 0.3).normalize();
     const tint = new THREE.Color(...now.tint); // a plain multiplier, so 0.4 on the sky's scale reads as 0.4 on screen
     this.hemi.groundColor.set('#88a080').multiply(tint); // light bounced up off the ground

@@ -569,9 +569,9 @@ describe('the day', () => {
     expect(g.rain).toBe(0);
     g.time = DAY_S * 0.2;
     expect(g.dayFrac).toBeCloseTo(0.5);
-    const wet = Array.from({ length: 2000 }, (_, i) => { g.time = i * 5; return g.rain; }).filter((r) => r > 0).length / 2000;
-    expect(wet).toBeGreaterThan(0.1);
-    expect(wet).toBeLessThan(0.5);
+    const wet = Array.from({ length: 20000 }, (_, i) => { g.time = i * 5; return g.rain; }).filter((r) => r > 0).length / 20000;
+    expect(wet).toBeGreaterThan(0.04); // a March day is wet one time in three (Met Office), raining for 6 of its hours: 8%
+    expect(wet).toBeLessThan(0.14);
   });
 });
 

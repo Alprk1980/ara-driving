@@ -6,7 +6,13 @@
       map-edge gate in TEEN_SCOPE.md (P4 marina/beach/lake) is open.
 - [ ] Hand more to Qwen: street furniture models and cockpit colours, through the generate, check and review loop.
 - [ ] Drive into the holes you make in buildings, and save that damage.
-- [ ] Finish the research pass: prices, pay, weather and day length.
+- [x] Finish the research pass: prices, pay, weather and day length (2026-11-06, `src/sim/almanac.ts`).
+      The sun rises and sets on Birmingham's times for the real date, British Summer Time included: 07:12-16:30 in
+      early November, 04:45-21:34 at midsummer. Rain follows the Met Office's 1991-2020 Winterbourne averages, 132.5
+      wet days a year, wettest in November; a wet day rains for 6 hours, a figure derived from 809 mm a year at about
+      1 mm an hour, so it rains about 9% of the time rather than the 30% before. Fuel at £1.40 a Point still fits the
+      pumps (132-138p a litre in 2026, RAC). Freelance jobs pay about 8 Points a game hour, some £11, near the National
+      Living Wage of £12.21, so their pay stands; careers pay their own researched rates. A game day stays 8 minutes.
 - [ ] More street variety: dormers, bay windows, deeper loading bays, shop signs.
 
 ## Life in town (asked for 2026-11-02)

@@ -419,7 +419,7 @@ export class App {
     const streak = $('streak');
     streak.hidden = g.streak < 1;
     if (g.streak > 0) streak.textContent = `Streak ${g.streak}: next +${Math.round(streakBonus(g.streak) * 100)}%`;
-    this.djSays(this.radio.tick(dt, { night: isNight(g.dayFrac), rain: g.rain > 0.3, rush: RUSH.some(([a, b]) => g.dayFrac >= a && g.dayFrac < b) }));
+    this.djSays(this.radio.tick(dt, { night: isNight(g.skyFrac), rain: g.rain > 0.3, rush: RUSH.some(([a, b]) => g.dayFrac >= a && g.dayFrac < b) }));
     this.guide.tick(dt);
     const q = g.quest;
     if (q?.phase === 'Active' && q.offer.type === 'passenger' && q.offer.twist !== 'sleeping') {

@@ -1,6 +1,7 @@
 // The game director: owns the simulation, runs it in fixed steps and emits events. It knows nothing about
 // screens or sound, so tests and headless reviews run the same rules the player gets.
 import { afterEating, afterRun, TIRED_AT } from './energy.ts';
+import { lightFrac, monthOf, RAIN_SPELL_H, sunFor, wetOdds, type Sun } from './almanac.ts';
 import { contactAt, crushLevel, NEUTRAL, PlayerCar, sideOf, type DriveIntent, type DriveState, type Mark, type Side } from './car.ts';
 import type { Find, Goal, GoalKind, TownEventCard } from '../../schemas/content.ts';
 import { BUS_FARE, carById, isWorkCar, RECOVERY_FEE, FIND_ALL_REWARD, FIND_REWARD, FUEL_PRICE, GOAL_REWARD, HOME_TOPUP_PCT, rankOf, rankPay, REGULAR_FINALE, REP_FINALE, REP_GOAL, REP_JOB, REP_SPOTLESS, streakBonus } from './economy.ts';
@@ -24,7 +25,7 @@ import type { FleetId } from '../../schemas/fleet.ts';
 
 export const STEP = 1 / 60;
 export const DAY_S = 480; // one day and night
-const DAY_START = 0.3, RAIN_BLOCK_S = 150, RAIN_ODDS = 0.3, RAIN_FADE_S = 15, FIND_ZONE = 8;
+const DAY_START = 0.3, DRY_START_S = 150, RAIN_FADE_S = 15, FIND_ZONE = 8; // the first stretch of a session always stays dry
 const EVENT_S = 180, EVENT_ODDS = 0.65, EVENT_MIN_EDGE = 150, ROAD_CLEAR_HOME_M = 20;
 export const isNight = (frac: number) => frac > 0.8 || frac < 0.2;
 const STOP_ZONE = 16, GATE_ZONE = 20, STATION_ZONE = 16, HOME_ZONE = 18, STOP_MPS = 3;
@@ -108,6 +109,8 @@ export class Game {
   event: TownEventCard | null = null;
   foot: OnFoot | null = null; // out of the car and walking; the car stays where it was left
   energy = 1; // for running, 0-1: see energy.ts
+  sun: Sun = sunFor(''); // today's sunrise and sunset, from the date the game was opened
+  month = 3;
   ride: { bus: TrafficCar; rang: boolean } | null = null; // on a bus, and whether you've rung for the next stop
   shift: Shift | null = null; // signed on at work, in the service's vehicle
   private own: OwnCar | null = null; // your car, parked where you left it while you work
@@ -137,6 +140,8 @@ export class Game {
     this.town.rough = -1;
     this.events = opts.events ?? [];
     const day = opts.day ?? '';
+    this.sun = sunFor(day);
+    this.month = monthOf(day);
     if (this.progress.daily.day !== day) this.progress.daily = freshDaily(day);
     this.goals = goalsFor(content.goals ?? [], day);
     this.town.fitPlaces((p) => placeAt(this.town, content.places, p)?.kind, (content.regulars ?? []).map((_, i) => storyPlot(this.town, i)));
@@ -474,11 +479,18 @@ export class Game {
   /** How far through the day it is: 0 midnight, 0.5 noon. */
   get dayFrac() { return (DAY_START + this.time / DAY_S) % 1; }
 
+  /** The sky's share of the day: the clock bent so sunrise and sunset fall where today's date has them (almanac.ts).
+   *  Night, the sun and the sky's colours all follow this; the clock itself, and the rush hours, stay on dayFrac. */
+  get skyFrac() { return lightFrac(this.dayFrac, this.sun); }
+
   /** How hard it is raining, 0 to 1. The first stretch of a session always stays dry. */
   get rain() {
-    const block = Math.floor(this.time / RAIN_BLOCK_S), into = this.time - block * RAIN_BLOCK_S;
-    if (block === 0 || makeRng(block * 31)() > RAIN_ODDS) return 0;
-    return Math.min(1, into / RAIN_FADE_S, (RAIN_BLOCK_S - into) / RAIN_FADE_S);
+    if (this.time < DRY_START_S) return 0;
+    const days = DAY_START + this.time / DAY_S, day = Math.floor(days), into = (days - day) * DAY_S;
+    const rng = makeRng(day * 31 + this.month * 7 + 1); // the same day rains the same way on a replay
+    if (rng() > wetOdds(this.month)) return 0; // a dry day, as about two in three are (Met Office, Birmingham)
+    const spell = (RAIN_SPELL_H / 24) * DAY_S, t = into - rng() * (DAY_S - spell);
+    return t < 0 || t > spell ? 0 : Math.min(1, t / RAIN_FADE_S, (spell - t) / RAIN_FADE_S);
   }
 
   on(h: (e: GameEvent) => void) { this.handlers.push(h); }
@@ -786,7 +798,7 @@ export class Game {
     if (grade === 'Gold') this.goalStep('gold');
     if (twist) this.goalStep('twist');
     if (q.bumps === 0) this.goalStep('clean');
-    if (isNight(this.dayFrac)) this.goalStep('night');
+    if (isNight(this.skyFrac)) this.goalStep('night');
     this.gainRep(REP_JOB + (grade === 'Spotless' || grade === 'Gold' ? REP_SPOTLESS : 0));
   }
 
